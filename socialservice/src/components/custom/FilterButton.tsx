@@ -16,7 +16,7 @@ export const FilterButton = ({ label }: Props) => {
   return (
     <Select>
       <SelectTrigger
-        className="border-3 border-blue-800 text-blue-800 placeholder:text-blue-800 font-semibold rounded-full px-4 py-1 text-sm w-[140px] hover:bg-blue-300 transition [&>svg]:text-blue-800"
+        className="border-2 border-blue-800 text-blue-800 placeholder:text-blue-800 font-semibold rounded-full px-4 py-1 text-sm w-[140px] hover:bg-blue-300 transition [&>svg]:text-blue-800"
       >
         <SelectValue placeholder={label} />
       </SelectTrigger>

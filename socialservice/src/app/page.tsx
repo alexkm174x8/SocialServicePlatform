@@ -19,7 +19,7 @@ export default function Explorar() {
       <div className="flex flex-wrap justify-end gap-4 mb-6">
 
 <button
-  className="border-3 border-gray-600 text-gray-500 font-semibold rounded-full px-4 py-1 text-sm hover:bg-gray-300 transition"
+  className="border-1 border-gray-600 text-gray-500 font-semibold rounded-full px-4 py-1 text-sm hover:bg-gray-300 transition"
   onClick={() => {
     console.log('Limpiar filtros');
   }}

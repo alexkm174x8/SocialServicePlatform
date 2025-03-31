@@ -1,6 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 
 @custom-variant dark (&:is(.dark *));
 
@@ -47,7 +50,9 @@
 body {
   background: #ffffff; /* Set plain white background */
   color: #000000; /* Set text color to black */
-  @apply font-sans;
+  @apply text-base;
+
+  
 }
 
 
