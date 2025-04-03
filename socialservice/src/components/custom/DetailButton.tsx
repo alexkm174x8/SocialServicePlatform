@@ -1,19 +1,26 @@
 'use client';
 
+import { useRouter } from "next/navigation";
+
 interface Props {
   texto: string;
   color: string;
   size: 'full' | 'auto';
 }
 
+
 export const DetailButton = ({ texto, size }: Props) => {
-  const widthClass = size === 'full' ? 'w-full' : 'w-auto';
+  const router = useRouter();
+
+  const handleNavigation = () => {
+    router.push("/explorar/proyecto");
+  };
 
   return (
     <button
+      onClick={handleNavigation}
       className={`
-        ${widthClass}
-        bg-blue-400 hover:bg-blue-600
+        bg-blue-400 hover:bg-blue-900
         text-white font-semibold text-sm
         px-8 py-[6px] 
         rounded-full
@@ -26,3 +33,4 @@ export const DetailButton = ({ texto, size }: Props) => {
     </button>
   );
 };
+

@@ -27,8 +27,8 @@ export const CardItem = ({ index }: Props) => (
         Asistencia en entrenamiento y acondicionamiento físico a personas con discapacidades mentales
       </p>
       <div className="flex gap-2 mb-2 text-sm">
-        <FeatureButton texto="Presencial" color="white" />
-        <FeatureButton texto="40 horas" color="white" />
+        <FeatureButton texto="Presencial" color="white" size="sm"/>
+        <FeatureButton texto="40 horas" color="white" size="sm"/>
       </div>
 
       <div className="flex justify-between items-center gap-2 text-sm mt-2">
