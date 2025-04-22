@@ -1,5 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { HeaderBar } from "@/components/custom/HeaderBar";
 import { SideBar } from "@/components/custom/SideBar";
 import { ArrowLeft } from "lucide-react";
@@ -7,9 +8,25 @@ import { PInput } from "@/components/custom/PInput";
 import { DetalleProyecto } from "@/components/custom/DetalleProyecto";
 import { Carrera } from "@/components/custom/Carrera";
 import { RadioGroup } from "@/components/custom/RadioGroup";
+import { PostulacionPopup } from "@/components/popup/PostulacionPopup";
 
 export default function Formulario() {
   const router = useRouter();
+
+  const [showPopup, setShowPopup] = useState(false);
+
+  const handleOpenPopup = () => {
+    setShowPopup(true);
+  };
+
+  const handleCancel = () => {
+    setShowPopup(false);
+  };
+
+  const handleSubmit = () => {
+    router.push("/solicitudes");
+    setShowPopup(false);
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-100">
@@ -102,13 +119,18 @@ export default function Formulario() {
       >
         Cancelar
       </button>
+
+      {/* Tu botón */}
       <button
-        type="submit"
-        className="px-6 py-2 rounded-full border border-[#0a2170] bg-[#0a2170] text-white font-semibold 
-                   hover:bg-black hover:text-white hover:border-black transition-colors duration-200"
+        onClick={handleOpenPopup}
+        className="bg-[#0a2170] text-white px-6 py-2 rounded-full hover:bg-[#091b5c] transition"
       >
-        Siguiente
+        Enviar
       </button>
+
+      {showPopup && (
+        <PostulacionPopup onCancel={handleCancel} onSubmit={handleSubmit} />
+      )}
     </div>
           </div>
         </div>

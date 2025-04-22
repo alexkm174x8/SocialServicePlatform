@@ -3,11 +3,23 @@
 import { useState } from "react";
 import { useRouter, usePathname} from "next/navigation";
 import { LogOut,  Archive , TextSearch, AlignJustify } from "lucide-react";
+import { ConfirmPopup } from "@/components/popup/ConfirmPopup";
 
 export function SideBar() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname()
+
+  const [showConfirmLogout, setShowConfirmLogout] = useState(false);
+
+  const handleLogout = () => {
+    console.log("Cerrando sesión...");
+    setShowConfirmLogout(false);
+  };
+
+  const cancelLogout = () => {
+    setShowConfirmLogout(false);
+  };
 
   const handleNavigation = ( path: string) => {
     router.push(path);
@@ -54,12 +66,23 @@ export function SideBar() {
           </button>
         </nav>
       </div>
+      <>
       <button
         className="flex items-center gap-3 p-2 rounded-md text-black hover:text-black hover:bg-white transition"
+        onClick={() => setShowConfirmLogout(true)}
       >
         <LogOut size={24} />
         {isSidebarOpen && <span>Cerrar sesión</span>}
       </button>
+
+      {showConfirmLogout && (
+        <ConfirmPopup
+          message="¿Desea cerrar sesión?"
+          onConfirm={handleLogout}
+          onCancel={cancelLogout}
+        />
+      )}
+    </>
     </div>
   );
 }
