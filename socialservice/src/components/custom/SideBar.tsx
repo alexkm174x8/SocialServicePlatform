@@ -15,9 +15,9 @@ export function SideBar() {
 
   return (
     <div
-      className={`$ {
-        isSidebarOpen ? "w-64" : "w-16"
-      } bg-blue-900 h-screen p-4 transition-all shadow-md flex flex-col justify-between `}
+      className={`fixed left-0 top-0 h-screen bg-blue-900 p-4 transition-all shadow-md flex flex-col justify-between z-2000 ${
+        isSidebarOpen ? 'w-64' : 'w-20'
+      }`}
     >
       <div>
         <button
