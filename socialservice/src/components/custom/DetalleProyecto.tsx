@@ -11,7 +11,7 @@ type ProjectDetail = {
   
   export function DetalleProyecto({ detalles }: Props) {
     return (
-      <div className="text-sm text-[#0a2170] space-y-2 mt-4 bg-purple-50 border rounded-md p-4">
+      <div className="text-sm text-[#0a2170] space-y-2 mt-4 bg-blue-200 border-blue-900 border rounded-md p-4">
         <p>
           El proyecto al que te estás postulando es un <strong>Proyecto {detalles.modalidad}</strong>
         </p>
