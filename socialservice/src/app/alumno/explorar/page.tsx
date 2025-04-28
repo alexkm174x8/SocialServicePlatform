@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { HeaderBar } from "@/components/custom/HeaderBar";
-import { SearchBar } from "@/components/custom/SearchBar";
-import { FilterButton } from "@/components/custom/FilterButton";
-import { CardItem } from "@/components/custom/CardItem";
-import { SideBar } from "@/components/custom/SideBar";
+import { HeaderBar } from "@/app/components/HeaderBar";
+import { SearchBar } from "@/app/components/SearchBar";
+import { FilterButton } from "@/app/components/FilterButton";
+import { CardItem } from "@/app/alumno/components/custom/CardItem";
+import { SideBar } from "@/app/alumno/components/custom/StudentSideBar";
 import { TextSearch } from "lucide-react";
 import { supabase } from "@/lib/supabase"; 
 
