@@ -1,6 +1,6 @@
 'use client';
 
-import { Input } from '@/components/ui/input';
+import { Input } from '@/app/alumno/components/ui/input';
 import { Search } from 'lucide-react';
 
 interface Props {

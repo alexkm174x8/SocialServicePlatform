@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { HeaderBar } from "@/components/custom/HeaderBar";
-import { SearchBar } from "@/components/custom/SearchBar";
-import { FilterButton } from "@/components/custom/FilterButton";
-import { CardItem } from "@/components/custom/CardItem";
-import { SideBar } from "@/components/custom/SideBar";
-import { TextSearch } from "lucide-react";
+import { HeaderBar } from "@/app/components/HeaderBar";
+import { SearchBar } from "@/app/components/SearchBar";
+import { FilterButton } from "@/app/components/FilterButton";
+import { CardItem } from "@/app/alumno/components/custom/CardItem";
+import { SideBar } from "@/app/alumno/components/custom/StudentSideBar";
+import { Compass } from "lucide-react";
 
 const mockCards = [1, 2, 3, 4, 5, 6, 7, 8];
 
@@ -19,7 +19,7 @@ export default function Explorar() {
       <SideBar/>
       <HeaderBar
         titulo="Explorar"
-        Icono={TextSearch}
+        Icono={Compass}
       />
       <main className={`transition-all mt-20  ml-30 mr-10`} >
         <SearchBar search={search} setSearch={setSearch} />

@@ -11,7 +11,7 @@ export const PostularseButton = ({ texto}: Props) => {
     const router = useRouter();
   
     const handleNavigation = () => {
-      router.push("/explorar/proyecto/formulario");
+      router.push("/alumno/explorar/proyecto/formulario");
     };
   
   return (
