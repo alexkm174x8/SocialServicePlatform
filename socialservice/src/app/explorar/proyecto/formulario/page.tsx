@@ -1,12 +1,12 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { HeaderBar } from "@/app/components/HeaderBar";
-import { SideBar } from "@/app/alumno/components/custom/StudentSideBar";
+import { HeaderBar } from "@/components/custom/HeaderBar";
+import { SideBar } from "@/components/custom/SideBar";
 import { ArrowLeft } from "lucide-react";
-import { PInput } from "@/app/alumno/components/custom/PInput";
-import { DetalleProyecto } from "@/app/alumno/components/custom/DetalleProyecto";
-import { Carrera } from "@/app/alumno/components/custom/Carrera";
-import { RadioGroup } from "@/app/alumno/components/custom/RadioGroup";
+import { PInput } from "@/components/custom/PInput";
+import { DetalleProyecto } from "@/components/custom/DetalleProyecto";
+import { Carrera } from "@/components/custom/Carrera";
+import { RadioGroup } from "@/components/custom/RadioGroup";
 
 export default function Formulario() {
   const router = useRouter();

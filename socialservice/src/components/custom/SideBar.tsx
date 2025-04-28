@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, usePathname} from "next/navigation";
-import { LogOut,  Inbox , FolderOpen, AlignJustify } from "lucide-react";
+import { LogOut,  Archive , TextSearch, AlignJustify } from "lucide-react";
 
 export function SideBar() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -28,7 +28,7 @@ export function SideBar() {
         </button>
         <div className="mb-5">
             <img 
-                src={isSidebarOpen ? "/images/sslogo-descomprimido.png"  : "/images/sslogo-comprimido.png"} 
+                src={isSidebarOpen ? "/images/sslogo.png"  : "/images/sslogo2.png"} 
                 className={isSidebarOpen ? "w-45 h-15" : "w-10 h-15"}
                 alt="Logo"
             />
@@ -36,20 +36,20 @@ export function SideBar() {
         <nav className="flex flex-col gap-4">
           <button
             className={`flex items-center gap-3 p-2 rounded-md transition ${
-              pathname === "/admin/proyectos-solidarios" ? "bg-white text-blue-900" : "text-white"
+              pathname === "/explorar" ? "bg-white text-blue-900" : "text-white"
             }`}
-            onClick={() => handleNavigation( "/admin/proyectos-solidarios")}
+            onClick={() => handleNavigation( "/explorar")}
           >
-            <FolderOpen size={24} />
+            <TextSearch size={24} />
             {isSidebarOpen && <span>Explorar</span>}
           </button>
           <button
             className={`flex items-center gap-3 p-2 rounded-md transition ${
-              pathname === "/admin/solicitudes-alumnos" ? "bg-white text-blue-900" : "text-white"
+              pathname === "/solicitudes" ? "bg-white text-blue-900" : "text-white"
             }`}
-            onClick={() => handleNavigation( "/admin/solicitudes-alumnos")}
+            onClick={() => handleNavigation( "/solicitudes")}
           >
-            < Inbox size={24} />
+            < Archive size={24} />
             {isSidebarOpen && <span>Solicitudes</span>}
           </button>
         </nav>

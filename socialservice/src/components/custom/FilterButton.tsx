@@ -6,7 +6,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/app/alumno/components/ui/select';
+} from '@/components/ui/select';
 
 interface Props {
   label: string;
