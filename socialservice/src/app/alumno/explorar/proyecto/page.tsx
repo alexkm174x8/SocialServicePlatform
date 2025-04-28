@@ -1,14 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { FeatureButton } from "@/components/custom/FeatureButton";
+import { FeatureButton } from "@/app/alumno/components/custom/FeatureButton";
 import { useRouter } from "next/navigation";
-import { HeaderBar } from "@/components/custom/HeaderBar";
-import { SideBar } from "@/components/custom/SideBar";
+import { HeaderBar } from "@/app/components/HeaderBar";
+import { SideBar } from "@/app/alumno/components/custom/StudentSideBar";
 import { ArrowLeft } from "lucide-react";
-import { ProjectDetails } from "@/components/custom/ProjectDetails";
-import { Properties } from "@/components/custom/Properties";
-import { PostularseButton } from "@/components/custom/PostularseButton";
+import { ProjectDetails } from "@/app/alumno/components/custom/ProjectDetails";
+import { Properties } from "@/app/alumno/components/custom/Properties";
+import { PostularseButton } from "@/app/alumno/components/custom/PostularseButton";
 
 export default function Proyecto() {
   const router = useRouter();

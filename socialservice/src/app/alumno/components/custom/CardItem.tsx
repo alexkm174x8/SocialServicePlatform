@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { Card } from '@/components/ui/card';
+import { Card } from '@/app/alumno/components/ui/card';
 import { DetailButton } from './DetailButton';
 import { FeatureButton } from './FeatureButton';
 

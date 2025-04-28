@@ -13,7 +13,7 @@ export const DetailButton = ({ texto, size }: Props) => {
   const router = useRouter();
 
   const handleNavigation = () => {
-    router.push("/explorar/proyecto");
+    router.push("explorar/proyecto");
   };
 
   return (

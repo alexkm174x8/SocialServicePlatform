@@ -1,9 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { HeaderBar } from "@/components/custom/HeaderBar"
-import { SideBar } from "@/components/custom/SideBar"
-import { Archive, Check, X, Loader2, Lock, ArrowLeft } from "lucide-react"
+import { HeaderBar } from "@/app/components/HeaderBar"
+import { SideBar } from "@/app/alumno/components/custom/StudentSideBar"
+import { FileText, Check, X, Loader2, Lock, ArrowLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 type Status = "completed" | "in-progress" | "locked" | "rejected"
@@ -159,7 +159,7 @@ const ProgressTrackerCard = ({ title, requestedDate, updatedDate, actionLabel, s
         <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 mt-2 md:mt-0">
           <div className="text-xs md:text-sm"><span className="opacity-80">Solicitado: </span>{requestedDate}</div>
           <div className="text-xs md:text-sm"><span className="opacity-80">Actualizado: </span>{updatedDate}</div>
-          <ActionButton texto={actionLabel} size="auto" onClick={() => router.push("/explorar/proyecto")} />
+          <ActionButton texto={actionLabel} size="auto" onClick={() => router.push("explorar/proyecto")} />
           {renderResponderButton()}
         </div>
       </div>
@@ -196,7 +196,7 @@ export default function Solicitudes() {
     <div className="flex min-h-screen bg-gray-100">
       <SideBar />
       <div className="flex-1 p-4 md:p-8">
-        <HeaderBar titulo="Solicitudes" Icono={Archive} />
+        <HeaderBar titulo="Solicitudes" Icono={FileText} />
         <main className={`transition-all mt-20 ml-30 mr-10`}>
           <div className="space-y-6 mt-6">
             {examples.map((tracker, index) => (

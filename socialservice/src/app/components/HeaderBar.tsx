@@ -13,7 +13,7 @@ export const HeaderBar = ({ titulo, Icono, onClick }: Props) => {
 
   return (
     <div
-      className=" fixed top-0 left-20 right-0 bg-gray-50 px-4 py-3 flex justify-between items-center z-50 "
+      className=" fixed top-0 left-20 right-0 bg-[#fffff] px-4 py-3 flex justify-between items-center z-50 "
     >
       <div className=" flex items-center gap-3">
         {onClick ? (
