@@ -66,7 +66,7 @@ export default function Explorar() {
           )}
         </div>
 
-        {isLoading && <p className="text-center">Loading projects...</p>}
+        {isLoading && <p className="text-center">Cargando proyectos...</p>}
         {error && <p className="text-center text-red-600">Error: {error}</p>}
 
         {!isLoading && !error && (
