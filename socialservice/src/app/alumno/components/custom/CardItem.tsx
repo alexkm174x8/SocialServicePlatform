@@ -9,9 +9,10 @@ interface Props {
   name: string;
   description: string;
   state: string;
+  id_project: number;
 }
 
-export const CardItem = ({ name, description, state }: Props) => (
+export const CardItem = ({ name, description, state, id_project}: Props) => (
   <Card className="relative w-full h-60 overflow-hidden rounded-3xl shadow-md">
   
     <Image
@@ -34,12 +35,11 @@ export const CardItem = ({ name, description, state }: Props) => (
       </div>
 
       <div className="flex justify-between items-center gap-2 text-sm mt-2">
-  <p className="text-white">
-    <span className="font-bold">Estado:</span> {state}
-  </p>
-  <DetailButton texto="Ver" color="blue" size="auto" />
-</div>
-
+        <p className="text-white">
+          <span className="font-bold"> Estado:</span> {state}
+        </p>
+        <DetailButton texto="Ver" color="blue" id= {id_project} size="auto"/> 
+      </div>
     </div>
   </Card>
 );
