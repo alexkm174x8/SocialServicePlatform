@@ -14,7 +14,19 @@ type Project = {
   proyecto: any;
   estatus_ps: any;
   objetivo_ps: any;
+  hours: any;
+  format: any;
+  color: any;
 };
+
+function getBackgroundColor(hours: number): string {
+  if (hours === 180) return "bg-teal-300";   
+  if (hours === 120) return "bg-purple-400";     
+  if (hours === 60) return "bg-rose-400";       
+  if (hours === 100) return "bg-orange-400";   
+  if (hours === 200) return "bg-sky-400";     
+  return "bg-gray-400"; 
+}
 
 export default function Explorar() {
   const [search, setSearch] = useState("");
@@ -29,7 +41,7 @@ export default function Explorar() {
 
       const { data, error } = await supabase
         .from('proyectos_solidarios')
-        .select('id_proyecto, proyecto, estatus_ps, objetivo_ps');
+        .select('id_proyecto, proyecto, estatus_ps, objetivo_ps, horas, modalidad');
 
       if (error) {
         console.error("Error fetching projects:", error);
@@ -59,7 +71,7 @@ export default function Explorar() {
           >
             Limpiar todo
           </button>
-          {["Modalidad", "Ubicación", "Disponibilidad", "Relevancia"].map(
+          {["Modalidad", "Disponibilidad"].map(
             (label) => (
               <FilterButton key={label} label={label} />
             )
@@ -75,8 +87,11 @@ export default function Explorar() {
                projects.map((project) => (
                 <CardItem
                   name={project.proyecto}
-                  description={project.objetivo_ps}
+                  description={project.objetivo_ps.split(' ').slice(0, 15).join(' ') + (project.objetivo_ps.split(' ').length > 15 ? '...' : '')}
                   state={project.estatus_ps}
+                  hours={project.horas}
+                  format={project.modalidad}
+                  color =  {getBackgroundColor(project.horas)}
                 />
               ))
             ) : (
