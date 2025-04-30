@@ -6,8 +6,10 @@ import { SearchBar } from "@/app/components/SearchBar";
 import { FilterButton } from "@/app/components/FilterButton";
 import { CardItem } from "@/app/alumno/components/custom/CardItem";
 import { SideBar } from "@/app/alumno/components/custom/StudentSideBar";
-import { TextSearch } from "lucide-react";
+import { Compass } from "lucide-react";
 import { supabase } from "@/lib/supabase"; 
+import { Trash2 } from "lucide-react";
+
 
 type Project = {
   id_proyecto: any;
@@ -30,9 +32,34 @@ function getBackgroundColor(hours: number): string {
 
 export default function Explorar() {
   const [search, setSearch] = useState("");
+  const [searchApplied, setSearchApplied] = useState("");
+
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null); 
+
+  const [filterModalities, setFilterModalities] = useState<string[]>([]);
+  const [filterHours, setFilterHours] = useState<string[]>([]);
+  const [filterName, setFilterName] = useState<string[]>([]);
+  const [filterObj, setFilterObj] = useState<string[]>([]);
+  
+  
+
+  const filteredProjects = projects.filter((project) => {
+    const matchesModality =
+      filterModalities.length === 0 || filterModalities.includes(project.modalidad);
+    const matchesHours =
+      filterHours.length === 0 || filterHours.includes(project.horas.toString());
+  
+    const searchLower = searchApplied.toLowerCase();
+    const matchesSearch =
+      project.proyecto.toLowerCase().includes(searchLower) ||
+      project.objetivo_ps.toLowerCase().includes(searchLower);
+  
+    return matchesModality && matchesHours && matchesSearch;
+  });
+  
+  
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -60,31 +87,53 @@ export default function Explorar() {
   return (
     <>
       <SideBar />
-      <HeaderBar titulo="Explorar" Icono={TextSearch} />
+      <HeaderBar titulo="Explorar" Icono={Compass} />
       <main className={`transition-all mt-20 ml-30 mr-10`}>
-        <SearchBar search={search} setSearch={setSearch} />
+      <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
+      <SearchBar
+        search={search}
+        setSearch={setSearch}
+        onSearchApply={() => setSearchApplied(search)}
+        onSearchClear={() => setSearchApplied("")}
+      />
 
-        <div className="flex flex-wrap justify-end gap-4 mb-6">
-          <button
-            className="border border-gray-600 text-gray-500 font-semibold rounded-full px-4 py-1 text-sm hover:bg-gray-300 transition"
-            onClick={() => console.log("Limpiar filtros")}
-          >
-            Limpiar todo
-          </button>
-          {["Modalidad", "Disponibilidad"].map(
-            (label) => (
-              <FilterButton key={label} label={label} />
-            )
-          )}
-        </div>
+  <div className="flex gap-7 items-center">
+    <button
+      className="border border-gray-600 text-gray-500 font-semibold rounded-full px-4 py-1 text-sm hover:bg-gray-300 transition"
+      onClick={() => {
+        setFilterModalities([]);
+        setFilterHours([]);
+        setSearch("");
+        setSearchApplied("");
+      }}
+    >
+      <Trash2 className="w-5 h-5" />
+    </button>
+
+    <FilterButton
+      label="Modalidad"
+      options={["Línea", "Presencial", "Híbrido"]}
+      selectedValues={filterModalities}
+      onChange={setFilterModalities}
+    />
+
+    <FilterButton
+      label="Horas"
+      options={["60", "100", "120", "180", "200"]}
+      selectedValues={filterHours}
+      onChange={setFilterHours}
+    />
+  </div>
+</div>
+
 
         {isLoading && <p className="text-center">Loading projects...</p>}
         {error && <p className="text-center text-red-600">Error: {error}</p>}
 
         {!isLoading && !error && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {projects.length > 0 ? (
-               projects.map((project) => (
+            {filteredProjects.length > 0 ? (
+            filteredProjects.map((project) => (
                 <CardItem
                   name={project.proyecto}
                   description={project.objetivo_ps.split(' ').slice(0, 15).join(' ') + (project.objetivo_ps.split(' ').length > 15 ? '...' : '')}
