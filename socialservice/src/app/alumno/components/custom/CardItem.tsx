@@ -9,6 +9,13 @@ interface Props {
   name: string;
   description: string;
   state: string;
+  id_project: number;
+}
+
+export const CardItem = ({ name, description, state, id_project}: Props) => (
+  <Card className="relative w-full h-60 overflow-hidden rounded-3xl shadow-md">
+    
+    {/*
   format: string;
   hours: Int16Array;
   color: string;
@@ -16,6 +23,7 @@ interface Props {
 
 
 export const CardItem = ({ name, description, state, format, hours, color}: Props) => (
+*/}
   
   <Card className={`relative w-full h-60 overflow-hidden rounded-3xl shadow-md transition-transform transform hover:scale-105 ${color}`}>
 
@@ -32,12 +40,18 @@ export const CardItem = ({ name, description, state, format, hours, color}: Prop
       </div>
 
       <div className="flex justify-between items-center gap-2 text-sm mt-2">
+        <p className="text-white">
+          <span className="font-bold"> Estado:</span> {state}
+        </p>
+        <DetailButton texto="Ver" color="blue" id= {id_project} size="auto"/> 
+      </div>
+        {/*
   <p className="text-white">
     <span className="font-bold">Cupos:</span> {state}
   </p>
   <DetailButton texto="Ver" color="blue" size="auto" />
 </div>
-
+*/}
     </div>
   </Card>
 );

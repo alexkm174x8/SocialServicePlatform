@@ -86,12 +86,16 @@ export default function Explorar() {
             {projects.length > 0 ? (
                projects.map((project) => (
                 <CardItem
+                  key={project.id_proyecto}
                   name={project.proyecto}
                   description={project.objetivo_ps.split(' ').slice(0, 15).join(' ') + (project.objetivo_ps.split(' ').length > 15 ? '...' : '')}
                   state={project.estatus_ps}
+                  id_project={project.id_proyecto}
+        {/*
                   hours={project.horas}
                   format={project.modalidad}
                   color =  {getBackgroundColor(project.horas)}
+                  */}
                 />
               ))
             ) : (

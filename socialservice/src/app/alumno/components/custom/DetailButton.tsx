@@ -5,15 +5,16 @@ import { useRouter } from "next/navigation";
 interface Props {
   texto: string;
   color: string;
+  id: number
   size: 'full' | 'auto';
 }
 
 
-export const DetailButton = ({ texto, size }: Props) => {
+export const DetailButton = ({ texto, size, id }: Props) => {
   const router = useRouter();
 
   const handleNavigation = () => {
-    router.push("explorar/proyecto");
+    router.push(`explorar/proyecto/${id}`);
   };
 
   return (
