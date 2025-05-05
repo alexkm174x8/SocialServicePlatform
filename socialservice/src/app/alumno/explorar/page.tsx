@@ -30,6 +30,7 @@ function getBackgroundColor(hours: number): string {
   return "bg-gray-400"; 
 }
 
+
 export default function Explorar() {
   const [search, setSearch] = useState("");
   const [searchApplied, setSearchApplied] = useState("");
@@ -140,11 +141,9 @@ export default function Explorar() {
                   description={project.objetivo_ps.split(' ').slice(0, 15).join(' ') + (project.objetivo_ps.split(' ').length > 15 ? '...' : '')}
                   state={project.estatus_ps}
                   id_project={project.id_proyecto}
-        {/*
                   hours={project.horas}
                   format={project.modalidad}
                   color =  {getBackgroundColor(project.horas)}
-                  */}
                 />
               ))
             ) : (
