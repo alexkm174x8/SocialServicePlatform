@@ -33,7 +33,6 @@ function getBackgroundColor(hours: number): string {
 
 export default function Explorar() {
   const [search, setSearch] = useState("");
-  const [searchApplied, setSearchApplied] = useState("");
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -52,7 +51,7 @@ export default function Explorar() {
     const matchesHours =
       filterHours.length === 0 || filterHours.includes(project.horas.toString());
   
-    const searchLower = searchApplied.toLowerCase();
+    const searchLower = search.toLowerCase();
     const matchesSearch =
       project.proyecto.toLowerCase().includes(searchLower) ||
       project.objetivo_ps.toLowerCase().includes(searchLower);
@@ -94,8 +93,8 @@ export default function Explorar() {
       <SearchBar
         search={search}
         setSearch={setSearch}
-        onSearchApply={() => setSearchApplied(search)}
-        onSearchClear={() => setSearchApplied("")}
+        onSearchApply={() => {}}
+        onSearchClear={() => setSearch("")}
       />
 
   <div className="flex gap-7 items-center">
@@ -105,7 +104,6 @@ export default function Explorar() {
         setFilterModalities([]);
         setFilterHours([]);
         setSearch("");
-        setSearchApplied("");
       }}
     >
       <Trash2 className="w-5 h-5" />
@@ -113,7 +111,7 @@ export default function Explorar() {
 
     <FilterButton
       label="Modalidad"
-      options={["Línea", "Presencial", "Híbrido"]}
+      options={["En línea", "Presencial", "Mixto"]}
       selectedValues={filterModalities}
       onChange={setFilterModalities}
     />

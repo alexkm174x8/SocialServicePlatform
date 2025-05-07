@@ -139,24 +139,24 @@ const ProgressTrackerCard = ({ title, requestedDate, updatedDate, actionLabel, s
     }
 
     return (
-      <div className="w-full  lg:h-50 max-w-4xl mx-auto bg-[#0a2170] text-white rounded-xl p-4 md:p-6 mb-8">
+      <div className="w-full  lg:h-30 max-w-4xl mx-auto bg-[#0a2170] text-white rounded-xl p-4 md:p-6 mb-4">
         <div className="flex items-center mb-4">
           <ArrowLeft className="w-6 h-6 cursor-pointer mr-2" onClick={() => setIsResponding(false)} />
-          <h2 className="text-xl font-bold">{title}</h2>
+          <h2 className="text-xl font-bold"> {`¿Aceptas ${title} como proyecto solidario definitivo?`} </h2>
         </div>
         <div className="flex space-x-4 justify-center ">
-          <ActionButton texto="Rechazar" size="auto" colorClass='bg-red-400 hover:bg-red-600' onClick={handleReject} />
-          <ActionButton texto="Aceptar" size="auto" colorClass='bg-green-400 hover:bg-green-600' onClick={handleAccept} />
+          <ActionButton texto="Rechazar" size="auto" colorClass='bg-[#ff5757] hover:bg-red-600' onClick={handleReject} />
+          <ActionButton texto="Aceptar" size="auto" colorClass='bg-[#00c48c] hover:bg-green-600' onClick={handleAccept} />
         </div>
       </div>
     )
   }
 
   return (
-    <div className="w-full lg:h-50 max-w-4xl mx-auto bg-[#0a2170] text-white rounded-xl p-4 md:p-6 mb-8">
+    <div className="w-full lg:h-45 max-w-4xl mx-auto bg-[#0a2170] text-white rounded-xl p-4 md:p-6 mb-4">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <h2 className="text-xl font-bold">{title}</h2>
-        <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 mt-2 md:mt-0">
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 mt-1 md:mt-0">
           <div className="text-xs md:text-sm"><span className="opacity-80">Solicitado: </span>{requestedDate}</div>
           <div className="text-xs md:text-sm"><span className="opacity-80">Actualizado: </span>{updatedDate}</div>
           <ActionButton texto={actionLabel} size="auto" onClick={() => router.push("explorar/proyecto")} />
@@ -195,7 +195,7 @@ export default function Solicitudes() {
   return (
     <div className="flex min-h-screen bg-gray-100">
       <SideBar />
-      <div className="flex-1 p-4 md:p-8">
+      <div className="flex-1 p-4 md:p-4">
         <HeaderBar titulo="Solicitudes" Icono={FileText} />
         <main className={`transition-all mt-20 ml-30 mr-10`}>
           <div className="space-y-6 mt-6">

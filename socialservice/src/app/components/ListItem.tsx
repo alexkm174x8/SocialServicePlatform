@@ -3,66 +3,7 @@
 import React from 'react';
 import { Trash2, Edit } from 'lucide-react';
 
-export const ListItem = () => {
-  const rows = [
-  {
-    subido: '2025-04-25T14:35:00Z',
-    estatus: 'Abierto',
-    perfil: "CAG'S",
-    grupo: 'Grupo A',
-    clave: 'ABC123',
-    proyecto: 'Proyecto Ejemplo',
-    representante: 'Juan Pérez',
-    contacto: 'juan.perez@ejemplo.com',
-    manejar: 'Permiso X',
-  },
-  {
-    subido: '2025-04-20T10:00:00Z',
-    estatus: 'En Revisión',
-    perfil: 'Admin',
-    grupo: 'Grupo B',
-    clave: 'DEF456',
-    proyecto: 'Sistema de Gestión',
-    representante: 'María López',
-    contacto: 'maria.lopez@ejemplo.com',
-    manejar: 'Permiso Y',
-  },
-  {
-    subido: '2025-04-18T08:15:00Z',
-    estatus: 'Cerrado',
-    perfil: 'Usuario',
-    grupo: 'Grupo C',
-    clave: 'GHI789',
-    proyecto: 'App de Inventarios',
-    representante: 'Carlos Sánchez',
-    contacto: 'carlos.sanchez@ejemplo.com',
-    manejar: 'Permiso Z',
-  },
-  {
-    subido: '2025-04-22T16:45:00Z',
-    estatus: 'Abierto',
-    perfil: 'Supervisor',
-    grupo: 'Grupo A',
-    clave: 'JKL012',
-    proyecto: 'Proyecto Rediseño',
-    representante: 'Laura Gómez',
-    contacto: 'laura.gomez@ejemplo.com',
-    manejar: 'Permiso X',
-  },
-  {
-    subido: '2025-04-19T12:30:00Z',
-    estatus: 'Pendiente',
-    perfil: 'Cliente',
-    grupo: 'Grupo D',
-    clave: 'MNO345',
-    proyecto: 'Nueva Plataforma',
-    representante: 'Luis Fernández',
-    contacto: 'luis.fernandez@ejemplo.com',
-    manejar: 'Permiso Y',
-  },
-];
-
-
+export const ListItem = ({ data }: { data: any[] }) => {
   return (
     <div className="overflow-x-auto lg:overflow-x-visible">
       <table className="table-auto w-full text-sm text-left text-gray-500">
@@ -81,7 +22,7 @@ export const ListItem = () => {
           </tr>
         </thead>
         <tbody>
-          {rows.map((row, idx) => (
+          {data.map((row, idx) => (
             <tr key={idx} className="hover:bg-gray-50">
               <td className="px-4 py-2">
                 <input
@@ -94,7 +35,7 @@ export const ListItem = () => {
                 </label>
               </td>
               <td className="px-4 py-2">
-                {new Date(row.subido).toLocaleString('es-MX')}
+                {new Date(row.subido).toLocaleString("es-MX")}
               </td>
               <td className="px-4 py-2">{row.estatus}</td>
               <td className="px-4 py-2">{row.perfil}</td>
@@ -109,7 +50,7 @@ export const ListItem = () => {
               </td>
               <td className="flex items-center px-4 py-2 space-x-2">
                 <button aria-label="Editar">
-                  <Edit className="w-4 h-4 text-blue-900 hover:text-blue-800" />
+                  <Edit className="w-4 h-4 text-blue-900 hover:text-blue-400" />
                 </button>
                 <button aria-label="Eliminar">
                   <Trash2 className="w-4 h-4 text-blue-900 hover:text-red-800" />
