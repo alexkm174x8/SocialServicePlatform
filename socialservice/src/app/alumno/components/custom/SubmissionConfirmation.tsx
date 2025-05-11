@@ -1,9 +1,40 @@
-import React from "react";
+import React, { useEffect } from "react";
 
-const SubmissionConfirmation: React.FC = () => {
+interface SubmissionConfirmationProps {
+  onClose: () => void;
+}
+
+const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({ onClose }) => {
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (target.closest(".popup-content") === null) {
+        onClose();
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [onClose]);
+
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 }}>
-      <div className="max-w-xl mx-auto bg-white rounded-2xl shadow-md p-8 text-center border border-gray-300">
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 50
+      }}
+    >
+      <div className="popup-content max-w-xl mx-auto bg-white rounded-2xl shadow-md p-8 text-center border border-gray-300">
         <p className="text-lg mb-6 text-gray-800">
           Gracias por el tiempo dedicado a responder el formulario.
         </p>
@@ -24,7 +55,10 @@ const SubmissionConfirmation: React.FC = () => {
         </p>
 
         <div className="flex justify-center gap-4">
-          <button className="px-6 py-2 rounded-full border border-blue-800 text-blue-800 font-semibold hover:bg-blue-50 transition">
+          <button
+            onClick={onClose}
+            className="px-6 py-2 rounded-full border border-blue-800 text-blue-800 font-semibold hover:bg-blue-50 transition"
+          >
             Cancelar
           </button>
           <button className="px-6 py-2 rounded-full bg-blue-800 text-white font-semibold hover:bg-blue-900 transition">

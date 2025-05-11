@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { HeaderBar } from "@/app/components/HeaderBar";
 import { SideBar } from "@/app/alumno/components/custom/StudentSideBar";
 import { ArrowLeft } from "lucide-react";
-import { PInput } from "@/app/alumno/components/custom/PInput";
 import { DetalleProyecto } from "@/app/alumno/components/custom/DetalleProyecto";
 import { Carrera } from "@/app/alumno/components/custom/Carrera";
 import { RadioGroup } from "@/app/alumno/components/custom/RadioGroup";
@@ -13,7 +12,57 @@ import SubmissionConfirmation from "@/app/alumno/components/custom/SubmissionCon
 export default function Formulario() {
   const router = useRouter();
   const [showPopup, setShowPopup] = useState(false);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [warning, setWarning] = useState("");
+
+  const [form, setForm] = useState({
+    nombre: "",
+    matricula: "",
+    carreraCompleta: "",
+    correo: "",
+    telefono: "",
+  });
+
+  const regexMap: { [key: string]: { regex: RegExp; message: string } } = {
+    nombre: {
+      regex: /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{3,}$/,
+      message: "Nombre inválido. Usa solo letras y mínimo 3 caracteres.",
+    },
+    matricula: {
+      regex: /^[Aa]\d{8}$/,
+      message: "Matrícula inválida. Debe iniciar con 'A' o 'a' seguido de 8 números.",
+    },
+    carreraCompleta: {
+      regex: /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{3,}$/,
+      message: "Nombre de carrera inválido. Usa solo letras.",
+    },
+    correo: {
+      regex: /^[a-zA-Z0-9._%+-]+@tec\.mx$/,
+      message: "Correo inválido. Debe terminar en @tec.mx",
+    },
+    telefono: {
+      regex: /^\d{10}$/,
+      message: "Teléfono inválido. Debe contener exactamente 10 dígitos.",
+    },
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+
+    if (regexMap[name]) {
+      const { regex, message } = regexMap[name];
+      if (!regex.test(value)) {
+        setErrors((prev) => ({ ...prev, [name]: message }));
+      } else {
+        setErrors((prev) => {
+          const updated = { ...prev };
+          delete updated[name];
+          return updated;
+        });
+      }
+    }
+  };
 
   const handleNextClick = () => {
     const inputs = document.querySelectorAll("input, select");
@@ -21,20 +70,33 @@ export default function Formulario() {
 
     inputs.forEach((input) => {
       const label = input.closest("label")?.textContent || input.getAttribute("placeholder") || input.name;
+      const fieldNamesMap: { [key: string]: string } = {
+        "Ingresa tu nombre": "Nombre completo",
+        "Ingresa tu matrícula": "Matrícula",
+        "Ingresa tu carrera": "Carrera",
+        "ejemplo@correo.com": "Correo electrónico",
+        "Ingresa tu número": "Número de teléfono",
+        "estatus": "Estatus",
+        "proyecto": "Proyecto",
+        "compromiso": "Compromiso",
+      };
+
+      const fieldName = fieldNamesMap[label] || label;
+
       if (
         (input.type === "radio" &&
           !document.querySelector(`input[name="${input.name}"]:checked`)) ||
         ((input.type !== "radio" && input.type !== "submit" && input.type !== "button") &&
           input.value.trim() === "")
       ) {
-        if (!missingFields.includes(label)) {
-          missingFields.push(label);
+        if (!missingFields.includes(fieldName)) {
+          missingFields.push(fieldName);
         }
       }
     });
 
     if (missingFields.length > 0) {
-      setWarning(`Por favor completa los siguientes campos:\n- ${missingFields.join("\n- ")}`);
+      setWarning(`Por favor completa los siguientes campos: ${missingFields.join(", ")}.`);
       return;
     }
 
@@ -42,26 +104,85 @@ export default function Formulario() {
     setShowPopup(true);
   };
 
+  const handleClosePopup = () => {
+    setShowPopup(false);
+  };
+
   return (
     <main className="flex-1 overflow-y-auto mt-20 ml-30 mr-10 ">
       <div>
         <SideBar />
         <div className="flex flex-col flex-1 p-4">
-          <HeaderBar 
-            titulo="Proyecto" 
-            Icono={ArrowLeft} 
-            onClick={() => router.back()} 
-          />
-          <div className="max-w-2xl w-full mx-auto mt-4 rounded-lg p-6 border-blue-900 border-2">
+          <HeaderBar titulo="Proyecto" Icono={ArrowLeft} onClick={() => router.back()} />
+          <div className="max-w-2xl w-full mx-auto mt-4 rounded-md p-6 border-blue-900 border-2">
             <div className="space-y-4">
-              <PInput label="Nombre completo" placeholder="Ingresa tu nombre" />
-              <PInput label="Matrícula" placeholder="Ingresa tu matrícula" />
-              <Carrera
-                carreras={["IBT", "IC", "LC", "IIS", "IM", "IMT", "IQ", "IRS", "ITC"]}
-              />
-              <PInput label="Por favor menciona el nombre completo de tu carrera" placeholder="Ingresa tu carrera" />
-              <PInput label="Correo institucional" placeholder="ejemplo@correo.com" type="email" />
-              <PInput label="Teléfono (a 10 dígitos y sin espacios)" placeholder="Ingresa tu número" type="tel" />
+              <div>
+                <label className="block font-semibold text-[#0a2170]">Nombre completo</label>
+                <input
+                  name="nombre"
+                  type="text"
+                  value={form.nombre}
+                  onChange={handleChange}
+                  placeholder="Ingresa tu nombre"
+                  className="w-full border rounded-md p-2"
+                />
+                {errors.nombre && <p className="text-red-600">{errors.nombre}</p>}
+              </div>
+
+              <div>
+                <label className="block font-semibold text-[#0a2170]">Matrícula</label>
+                <input
+                  name="matricula"
+                  type="text"
+                  value={form.matricula}
+                  onChange={handleChange}
+                  placeholder="Ingresa tu matrícula"
+                  className="w-full border rounded-md p-2"
+                />
+                {errors.matricula && <p className="text-red-600">{errors.matricula}</p>}
+              </div>
+
+              <Carrera carreras={["IBT", "IC", "LC", "IIS", "IM", "IMT", "IQ", "IRS", "ITC"]} />
+
+              <div>
+                <label className="block font-semibold text-[#0a2170]">Por favor menciona el nombre completo de tu carrera</label>
+                <input
+                  name="carreraCompleta"
+                  type="text"
+                  value={form.carreraCompleta}
+                  onChange={handleChange}
+                  placeholder="Ingresa tu carrera"
+                  className="w-full border rounded-md p-2"
+                />
+                {errors.carreraCompleta && <p className="text-red-600">{errors.carreraCompleta}</p>}
+              </div>
+
+              <div>
+                <label className="block font-semibold text-[#0a2170]">Correo institucional</label>
+                <input
+                  name="correo"
+                  type="email"
+                  value={form.correo}
+                  onChange={handleChange}
+                  placeholder="ejemplo@correo.com"
+                  className="w-full border rounded-md p-2"
+                />
+                {errors.correo && <p className="text-red-600">{errors.correo}</p>}
+              </div>
+
+              <div>
+                <label className="block font-semibold text-[#0a2170]">Teléfono (a 10 dígitos y sin espacios)</label>
+                <input
+                  name="telefono"
+                  type="tel"
+                  value={form.telefono}
+                  onChange={handleChange}
+                  placeholder="Ingresa tu número"
+                  className="w-full border rounded-md p-2"
+                />
+                {errors.telefono && <p className="text-red-600">{errors.telefono}</p>}
+              </div>
+
               <RadioGroup 
                 label="Estatus en el que te encuentras:"
                 name="estatus"
@@ -91,7 +212,8 @@ export default function Formulario() {
                   ],
                 }}
               />
-              <div >
+
+              <div>
                 <label className="block font-semibold text-[#0a2170]">
                   ¿Estás dispuestx a seguir con las postulación?
                 </label>
@@ -122,9 +244,9 @@ export default function Formulario() {
                   </div>
                 </div>
               </div>
-              {warning && (
-                <div className="text-red-600 whitespace-pre-line font-semibold">{warning}</div>
-              )}
+
+              {warning && <p className="text-red-600">{warning}</p>}
+
               <div className="flex justify-end gap-4 mt-6">
                 <button
                   type="button"
@@ -145,7 +267,7 @@ export default function Formulario() {
             </div>
           </div>
         </div>
-        {showPopup && <SubmissionConfirmation />}
+        {showPopup && <SubmissionConfirmation onClose={handleClosePopup} />}
       </div>
     </main>
   );
