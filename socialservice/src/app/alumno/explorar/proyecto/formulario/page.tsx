@@ -13,8 +13,32 @@ import SubmissionConfirmation from "@/app/alumno/components/custom/SubmissionCon
 export default function Formulario() {
   const router = useRouter();
   const [showPopup, setShowPopup] = useState(false);
+  const [warning, setWarning] = useState("");
 
   const handleNextClick = () => {
+    const inputs = document.querySelectorAll("input, select");
+    const missingFields: string[] = [];
+
+    inputs.forEach((input) => {
+      const label = input.closest("label")?.textContent || input.getAttribute("placeholder") || input.name;
+      if (
+        (input.type === "radio" &&
+          !document.querySelector(`input[name="${input.name}"]:checked`)) ||
+        ((input.type !== "radio" && input.type !== "submit" && input.type !== "button") &&
+          input.value.trim() === "")
+      ) {
+        if (!missingFields.includes(label)) {
+          missingFields.push(label);
+        }
+      }
+    });
+
+    if (missingFields.length > 0) {
+      setWarning(`Por favor completa los siguientes campos:\n- ${missingFields.join("\n- ")}`);
+      return;
+    }
+
+    setWarning("");
     setShowPopup(true);
   };
 
@@ -43,7 +67,6 @@ export default function Formulario() {
                 name="estatus"
                 options={["Postuladx"]}
               />
-
               <RadioGroup 
                 label="Proyecto al que te estás postulando"
                 name="proyecto"
@@ -51,7 +74,6 @@ export default function Formulario() {
                   "PS 108 61319 EmpowerShe: Empoderamiento femenino mediante clases STEM - EmpowerShe FJ25"
                 ]}
               />
-
               <DetalleProyecto
                 detalles={{
                   modalidad: "MIXTO",
@@ -73,7 +95,6 @@ export default function Formulario() {
                 <label className="block font-semibold text-[#0a2170]">
                   ¿Estás dispuestx a seguir con las postulación?
                 </label>
-
                 <div className="space-y-3 text-sm text-gray-800">
                   <div className="flex items-start gap-3">
                     <input
@@ -87,7 +108,6 @@ export default function Formulario() {
                       Sí, estoy dispuestx a ejecutar el Proyecto Solidario con las condiciones de días y horarios requeridos.
                     </label>
                   </div>
-
                   <div className="flex items-start gap-3">
                     <input
                       type="radio"
@@ -102,6 +122,9 @@ export default function Formulario() {
                   </div>
                 </div>
               </div>
+              {warning && (
+                <div className="text-red-600 whitespace-pre-line font-semibold">{warning}</div>
+              )}
               <div className="flex justify-end gap-4 mt-6">
                 <button
                   type="button"
