@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { HeaderBar } from "@/app/components/HeaderBar";
+import { useEffect, useState } from "react";
+import { HeaderBarAdmin } from "@/app/components/HeaderBarAdmin";
 import { SearchBar } from "@/app/components/SearchBar";
 import { FilterButton } from "@/app/components/FilterButton";
 import { ListItem } from "@/app/components/ListItem";
@@ -9,112 +9,173 @@ import { SideBar } from "@/app/admin/components/custom/AdminSideBar";
 import { Inbox} from "lucide-react";
 import UploaderButton from "@/app/admin/components/custom/UploaderButton";
 import DownloadModal from '@/app/admin/components/custom/DownloadModal';
+import { Trash2 } from "lucide-react";
+import {DetailButton} from "@/app/components/DetailButton";
+import { Lista } from "@/app/components/Lista";
 
-const mockCards = [1, 2, 3, 4, 5, 6, 7, 8];
 
-export default function Explorar() {
+type Solicitud = {
+  matricula: string;
+  correo: string;
+  carrera: string;
+  telefono: string;
+  servicio: string;
+  estado: string;
+  pregunta1: string;
+  pregunta2: string;
+};
+
+const mockData: Solicitud[] = [
+  {
+    matricula: "A01736897",
+    correo: "estefania.antonio@tec.mx",
+    carrera: "ITC",
+    telefono: "+52 921 135 6784",
+    servicio: "Special Olympics",
+    estado: "Aceptadx",
+    pregunta1: "Tengo experiencia previa como voluntaria en eventos deportivos.",
+    pregunta2: "Me interesa apoyar a personas con discapacidad.",
+  },
+  {
+    matricula: "A01736898",
+    correo: "miranda.colorado@tec.mx",
+    carrera: "IRS",
+    telefono: "+52 921 135 6785",
+    servicio: "Banco de Alimentos",
+    estado: "Declinadx por el alumnx",
+    pregunta1: "He colaborado antes en actividades de distribución de alimentos.",
+    pregunta2: "Quiero contribuir a reducir el desperdicio de comida.",
+  },
+  {
+    matricula: "A01736899",
+    correo: "alejandro.kong@tec.mx",
+    carrera: "IMT",
+    telefono: "+52 921 135 6786",
+    servicio: "Clases de regularización",
+    estado: "No aceptadx",
+    pregunta1: "Me encanta enseñar matemáticas a jóvenes.",
+    pregunta2: "Deseo mejorar la educación en mi comunidad.",
+  },
+  {
+    matricula: "A01736900",
+    correo: "sofia.zugasti@tec.mx",
+    carrera: "IMD",
+    telefono: "+52 921 135 6787",
+    servicio: "Rescate animal",
+    estado: "En revisión",
+    pregunta1: "Tengo formación en primeros auxilios veterinarios.",
+    pregunta2: "Me motiva proteger a los animales callejeros.",
+  },
+];
+
+export default function Solicitud() {
   const [search, setSearch] = useState("");
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isUploaderVisible, setIsUploaderVisible] = useState(false);
-  const [isDownloadModalVisible, setIsDownloadModalVisible] = useState(false);
+  const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
+  const [filterCarrera, setFilterCarrera] = useState<string[]>([]);
+  const [filterEstado, setFilterEstado] = useState<string[]>([]);
 
-  const handleFileUpload = (file: File) => {
-    console.log("Archivo recibido:", file);
-    // Aquí puedes hacer algo con el archivo
-  };
+   useEffect(() => {
+     setSolicitudes(mockData);
+   }, []);
+
+   
+  const filtered = solicitudes.filter((s) => {
+    const searchTerm = search.toLowerCase();
+    const matchesSearch =
+      s.matricula.toLowerCase().includes(searchTerm) ||
+      s.correo.toLowerCase().includes(searchTerm) ||
+      s.carrera.toLowerCase().includes(searchTerm) ||
+      s.telefono.toLowerCase().includes(searchTerm) ||
+      s.servicio.toLowerCase().includes(searchTerm) ||
+      s.estado.toLowerCase().includes(searchTerm) ||
+      s.pregunta1.toLowerCase().includes(searchTerm) ||
+      s.pregunta2.toLowerCase().includes(searchTerm);
+
+    const matchesCarrera =
+      filterCarrera.length === 0 || filterCarrera.includes(s.carrera);
+
+      const matchesEstado =
+      filterEstado.length === 0 || filterEstado.includes(s.estado);
+
+    return matchesSearch && matchesCarrera && matchesEstado;
+  });
 
   return (
     <>
       <SideBar/>
-      <HeaderBar
-        titulo="Solicitudes de alumnos" 
+      <HeaderBarAdmin
+        titulo="Solicitudes de Alumno"
         Icono={Inbox}
       />
-      <main className={`transition-all mt-20  ml-30 mr-10`} >
-        <SearchBar search={search} setSearch={setSearch} />
 
-        <div className="flex flex-wrap justify-evenly gap-4 mb-6">
-          <button
-            className={`
-              bg-blue-400 hover:bg-blue-900
-              text-white font-semibold text-lg
-              px-12 py-[12px] 
-              rounded-full
-              flex items-center justify-center
-              leading-tight  
-              transition duration-200`}
-            onClick={() => setIsUploaderVisible(true)}
-          >
-            Subir
-          </button>
-          <button
-            className={`
-              bg-blue-400 hover:bg-blue-900
-              text-white font-semibold text-lg
-              px-12 py-[12px] 
-              rounded-full
-              flex items-center justify-center
-              leading-tight  
-              transition duration-200`}
-            onClick={() => setIsDownloadModalVisible(true)}
-          >
-            Descargar 
-          </button>
-          <button
-            className="border border-gray-600 text-gray-500 font-semibold rounded-full px-4 py-1 text-sm hover:bg-gray-300 transition"
-            onClick={() => console.log("Limpiar filtros")}
-          >
-            Limpiar todo
-          </button>
-          {["Modalidad", "Disponibilidad"].map((label) => (
-            <FilterButton key={label} label={label} />
-          ))}
-        </div>
-
-        {isUploaderVisible && (
-          <div
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-            onClick={() => setIsUploaderVisible(false)}
-          >
-            <div
-              className="bg-white p-6 rounded-lg shadow-lg"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
-                onClick={() => setIsUploaderVisible(false)}
-              >
-                X
-              </button>
-              <UploaderButton onFileUpload={handleFileUpload} />
-            </div>
-          </div>
-        )}
-
-        {isDownloadModalVisible && (
-          <div
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-            onClick={() => setIsDownloadModalVisible(false)}
-          >
-            <div
-              className="bg-white p-6 rounded-lg shadow-lg"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
-                onClick={() => setIsDownloadModalVisible(false)}
-              >
-                X
-              </button>
-              <DownloadModal />
-            </div>
-          </div>
-        )}
-
-        <div className="align-items justify-center">
-          <ListItem/>
-        </div>
-      </main>
-    </>
-  );
-}
+     <main className="mt-20 ml-15 px-15">
+             <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+               <SearchBar
+                 search={search}
+                 setSearch={setSearch}
+                 onSearchApply={() => {}}
+                 onSearchClear={() => setSearch("")}
+               />
+               <div className="flex items-center gap-6">
+     
+               <button
+                   className="border border-gray-600 text-gray-500 font-semibold rounded-full px-4 py-1 text-sm hover:bg-gray-300 transition"
+                   onClick={() => {
+                     setFilterEstado([]);
+                     setFilterCarrera([]);
+                     setSearch("");
+                   }}
+                 >
+                   <Trash2 className="w-5 h-5" />
+                 </button>
+     
+                 <FilterButton
+                   label="Carrera"
+                   options={[...new Set(solicitudes.map((s) => s.carrera))]}
+                   selectedValues={filterCarrera}
+                   onChange={setFilterCarrera}
+                 />
+     
+                 <FilterButton
+                   label="Estado"
+                   options={[...new Set(solicitudes.map((s) => s.estado))]}
+                   selectedValues={filterEstado}
+                   onChange={setFilterEstado}
+                 />
+                  </div>
+             </div>
+     
+             <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+               <div className="flex items-center gap-4">
+                 <DetailButton texto="Enviar" size="auto" onClick ={console.log("Enviar")} />
+                 <DetailButton texto="Descargar" size="auto" onClick ={console.log("Enviar")}/>
+               </div>
+     
+               <div className="flex flex-wrap gap-4 items-center text-sm">
+                 <div className="flex items-center gap-1">
+                   <div className="w-4 h-4 rounded bg-green-500" />
+                   <span className="text-[#001C55] font-medium">Aceptadx</span>
+                 </div>
+                 <div className="flex items-center gap-1">
+                   <div className="w-4 h-4 rounded bg-orange-400" />
+                   <span className="text-[#001C55] font-medium">Declinadx por el alumnx</span>
+                 </div>
+                 <div className="flex items-center gap-1">
+                   <div className="w-4 h-4 rounded bg-red-500" />
+                   <span className="text-[#001C55] font-medium">No aceptadx</span>
+                 </div>
+                 <div className="flex items-center gap-1">
+                   <div className="w-4 h-4 rounded bg-indigo-400" />
+                   <span className="text-[#001C55] font-medium">En revisión</span>
+                 </div>
+               </div>
+             </div>
+     
+             <div className="rounded-lg">
+             <Lista data={filtered} setData={setSolicitudes} />
+             </div>
+           </main>
+         </>
+       );
+     }
+     

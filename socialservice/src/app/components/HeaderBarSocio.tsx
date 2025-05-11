@@ -1,0 +1,25 @@
+"use client";
+
+import Image from "next/image";
+
+interface HeaderBarProps {
+  proyecto: string;
+}
+
+export const HeaderBarSocio = ({ proyecto }: HeaderBarProps) => {
+  return (
+    <header className="fixed top-0 left-0 w-full flex items-center bg-gray-100 px-15 py-2 z-40">
+      <div className="flex items-center gap-4">
+        <Image
+          src="/logoss.svg" // Asegúrate que este archivo esté en /public
+          alt="Logo"
+          width={25}
+          height={25}
+        />
+        <h1 className="text-2xl md:text-2xl font-extrabold text-[#001C55]">
+        {`Solicitudes ${proyecto}`}
+        </h1>
+      </div>
+    </header>
+  );
+};

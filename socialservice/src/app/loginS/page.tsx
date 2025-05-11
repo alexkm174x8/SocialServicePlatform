@@ -5,8 +5,22 @@ import { useState } from "react";
 export default function LoginSocioformador() {
   const [correo, setCorreo] = useState("");
   const [clave, setClave] = useState("");
+  const [showErrors, setShowErrors] = useState({
+    correo: false,
+    clave: false,
+  });
 
   const handleSubmit = () => {
+    const newErrors = {
+      correo: correo.trim() === "",
+      clave: clave.trim() === "",
+    };
+
+    setShowErrors(newErrors);
+
+    const hasErrors = Object.values(newErrors).some((val) => val);
+    if (hasErrors) return;
+
     alert(`Correo: ${correo}, Clave: ${clave}`);
     // Aquí podrías manejar la autenticación real
   };
@@ -15,7 +29,6 @@ export default function LoginSocioformador() {
     <div className="flex h-screen w-screen">
       {/* LADO IZQUIERDO */}
       <div className="w-1/2 bg-[#0a2170] text-white flex flex-col items-center justify-center px-10">
-        {/* Logo */}
         <div className="absolute top-6 left-6">
           <Image
             src="/logoss.svg"
@@ -57,8 +70,13 @@ export default function LoginSocioformador() {
                 value={correo}
                 onChange={(e) => setCorreo(e.target.value)}
                 placeholder="ejemplo@correo.com"
-                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#0a2170]"
+                className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                  showErrors.correo ? "border-red-500 ring-red-500" : "focus:ring-[#0a2170]"
+                }`}
               />
+              {showErrors.correo && (
+                <p className="text-red-600 text-sm mt-1">El correo es obligatorio.</p>
+              )}
             </div>
 
             <div>
@@ -69,13 +87,18 @@ export default function LoginSocioformador() {
                 Clave otorgada
               </label>
               <input
-                id="Clave"
+                id="clave"
                 type="password"
                 value={clave}
                 onChange={(e) => setClave(e.target.value)}
                 placeholder="Clave"
-                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#0a2170]"
+                className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                  showErrors.clave ? "border-red-500 ring-red-500" : "focus:ring-[#0a2170]"
+                }`}
               />
+              {showErrors.clave && (
+                <p className="text-red-600 text-sm mt-1">La clave es obligatoria.</p>
+              )}
             </div>
 
             <button

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { HeaderBar } from "@/app/components/HeaderBar";
+import { useEffect, useState } from "react";
+import { HeaderBarAdmin } from "@/app/components/HeaderBarAdmin";
 import { SearchBar } from "@/app/components/SearchBar";
 import { FilterButton } from "@/app/components/FilterButton";
 import { ListItem } from "@/app/components/ListItem";
@@ -9,66 +9,161 @@ import { SideBar } from "@/app/admin/components/custom/AdminSideBar";
 import { FolderOpen} from "lucide-react";
 import UploaderButton from "@/app/admin/components/custom/UploaderButton";
 import DownloadModal from '@/app/admin/components/custom/DownloadModal';
+import { Trash2 } from "lucide-react";
+import {DetailButton} from "@/app/components/DetailButton";
 
-const mockCards = [1, 2, 3, 4, 5, 6, 7, 8];
+
+type Explorar = {
+  subido: string;
+  estatus: string;  
+  perfil: string;
+  grupo: string;
+  clave: string;
+  proyecto: string;
+  representante: string;
+  contacto: string;
+  manejar: string;
+};
+
+const rows: Explorar[] = [
+  {
+    subido: '2025-04-25T14:35:00Z',
+    estatus: 'Abierto',
+    perfil: "CAG'S",
+    grupo: 'Grupo A',
+    clave: 'ABC123',
+    proyecto: 'Proyecto Ejemplo',
+    representante: 'Juan Pérez',
+    contacto: 'juan.perez@ejemplo.com',
+    manejar: 'Permiso X',
+  },
+  {
+    subido: '2025-04-20T10:00:00Z',
+    estatus: 'En Revisión',
+    perfil: 'Admin',
+    grupo: 'Grupo B',
+    clave: 'DEF456',
+    proyecto: 'Sistema de Gestión',
+    representante: 'María López',
+    contacto: 'maria.lopez@ejemplo.com',
+    manejar: 'Permiso Y',
+  },
+  {
+    subido: '2025-04-18T08:15:00Z',
+    estatus: 'Cerrado',
+    perfil: 'Usuario',
+    grupo: 'Grupo C',
+    clave: 'GHI789',
+    proyecto: 'App de Inventarios',
+    representante: 'Carlos Sánchez',
+    contacto: 'carlos.sanchez@ejemplo.com',
+    manejar: 'Permiso Z',
+  },
+  {
+    subido: '2025-04-22T16:45:00Z',
+    estatus: 'Abierto',
+    perfil: 'Supervisor',
+    grupo: 'Grupo A',
+    clave: 'JKL012',
+    proyecto: 'Proyecto Rediseño',
+    representante: 'Laura Gómez',
+    contacto: 'laura.gomez@ejemplo.com',
+    manejar: 'Permiso X',
+  },
+  {
+    subido: '2025-04-19T12:30:00Z',
+    estatus: 'Pendiente',
+    perfil: 'Cliente',
+    grupo: 'Grupo D',
+    clave: 'MNO345',
+    proyecto: 'Nueva Plataforma',
+    representante: 'Luis Fernández',
+    contacto: 'luis.fernandez@ejemplo.com',
+    manejar: 'Permiso Y',
+  },
+];
+
+
 
 export default function Explorar() {
   const [search, setSearch] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [explorar, setExplorar] = useState<Explorar[]>([]);
   const [isUploaderVisible, setIsUploaderVisible] = useState(false);
   const [isDownloadModalVisible, setIsDownloadModalVisible] = useState(false);
+  const [filterEstado, setFilterEstado] = useState<string[]>([]);
 
-  const handleFileUpload = (file: File) => {
+   useEffect(() => {
+     setExplorar(rows);
+   }, []);
+
+   const handleFileUpload = (file: File) => {
     console.log("Archivo recibido:", file);
-    // Aquí puedes hacer algo con el archivo
   };
+
+  
+  const filtered = explorar.filter((s) => {
+    const searchTerm = search.toLowerCase();
+    const matchesSearch =
+      s.subido.toLowerCase().includes(searchTerm) ||
+      s.perfil.toLowerCase().includes(searchTerm) ||  
+      s.grupo.toLowerCase().includes(searchTerm) ||
+      s.clave.toLowerCase().includes(searchTerm) ||
+      s.proyecto.toLowerCase().includes(searchTerm) ||
+      s.representante.toLowerCase().includes(searchTerm) ||
+      s.contacto.toLowerCase().includes(searchTerm) ||
+      s.manejar.toLowerCase().includes(searchTerm);
+
+      const matchesEstado =
+      filterEstado.length === 0 || filterEstado.includes(s.estatus) 
+;
+
+    return matchesSearch &&  matchesEstado;
+  });
 
   return (
     <>
       <SideBar/>
-      <HeaderBar
+      <HeaderBarAdmin
         titulo="Proyectos solidarios"
         Icono={FolderOpen}
       />
-      <main className={`transition-all mt-20  ml-30 mr-10`} >
-        <SearchBar search={search} setSearch={setSearch} />
 
-        <div className="flex flex-wrap justify-evenly gap-4 mb-6">
+      <main className={`transition-all mt-20  ml-30 mr-10`} >
+      <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+          <SearchBar
+            search={search}
+            setSearch={setSearch}
+            onSearchApply={() => {}}
+            onSearchClear={() => setSearch("")}
+          />
+          <div className="flex items-center gap-6">
+
           <button
-            className={`
-              bg-blue-400 hover:bg-blue-900
-              text-white font-semibold text-lg
-              px-12 py-[12px] 
-              rounded-full
-              flex items-center justify-center
-              leading-tight  
-              transition duration-200`}
-            onClick={() => setIsUploaderVisible(true)}
-          >
-            Subir
-          </button>
-          <button
-            className={`
-              bg-blue-400 hover:bg-blue-900
-              text-white font-semibold text-lg
-              px-12 py-[12px] 
-              rounded-full
-              flex items-center justify-center
-              leading-tight  
-              transition duration-200`}
-            onClick={() => setIsDownloadModalVisible(true)}
-          >
-            Descargar 
-          </button>
-          <button
-            className="border border-gray-600 text-gray-500 font-semibold rounded-full px-4 py-1 text-sm hover:bg-gray-300 transition"
-            onClick={() => console.log("Limpiar filtros")}
-          >
-            Limpiar todo
-          </button>
-          {["Modalidad", "Disponibilidad"].map((label) => (
-            <FilterButton key={label} label={label} />
-          ))}
+              className="border border-gray-600 text-gray-500 font-semibold rounded-full px-4 py-1 text-sm hover:bg-gray-300 transition"
+              onClick={() => {
+                setFilterEstado([]);
+                setSearch("");
+              }}
+            >
+              <Trash2 className="w-5 h-5" />
+            </button>
+
+            <FilterButton
+              label="Estado"
+              options={["Abierto", "En Revisión", "Cerrado", "Pendiente"]}
+              selectedValues={filterEstado}
+              onChange={setFilterEstado}
+            />
+             </div>
+        </div>
+        
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+        <DetailButton
+          texto="Importar"
+          size="auto"
+          onClick={() => setIsUploaderVisible(true)}
+        />
         </div>
 
         {isUploaderVisible && (
@@ -112,7 +207,8 @@ export default function Explorar() {
         )}
 
         <div className="align-items justify-center">
-          <ListItem/>
+        <ListItem data={filtered} />
+
         </div>
       </main>
     </>

@@ -14,7 +14,7 @@ const sizeClasses = {
 
 export const FeatureButton = ({ texto, size = 'md' }: Props) => (
   <span
-    className={`bg-white text-blue-900 font-semibold rounded-full ${sizeClasses[size]}`}
+    className={`bg-sky-100 text-blue-900 font-semibold rounded-full ${sizeClasses[size]}`}
   >
     {texto}
   </span>
