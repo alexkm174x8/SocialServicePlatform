@@ -44,13 +44,15 @@ export default function Explorar() {
 
   useEffect(() => {
     const fetchProyectos = async () => {
-      const { data, error } = await supabase
-        .from('proyectos_solidarios')
-        .select('id_proyecto, perfil_aceptacion, proyecto, grupo, clave');
+      try {
+        const { data, error } = await supabase
+          .from('proyectos_solidarios')
+          .select(`id_proyecto, perfil_aceptacion, proyecto, grupo, clave, id_socioformador, socioformador ( correo )`);
 
-      if (error) {
-        console.error('Error fetching proyectos_solidarios:', error);
-      } else {
+        if (error) {
+          throw error;
+        }
+
         const formattedData = data.map((item) => ({
           subido: new Date().toISOString(), // Placeholder for "subido"
           estatus: 'Pendiente', // Placeholder for "estatus"
@@ -58,11 +60,13 @@ export default function Explorar() {
           grupo: item.grupo,
           clave: item.clave,
           proyecto: item.proyecto,
+          contacto: item.socioformador?.correo || 'N/A', // Use correo from socioformador or fallback to 'N/A'
           representante: 'N/A', // Placeholder for "representante"
-          contacto: 'N/A', // Placeholder for "contacto"
           manejar: 'N/A', // Placeholder for "manejar"
         }));
         setExplorar(formattedData);
+      } catch (error) {
+        console.error('Error fetching proyectos_solidarios:', error.message || error);
       }
     };
 
