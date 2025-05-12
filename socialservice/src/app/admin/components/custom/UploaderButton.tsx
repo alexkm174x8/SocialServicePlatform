@@ -10,7 +10,10 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 const validateFields = (fields) => {
   const requiredFields = ["id_proyecto", "perfil_aceptacion", "proyecto", "grupo", "clave"];
-  return requiredFields.every((field) => fields.includes(field));
+  const normalizedFields = fields.map((field) => field.trim().toLowerCase());
+  console.log("Campos detectados (normalizados):", normalizedFields);
+  console.log("Campos requeridos:", requiredFields);
+  return requiredFields.every((field) => normalizedFields.includes(field.toLowerCase()));
 };
 
 const filterRequiredFields = (data) => {
@@ -40,12 +43,16 @@ const handleFileUpload = async (file) => {
     }
 
     const fields = Object.keys(jsonData[0]);
+    console.log("Campos detectados en el archivo:", fields);
     if (!validateFields(fields)) {
-      alert("El archivo no contiene los campos requeridos.");
+      alert("El archivo no contiene todos los campos requeridos.");
       return;
     }
 
-    const filteredData = filterRequiredFields(jsonData);
+    const filteredData = jsonData.map((row) => {
+      const { id_proyecto, perfil_aceptacion, proyecto, grupo, clave } = row;
+      return { id_proyecto, perfil_aceptacion, proyecto, grupo, clave };
+    });
 
     try {
       for (const record of filteredData) {
