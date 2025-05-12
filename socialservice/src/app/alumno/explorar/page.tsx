@@ -136,7 +136,7 @@ export default function Explorar() {
                 <CardItem
                   key={project.id_proyecto}
                   name={project.proyecto}
-                  description={project.objetivo_ps ? project.objetivo_ps.split(' ').slice(0, 15).join(' ') + (project.objetivo_ps.split(' ').length > 15 ? '...' : '') : 'No description available'}
+                  description={project.objetivo_ps.split(' ').slice(0, 15).join(' ') + (project.objetivo_ps.split(' ').length > 15 ? '...' : '')}
                   state={project.estatus_ps}
                   id_project={project.id_proyecto}
                   hours={project.horas}
