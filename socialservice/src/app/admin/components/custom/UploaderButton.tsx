@@ -1,6 +1,98 @@
 "use client";
 
 import React, { useCallback, useState } from "react";
+import { createClient } from '@supabase/supabase-js';
+import * as XLSX from 'xlsx';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+const validateFields = (fields) => {
+  const requiredFields = ["id_proyecto", "perfil_aceptacion", "proyecto", "grupo", "clave"];
+  const normalizedFields = fields.map((field) => field.trim().toLowerCase());
+  console.log("Campos detectados (normalizados):", normalizedFields);
+  console.log("Campos requeridos:", requiredFields);
+  return requiredFields.every((field) => normalizedFields.includes(field.toLowerCase()));
+};
+
+const filterRequiredFields = (data) => {
+  const requiredFields = ["id_proyecto", "perfil_aceptacion", "proyecto", "grupo", "clave"];
+  return data.map((record) => {
+    const filteredRecord = {};
+    requiredFields.forEach((field) => {
+      filteredRecord[field] = record[field];
+    });
+    return filteredRecord;
+  });
+};
+
+const handleFileUpload = async (file) => {
+  const reader = new FileReader();
+
+  reader.onload = async (event) => {
+    const data = new Uint8Array(event.target.result);
+    const workbook = XLSX.read(data, { type: "array" });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+    if (jsonData.length === 0) {
+      alert("El archivo está vacío.");
+      return;
+    }
+
+    const fields = Object.keys(jsonData[0]);
+    console.log("Campos detectados en el archivo:", fields);
+    if (!validateFields(fields)) {
+      alert("El archivo no contiene todos los campos requeridos.");
+      return;
+    }
+
+    const filteredData = jsonData.map((row) => {
+      const { id_proyecto, perfil_aceptacion, proyecto, grupo, clave } = row;
+      return { id_proyecto, perfil_aceptacion, proyecto, grupo, clave };
+    });
+
+    try {
+      for (const record of filteredData) {
+        const { data: existingRecord, error: fetchError } = await supabase
+          .from('proyectos_solidarios')
+          .select('id_proyecto')
+          .eq('id_proyecto', record.id_proyecto)
+          .single();
+
+        if (fetchError && fetchError.code !== 'PGRST116') { // Ignore "no rows found" error
+          console.error("Error al verificar existencia del registro:", fetchError);
+          alert("Hubo un error al verificar los datos existentes.");
+          return;
+        }
+
+        if (existingRecord) {
+          console.log(`El registro con id_proyecto ${record.id_proyecto} ya existe. Se omitirá.`);
+          continue;
+        }
+
+        const { error: insertError } = await supabase
+          .from('proyectos_solidarios')
+          .insert(record);
+
+        if (insertError) {
+          console.error("Error al insertar el registro:", insertError);
+          alert(`Hubo un error al insertar el registro con id_proyecto ${record.id_proyecto}.`);
+          return;
+        }
+      }
+
+      alert("Datos subidos exitosamente.");
+    } catch (err) {
+      console.error("Error al procesar el archivo:", err);
+      alert("Hubo un error al procesar el archivo.");
+    }
+  };
+
+  reader.readAsArrayBuffer(file);
+};
 
 interface UploadBoxProps {
   onFileUpload: (file: File) => void;
@@ -15,19 +107,19 @@ const UploadBox: React.FC<UploadBoxProps> = ({ onFileUpload }) => {
       const file = event.dataTransfer.files[0];
       if (file && (file.type === "text/csv" || file.name.endsWith(".xlsx"))) {
         setFileName(file.name);
-        onFileUpload(file);
+        handleFileUpload(file);
       } else {
         alert("Por favor, sube un archivo en formato CSV o XLSX.");
       }
     },
-    [onFileUpload]
+    []
   );
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file && (file.type === "text/csv" || file.name.endsWith(".xlsx"))) {
       setFileName(file.name);
-      onFileUpload(file);
+      handleFileUpload(file);
     } else {
       alert("Por favor, selecciona un archivo en formato CSV o XLSX.");
     }
