@@ -1,21 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createClient } from '@supabase/supabase-js';
 import { HeaderBarAdmin } from "@/app/components/HeaderBarAdmin";
 import { SearchBar } from "@/app/components/SearchBar";
 import { FilterButton } from "@/app/components/FilterButton";
 import { ListItem } from "@/app/components/ListItem";
 import { SideBar } from "@/app/admin/components/custom/AdminSideBar";
-import { FolderOpen} from "lucide-react";
+import { FolderOpen } from "lucide-react";
 import UploaderButton from "@/app/admin/components/custom/UploaderButton";
 import DownloadModal from '@/app/admin/components/custom/DownloadModal';
 import { Trash2 } from "lucide-react";
-import {DetailButton} from "@/app/components/DetailButton";
-
+import { DetailButton } from "@/app/components/DetailButton";
 
 type Explorar = {
   subido: string;
-  estatus: string;  
+  estatus: string;
   perfil: string;
   grupo: string;
   clave: string;
@@ -25,65 +25,14 @@ type Explorar = {
   manejar: string;
 };
 
-const rows: Explorar[] = [
-  {
-    subido: '2025-04-25T14:35:00Z',
-    estatus: 'Abierto',
-    perfil: "CAG'S",
-    grupo: 'Grupo A',
-    clave: 'ABC123',
-    proyecto: 'Proyecto Ejemplo',
-    representante: 'Juan Pérez',
-    contacto: 'juan.perez@ejemplo.com',
-    manejar: 'Permiso X',
-  },
-  {
-    subido: '2025-04-20T10:00:00Z',
-    estatus: 'En Revisión',
-    perfil: 'Admin',
-    grupo: 'Grupo B',
-    clave: 'DEF456',
-    proyecto: 'Sistema de Gestión',
-    representante: 'María López',
-    contacto: 'maria.lopez@ejemplo.com',
-    manejar: 'Permiso Y',
-  },
-  {
-    subido: '2025-04-18T08:15:00Z',
-    estatus: 'Cerrado',
-    perfil: 'Usuario',
-    grupo: 'Grupo C',
-    clave: 'GHI789',
-    proyecto: 'App de Inventarios',
-    representante: 'Carlos Sánchez',
-    contacto: 'carlos.sanchez@ejemplo.com',
-    manejar: 'Permiso Z',
-  },
-  {
-    subido: '2025-04-22T16:45:00Z',
-    estatus: 'Abierto',
-    perfil: 'Supervisor',
-    grupo: 'Grupo A',
-    clave: 'JKL012',
-    proyecto: 'Proyecto Rediseño',
-    representante: 'Laura Gómez',
-    contacto: 'laura.gomez@ejemplo.com',
-    manejar: 'Permiso X',
-  },
-  {
-    subido: '2025-04-19T12:30:00Z',
-    estatus: 'Pendiente',
-    perfil: 'Cliente',
-    grupo: 'Grupo D',
-    clave: 'MNO345',
-    proyecto: 'Nueva Plataforma',
-    representante: 'Luis Fernández',
-    contacto: 'luis.fernandez@ejemplo.com',
-    manejar: 'Permiso Y',
-  },
-];
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error('Supabase URL and Key must be provided. Please check your environment variables.');
+}
 
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default function Explorar() {
   const [search, setSearch] = useState("");
@@ -93,20 +42,46 @@ export default function Explorar() {
   const [isDownloadModalVisible, setIsDownloadModalVisible] = useState(false);
   const [filterEstado, setFilterEstado] = useState<string[]>([]);
 
-   useEffect(() => {
-     setExplorar(rows);
-   }, []);
+  useEffect(() => {
+    const fetchProyectos = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('proyectos_solidarios')
+          .select(`id_proyecto, perfil_aceptacion, proyecto, grupo, clave, id_socioformador, socioformador ( correo )`);
 
-   const handleFileUpload = (file: File) => {
+        if (error) {
+          throw error;
+        }
+
+        const formattedData = data.map((item) => ({
+          subido: new Date().toISOString(), // Placeholder for "subido"
+          estatus: 'Pendiente', // Placeholder for "estatus"
+          perfil: item.perfil_aceptacion,
+          grupo: item.grupo,
+          clave: item.clave,
+          proyecto: item.proyecto,
+          contacto: item.socioformador?.correo || 'N/A', // Use correo from socioformador or fallback to 'N/A'
+          representante: 'N/A', // Placeholder for "representante"
+          manejar: 'N/A', // Placeholder for "manejar"
+        }));
+        setExplorar(formattedData);
+      } catch (error) {
+        console.error('Error fetching proyectos_solidarios:', error.message || error);
+      }
+    };
+
+    fetchProyectos();
+  }, []);
+
+  const handleFileUpload = (file: File) => {
     console.log("Archivo recibido:", file);
   };
 
-  
   const filtered = explorar.filter((s) => {
     const searchTerm = search.toLowerCase();
     const matchesSearch =
       s.subido.toLowerCase().includes(searchTerm) ||
-      s.perfil.toLowerCase().includes(searchTerm) ||  
+      s.perfil.toLowerCase().includes(searchTerm) ||
       s.grupo.toLowerCase().includes(searchTerm) ||
       s.clave.toLowerCase().includes(searchTerm) ||
       s.proyecto.toLowerCase().includes(searchTerm) ||
@@ -114,23 +89,19 @@ export default function Explorar() {
       s.contacto.toLowerCase().includes(searchTerm) ||
       s.manejar.toLowerCase().includes(searchTerm);
 
-      const matchesEstado =
-      filterEstado.length === 0 || filterEstado.includes(s.estatus) 
-;
+    const matchesEstado =
+      filterEstado.length === 0 || filterEstado.includes(s.estatus);
 
-    return matchesSearch &&  matchesEstado;
+    return matchesSearch && matchesEstado;
   });
 
   return (
     <>
-      <SideBar/>
-      <HeaderBarAdmin
-        titulo="Proyectos solidarios"
-        Icono={FolderOpen}
-      />
+      <SideBar />
+      <HeaderBarAdmin titulo="Proyectos solidarios" Icono={FolderOpen} />
 
-      <main className={`transition-all mt-20  ml-30 mr-10`} >
-      <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+      <main className={`transition-all mt-20 ml-30 mr-10`}>
+        <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
           <SearchBar
             search={search}
             setSearch={setSearch}
@@ -138,8 +109,7 @@ export default function Explorar() {
             onSearchClear={() => setSearch("")}
           />
           <div className="flex items-center gap-6">
-
-          <button
+            <button
               className="border border-gray-600 text-gray-500 font-semibold rounded-full px-4 py-1 text-sm hover:bg-gray-300 transition"
               onClick={() => {
                 setFilterEstado([]);
@@ -155,15 +125,15 @@ export default function Explorar() {
               selectedValues={filterEstado}
               onChange={setFilterEstado}
             />
-             </div>
+          </div>
         </div>
-        
+
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
-        <DetailButton
-          texto="Importar"
-          size="auto"
-          onClick={() => setIsUploaderVisible(true)}
-        />
+          <DetailButton
+            texto="Importar"
+            size="auto"
+            onClick={() => setIsUploaderVisible(true)}
+          />
         </div>
 
         {isUploaderVisible && (
@@ -207,8 +177,7 @@ export default function Explorar() {
         )}
 
         <div className="align-items justify-center">
-        <ListItem data={filtered} />
-
+          <ListItem data={filtered} />
         </div>
       </main>
     </>
