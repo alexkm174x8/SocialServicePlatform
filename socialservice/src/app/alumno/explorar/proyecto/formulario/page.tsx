@@ -1,5 +1,5 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { HeaderBar } from "@/app/components/HeaderBar";
 import { SideBar } from "@/app/alumno/components/custom/StudentSideBar";
 import { ArrowLeft } from "lucide-react";
@@ -7,115 +7,279 @@ import { PInput } from "@/app/alumno/components/custom/PInput";
 import { DetalleProyecto } from "@/app/alumno/components/custom/DetalleProyecto";
 import { Carrera } from "@/app/alumno/components/custom/Carrera";
 import { RadioGroup } from "@/app/alumno/components/custom/RadioGroup";
+import { useState, FormEvent } from "react";
+import { supabase } from "@/lib/supabase";
 
 export default function Formulario() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const projectId = searchParams.get('id');
+
+  const [formData, setFormData] = useState({
+    nombre: '',
+    matricula: '',
+    carrera: '',
+    carrera_completa: '',
+    email: '',
+    numero: '',
+    respuesta_1: '',
+    respuesta_2: '',
+    respuesta_3: '',
+    compromiso: '',
+  });
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!formData.nombre.trim()) newErrors.nombre = 'El nombre es requerido';
+    if (!formData.matricula.trim()) newErrors.matricula = 'La matrícula es requerida';
+    if (!formData.carrera) newErrors.carrera = 'La carrera es requerida';
+    if (!formData.carrera_completa.trim()) newErrors.carrera_completa = 'El nombre completo de la carrera es requerido';
+    if (!formData.email.trim()) newErrors.email = 'El correo es requerido';
+    if (!formData.email.includes('@')) newErrors.email = 'Ingresa un correo válido';
+    if (!formData.numero.trim()) newErrors.numero = 'El número es requerido';
+    if (formData.numero.length !== 10) newErrors.numero = 'El número debe tener 10 dígitos';
+    if (!formData.compromiso) newErrors.compromiso = 'Debes seleccionar una opción';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) return;
+    if (!projectId) {
+      alert('Error: No se encontró el ID del proyecto');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) throw userError;
+
+      const { error: submissionError } = await supabase
+        .from('postulacion')
+        .insert({
+          matricula: formData.matricula,
+          id_proyecto: projectId,
+          nombre: formData.nombre,
+          carrera: formData.carrera_completa,
+          email: formData.email,
+          numero: formData.numero,
+          respuesta_1: formData.respuesta_1 || null,
+          respuesta_2: formData.respuesta_2 || null,
+          respuesta_3: formData.respuesta_3 || null,
+          estatus: 'postulado'
+        });
+
+      if (submissionError) {
+        console.error('Submission error details:', submissionError);
+        throw submissionError;
+      }
+
+      alert('¡Postulación enviada con éxito!');
+      router.push('/alumno/explorar');
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      alert('Error al enviar la postulación. Por favor intenta de nuevo.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  };
 
   return (
-    <main className="flex-1 overflow-y-auto mt-20 ml-30 mr-10 ">
-        <div>
-          <SideBar />
-          <div className="flex flex-col flex-1 p-4">
-            <HeaderBar 
-              titulo="Proyecto" 
-              Icono={ArrowLeft} 
-              onClick={() => router.back()} 
-            />
-            <div className="max-w-2xl w-full mx-auto mt-4 rounded-lg p-6 border-blue-900 border-2">
-              <div className="space-y-4">
-                <PInput label="Nombre completo" placeholder="Ingresa tu nombre" />
-                <PInput label="Matrícula" placeholder="Ingresa tu matrícula" />
+    <main className="flex-1 overflow-y-auto mt-20 ml-30 mr-10">
+      <div>
+        <SideBar />
+        <div className="flex flex-col flex-1 p-4">
+          <HeaderBar 
+            titulo="Proyecto" 
+            Icono={ArrowLeft} 
+            onClick={() => router.back()} 
+          />
+          <form onSubmit={handleSubmit} className="max-w-2xl w-full mx-auto mt-4 rounded-lg p-6 border-blue-900 border-2">
+            <div className="space-y-4">
+              <div>
+                <PInput 
+                  label="Nombre completo" 
+                  placeholder="Ingresa tu nombre"
+                  value={formData.nombre}
+                  onChange={(e) => handleInputChange('nombre', e.target.value)}
+                  error={errors.nombre}
+                />
+              </div>
+              
+              <div>
+                <PInput 
+                  label="Matrícula" 
+                  placeholder="Ingresa tu matrícula"
+                  value={formData.matricula}
+                  onChange={(e) => handleInputChange('matricula', e.target.value)}
+                  error={errors.matricula}
+                />
+              </div>
+
+              <div>
                 <Carrera
-                carreras={["IBT", "IC", "LC", "IIS", "IM", "IMT", "IQ", "IRS", "ITC"]}
+                  carreras={["IBT", "IC", "LC", "IIS", "IM", "IMT", "IQ", "IRS", "ITC"]}
+                  value={formData.carrera}
+                  onChange={(value) => handleInputChange('carrera', value)}
+                  error={errors.carrera}
                 />
-                <PInput label="Por favor menciona el nombre completo de tu carrera" placeholder="Ingresa tu carrera" />
-                <PInput label="Correo institucional" placeholder="ejemplo@correo.com" type="email" />
-                <PInput label="Teléfono (a 10 dígitos y sin espacios)" placeholder="Ingresa tu número" type="tel" />
-                <RadioGroup 
-                    label="Estatus en el que te encuentras:"
-                    name="estatus"
-                    options={["Postuladx"]}
-                    />
+              </div>
 
+              <div>
+                <PInput 
+                  label="Por favor menciona el nombre completo de tu carrera" 
+                  placeholder="Ingresa tu carrera"
+                  value={formData.carrera_completa}
+                  onChange={(e) => handleInputChange('carrera_completa', e.target.value)}
+                  error={errors.carrera_completa}
+                />
+              </div>
+
+              <div>
+                <PInput 
+                  label="Correo institucional" 
+                  placeholder="ejemplo@correo.com" 
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  error={errors.email}
+                />
+              </div>
+
+              <div>
+                <PInput 
+                  label="Teléfono (a 10 dígitos y sin espacios)" 
+                  placeholder="Ingresa tu número" 
+                  type="tel"
+                  value={formData.numero}
+                  onChange={(e) => handleInputChange('numero', e.target.value)}
+                  error={errors.numero}
+                />
+              </div>
+
+              <div>
                 <RadioGroup 
-                label="Proyecto al que te estás postulando"
-                name="proyecto"
-                options={[
+                  label="Estatus en el que te encuentras:"
+                  name="estatus"
+                  options={["Postuladx"]}
+                  value="Postuladx"
+                  disabled
+                />
+              </div>
+
+              <div>
+                <RadioGroup 
+                  label="Proyecto al que te estás postulando"
+                  name="proyecto"
+                  options={[
                     "PS 108 61319 EmpowerShe: Empoderamiento femenino mediante clases STEM - EmpowerShe FJ25"
-                ]}
+                  ]}
+                  value="PS 108 61319 EmpowerShe: Empoderamiento femenino mediante clases STEM - EmpowerShe FJ25"
+                  disabled
                 />
+              </div>
 
-                <DetalleProyecto
-                    detalles={{
-                        modalidad: "MIXTO",
-                        periodo: "1 - Del 11 de febrero al 13 marzo",
-                        ubicacion:
-                        'ESC. PRIM. “CADETE JUAN ESCUTIA”, Av. de Las Flores s/n INFONAVIT San José Xilotzingo, 72190 Puebla.',
-                        diasEjecucion: [
-                        "Asistencia presencial: 1 vez por semana",
-                        "Asistencia remota: 2 veces por semana",
-                        "Días presenciales: Sábados (semanales)",
-                        "Días remotos: Acordar entre el alumno TEC y la alumna beneficiaria",
-                        "Horas por día: 4h presenciales / 2h remotas",
-                        "Horario presencial: 9:00 am - 1:00 pm",
-                        "Horario remoto: Acordar entre ambas partes",
-                        ],
-                    }}
-                    />
-                    <div >
+              <DetalleProyecto
+                detalles={{
+                  modalidad: "MIXTO",
+                  periodo: "1 - Del 11 de febrero al 13 marzo",
+                  ubicacion:
+                  'ESC. PRIM. "CADETE JUAN ESCUTIA", Av. de Las Flores s/n INFONAVIT San José Xilotzingo, 72190 Puebla.',
+                  diasEjecucion: [
+                    "Asistencia presencial: 1 vez por semana",
+                    "Asistencia remota: 2 veces por semana",
+                    "Días presenciales: Sábados (semanales)",
+                    "Días remotos: Acordar entre el alumno TEC y la alumna beneficiaria",
+                    "Horas por día: 4h presenciales / 2h remotas",
+                    "Horario presencial: 9:00 am - 1:00 pm",
+                    "Horario remoto: Acordar entre ambas partes",
+                  ],
+                }}
+              />
+
+              <div>
                 <label className="block font-semibold text-[#0a2170]">
-                    ¿Estás dispuestx a seguir con las postulación?
+                  ¿Estás dispuestx a seguir con las postulación?
                 </label>
 
                 <div className="space-y-3 text-sm text-gray-800">
-                    <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-3">
                     <input
-                        type="radio"
-                        id="si-compromiso"
-                        name="compromiso"
-                        value="si"
-                        className="accent-[#0a2170] mt-1"
+                      type="radio"
+                      id="si-compromiso"
+                      name="compromiso"
+                      value="si"
+                      checked={formData.compromiso === 'si'}
+                      onChange={(e) => handleInputChange('compromiso', e.target.value)}
+                      className="accent-[#0a2170] mt-1"
                     />
                     <label htmlFor="si-compromiso" className="block">
-                        Sí, estoy dispuestx a ejecutar el Proyecto Solidario con las condiciones de días y horarios requeridos.
+                      Sí, estoy dispuestx a ejecutar el Proyecto Solidario con las condiciones de días y horarios requeridos.
                     </label>
-                    </div>
+                  </div>
 
-                    <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-3">
                     <input
-                        type="radio"
-                        id="no-compromiso"
-                        name="compromiso"
-                        value="no"
-                        className="accent-[#0a2170] mt-1"
+                      type="radio"
+                      id="no-compromiso"
+                      name="compromiso"
+                      value="no"
+                      checked={formData.compromiso === 'no'}
+                      onChange={(e) => handleInputChange('compromiso', e.target.value)}
+                      className="accent-[#0a2170] mt-1"
                     />
                     <label htmlFor="no-compromiso" className="block">
-                        No, mis actividades escolares y personales no me permitirán participar en el proyecto. Gracias.
+                      No, mis actividades escolares y personales no me permitirán participar en el proyecto. Gracias.
                     </label>
-                    </div>
+                  </div>
                 </div>
-                </div>
-                <div className="flex justify-end gap-4 mt-6">
-          <button
-            type="button"
-            className="px-6 py-2 rounded-full border border-[#0a2170] text-[#0a2170] font-semibold 
-                      hover:bg-[#0a2170] hover:text-white transition-colors duration-200"
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            className="px-6 py-2 rounded-full border border-[#0a2170] bg-[#0a2170] text-white font-semibold 
-                      hover:bg-black hover:text-white hover:border-black transition-colors duration-200"
-          >
-            Siguiente
-          </button>
-        </div>
+                {errors.compromiso && (
+                  <p className="text-red-600 text-sm mt-1">{errors.compromiso}</p>
+                )}
+              </div>
+
+              <div className="flex justify-end gap-4 mt-6">
+                <button
+                  type="button"
+                  onClick={() => router.back()}
+                  className="px-6 py-2 rounded-full border border-[#0a2170] text-[#0a2170] font-semibold 
+                            hover:bg-[#0a2170] hover:text-white transition-colors duration-200"
+                  disabled={isSubmitting}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2 rounded-full border border-[#0a2170] bg-[#0a2170] text-white font-semibold 
+                            hover:bg-black hover:text-white hover:border-black transition-colors duration-200
+                            disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Enviando...' : 'Siguiente'}
+                </button>
               </div>
             </div>
-          </div>
-          
+          </form>
         </div>
+      </div>
     </main>
   );
 }
