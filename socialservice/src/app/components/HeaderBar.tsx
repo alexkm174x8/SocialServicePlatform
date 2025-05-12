@@ -1,6 +1,8 @@
 "use client";
 
 import { LucideIcon, UserIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 
 interface Props {
   titulo: string;
@@ -9,7 +11,36 @@ interface Props {
 }
 
 export const HeaderBar = ({ titulo, Icono, onClick }: Props) => {
-  const id = "A01736897";
+  const [username, setUsername] = useState<string>("");
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.email) {
+        // Get the part before @tec.mx
+        const email = session.user.email;
+        const username = email.split('@')[0];
+        setUsername(username);
+      }
+    };
+
+    getUser();
+
+    // Subscribe to auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user?.email) {
+        const email = session.user.email;
+        const username = email.split('@')[0];
+        setUsername(username);
+      } else {
+        setUsername("");
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   return (
     <div
@@ -29,7 +60,7 @@ export const HeaderBar = ({ titulo, Icono, onClick }: Props) => {
 
       <div className="flex items-center gap-2 text-blue-900 text-base md:text-lg font-medium">
         <UserIcon className="h-6 w-6" />
-        <span>{id}</span>
+        <span>{username || "Cargando..."}</span>
       </div>
     </div>
   );
