@@ -2,9 +2,10 @@ import React, { useEffect } from "react";
 
 interface SubmissionConfirmationProps {
   onClose: () => void;
+  onSubmit: () => Promise<void>;
 }
 
-const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({ onClose }) => {
+const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({ onClose, onSubmit }) => {
   useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
@@ -61,7 +62,10 @@ const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({ onClose
           >
             Cancelar
           </button>
-          <button className="px-6 py-2 rounded-full bg-blue-800 text-white font-semibold hover:bg-blue-900 transition">
+          <button 
+            onClick={onSubmit}
+            className="px-6 py-2 rounded-full bg-blue-800 text-white font-semibold hover:bg-blue-900 transition"
+          >
             Enviar
           </button>
         </div>

@@ -5,18 +5,19 @@ import { useRouter } from "next/navigation";
 interface Props {
   texto: string;
   color: string;
+  id_proyecto: number;
 }
 
-export const PostularseButton = ({ texto}: Props) => {
-    const router = useRouter();
+export const PostularseButton = ({ texto, id_proyecto }: Props) => {
+  const router = useRouter();
   
-    const handleNavigation = () => {
-      router.push("/alumno/explorar/proyecto/formulario");
-    };
+  const handleNavigation = () => {
+    router.push(`/alumno/explorar/proyecto/formulario/${id_proyecto}`);
+  };
   
   return (
     <button
-    onClick={handleNavigation}
+      onClick={handleNavigation}
       className={`
         bg-blue-400 hover:bg-blue-900
         text-white font-semibold text-md
