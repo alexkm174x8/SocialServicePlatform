@@ -16,7 +16,7 @@ interface Props {
 }
 
 export const CardItem = ({ name, description, state, id_project, format, hours, color }: Props) => (
-  <Card className={`relative w-full h-60 overflow-hidden rounded-3xl shadow-md transition-transform transform hover:scale-105 ${color}`}>
+  <Card data-testid="card-item" className={` relative w-full h-60 overflow-hidden rounded-3xl shadow-md transition-transform transform hover:scale-105 ${color}`}>
     <div className="absolute inset-0 bg-black/40 text-white p-4 flex flex-col justify-end">
       <h2 className="text-l font-bold mb-1 line-clamp-2">{name}</h2>
       <p className="text-xs font-thin mb-3 leading-snug">{description}</p>

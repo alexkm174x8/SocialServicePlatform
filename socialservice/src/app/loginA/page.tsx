@@ -37,6 +37,7 @@ export default function Login() {
           <button
             className="w-full flex items-center justify-center gap-5 border px-5 py-2 rounded-lg text-sm font-medium shadow-sm bg-white hover:bg-gray-200 hover:shadow-md transition"
             onClick={() => alert("Login con Google")}
+
             >
             <img
                 src="https://www.svgrepo.com/show/475656/google-color.svg"
