@@ -1,6 +1,6 @@
 "use client";
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
 import { HeaderBar } from "@/app/components/HeaderBar";
 import { SideBar } from "@/app/alumno/components/custom/StudentSideBar";
 import { ArrowLeft } from "lucide-react";
@@ -8,12 +8,27 @@ import { DetalleProyecto } from "@/app/alumno/components/custom/DetalleProyecto"
 import { Carrera } from "@/app/alumno/components/custom/Carrera";
 import { RadioGroup } from "@/app/alumno/components/custom/RadioGroup";
 import SubmissionConfirmation from "@/app/alumno/components/custom/SubmissionConfirmation";
+import { supabase } from "@/lib/supabase";
+
+type ProjectData = {
+  id_proyecto: number;
+  proyecto: string;
+  modalidad: string;
+  fecha_ejecucion: string;
+  ubicacion: string;
+  horario: string;
+  horas: number;
+};
 
 export default function Formulario() {
   const router = useRouter();
+  const params = useParams();
   const [showPopup, setShowPopup] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [warning, setWarning] = useState("");
+  const [project, setProject] = useState<ProjectData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [form, setForm] = useState({
     nombre: "",
@@ -25,6 +40,32 @@ export default function Formulario() {
 
   const [estatus, setEstatus] = useState("");
   const [proyecto, setProyecto] = useState("");
+  const [compromiso, setCompromiso] = useState("");
+
+  useEffect(() => {
+    const fetchProjectDetails = async () => {
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from("proyectos_solidarios")
+          .select("*")
+          .eq("id_proyecto", params.id)
+          .single();
+
+        if (error) throw error;
+        
+        setProject(data);
+        setProyecto(data.proyecto);
+      } catch (error) {
+        console.error("Error fetching project:", error);
+        router.push("/alumno/explorar"); 
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (params.id) fetchProjectDetails();
+  }, [params.id, router]);
 
   const regexMap: { [key: string]: { regex: RegExp; message: string } } = {
     nombre: {
@@ -67,8 +108,41 @@ export default function Formulario() {
     }
   };
 
+  const handleSubmit = async () => {
+    if (!project) return;
+
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from("postulacion")
+        .insert({
+          matricula: form.matricula,
+          id_proyecto: project.id_proyecto,
+          estatus: "postulado",
+          nombre: form.nombre,
+          carrera: form.carreraCompleta,
+          email: form.correo,
+          numero: form.telefono,
+          respuesta_1: estatus,
+          respuesta_2: proyecto,
+          respuesta_3: compromiso
+        });
+
+      if (error) throw error;
+
+      // Redirect to explore page after successful submission
+      router.push("/alumno/explorar");
+    } catch (error) {
+      console.error("Error submitting application:", error);
+      setWarning("Error al enviar la postulación. Por favor intenta de nuevo.");
+      setShowPopup(false);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleNextClick = () => {
-    const inputs = document.querySelectorAll("input, select");
+    const inputs = document.querySelectorAll("input, select") as NodeListOf<HTMLInputElement | HTMLSelectElement>;
     const missingFields: string[] = [];
 
     inputs.forEach((input) => {
@@ -103,6 +177,12 @@ export default function Formulario() {
       return;
     }
 
+    // Get the selected compromiso value
+    const selectedCompromiso = document.querySelector('input[name="compromiso"]:checked') as HTMLInputElement;
+    if (selectedCompromiso) {
+      setCompromiso(selectedCompromiso.value);
+    }
+
     setWarning("");
     setShowPopup(true);
   };
@@ -111,8 +191,22 @@ export default function Formulario() {
     setShowPopup(false);
   };
 
+  if (isLoading) {
+    return (
+      <main className="flex-1 overflow-y-auto mt-20 ml-30 mr-10">
+        <div className="flex justify-center items-center h-full">
+          <p>Cargando...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (!project) {
+    return null; 
+  }
+
   return (
-    <main className="flex-1 overflow-y-auto mt-20 ml-30 mr-10 ">
+    <main className="flex-1 overflow-y-auto mt-20 ml-30 mr-10">
       <div>
         <SideBar />
         <div className="flex flex-col flex-1 p-4">
@@ -146,19 +240,6 @@ export default function Formulario() {
               </div>
 
               <Carrera carreras={["IBT", "IC", "LC", "IIS", "IM", "IMT", "IQ", "IRS", "ITC"]} />
-
-              <div>
-                <label className="block font-semibold text-[#0a2170]">Por favor menciona el nombre completo de tu carrera</label>
-                <input
-                  name="carreraCompleta"
-                  type="text"
-                  value={form.carreraCompleta}
-                  onChange={handleChange}
-                  placeholder="Ingresa tu carrera"
-                  className="w-full border rounded-md p-2"
-                />
-                {errors.carreraCompleta && <p className="text-red-600">{errors.carreraCompleta}</p>}
-              </div>
 
               <div>
                 <label className="block font-semibold text-[#0a2170]">Correo institucional</label>
@@ -196,26 +277,18 @@ export default function Formulario() {
               <RadioGroup 
                 label="Proyecto al que te estás postulando"
                 name="proyecto"
-                options={[
-                  "PS 108 61319 EmpowerShe: Empoderamiento femenino mediante clases STEM - EmpowerShe FJ25"
-                ]}
+                options={[project.proyecto]}
                 value={proyecto}
                 onChange={setProyecto}
               />
               <DetalleProyecto
                 detalles={{
-                  modalidad: "MIXTO",
-                  periodo: "1 - Del 11 de febrero al 13 marzo",
-                  ubicacion:
-                    'ESC. PRIM. “CADETE JUAN ESCUTIA”, Av. de Las Flores s/n INFONAVIT San José Xilotzingo, 72190 Puebla.',
+                  modalidad: project.modalidad,
+                  periodo: project.fecha_ejecucion,
+                  ubicacion: project.ubicacion,
                   diasEjecucion: [
-                    "Asistencia presencial: 1 vez por semana",
-                    "Asistencia remota: 2 veces por semana",
-                    "Días presenciales: Sábados (semanales)",
-                    "Días remotos: Acordar entre el alumno TEC y la alumna beneficiaria",
-                    "Horas por día: 4h presenciales / 2h remotas",
-                    "Horario presencial: 9:00 am - 1:00 pm",
-                    "Horario remoto: Acordar entre ambas partes",
+                    `Horario: ${project.horario}`,
+                    `Horas totales: ${project.horas}`,
                   ],
                 }}
               />
@@ -257,6 +330,7 @@ export default function Formulario() {
               <div className="flex justify-end gap-4 mt-6">
                 <button
                   type="button"
+                  onClick={() => router.back()}
                   className="px-6 py-2 rounded-full border border-[#0a2170] text-[#0a2170] font-semibold 
                             hover:bg-[#0a2170] hover:text-white transition-colors duration-200"
                 >
@@ -274,8 +348,14 @@ export default function Formulario() {
             </div>
           </div>
         </div>
-        {showPopup && <SubmissionConfirmation onClose={handleClosePopup} />}
+        {showPopup && (
+          <SubmissionConfirmation 
+            onClose={() => setShowPopup(false)} 
+            onSubmit={handleSubmit}
+            isSubmitting={isSubmitting}
+          />
+        )}
       </div>
     </main>
   );
-}
+} 
