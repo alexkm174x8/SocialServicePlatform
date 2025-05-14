@@ -123,9 +123,9 @@ export default function Formulario() {
           carrera: form.carreraCompleta,
           email: form.correo,
           numero: form.telefono,
-          respuesta_1: estatus,
-          respuesta_2: proyecto,
-          respuesta_3: compromiso
+          respuesta_1: null,
+          respuesta_2: null,
+          respuesta_3: null
         });
 
       if (error) throw error;
@@ -352,7 +352,6 @@ export default function Formulario() {
           <SubmissionConfirmation 
             onClose={() => setShowPopup(false)} 
             onSubmit={handleSubmit}
-            isSubmitting={isSubmitting}
           />
         )}
       </div>
