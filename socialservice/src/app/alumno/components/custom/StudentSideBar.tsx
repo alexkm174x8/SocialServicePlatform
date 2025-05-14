@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter, usePathname} from "next/navigation";
 import { LogOut,  FileText , Compass, AlignJustify } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 export function SideBar() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -11,6 +12,15 @@ export function SideBar() {
 
   const handleNavigation = ( path: string) => {
     router.push(path);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      router.push('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
   return (
@@ -55,7 +65,8 @@ export function SideBar() {
         </nav>
       </div>
       <button
-        className="flex items-center gap-3 p-2 rounded-md text-black hover:text-black hover:bg-white transition"
+        className="flex items-center gap-3 p-2 rounded-md text-white hover:text-black hover:bg-white transition"
+        onClick={handleLogout}
       >
         <LogOut size={24} />
         {isSidebarOpen && <span>Cerrar sesión</span>}
