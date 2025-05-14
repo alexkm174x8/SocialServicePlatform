@@ -3,14 +3,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 type Solicitud = {
+  estatus: string;
   matricula: string;
-  correo: string;
+  email: string;
   carrera: string;
-  telefono: string;
-  servicio: string;
-  estado: string;
-  pregunta1: string;
-  pregunta2: string;
+  numero: string;
+  respuesta_1: string;
+  respuesta_2: string;
+  respuesta_3: string;
 };
 
 const statusColorMap: Record<string, string> = {
@@ -27,7 +27,6 @@ const statusOptions = [
   { label: "En revisión", color: "bg-indigo-400" },
 ];
 
-
 export const Lista = ({
   data,
   setData,
@@ -40,7 +39,6 @@ export const Lista = ({
   const [selectedStatus, setSelectedStatus] = useState<{ label: string; color: string }[]>(
     data.map(() => statusOptions[3])
   );
-
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -71,7 +69,7 @@ export const Lista = ({
     const updatedData = [...data];
     updatedData[index] = {
       ...updatedData[index],
-      estado: option.label, 
+      estatus: option.label,
     };
     setData(updatedData);
     setActiveDropdown(null);
@@ -82,6 +80,7 @@ export const Lista = ({
       <table className="w-full text-sm text-left text-gray-500">
         <thead className="text-xs border-b border-blue-900 text-blue-900">
           <tr>
+            <th className="px-4 py-2"></th>
             <th className="px-4 py-2">Estado</th>
             <th className="px-4 py-2">Matrícula</th>
             <th className="px-4 py-2">Correo</th>
@@ -89,6 +88,7 @@ export const Lista = ({
             <th className="px-4 py-2">Teléfono</th>
             <th className="px-4 py-2">Pregunta 1</th>
             <th className="px-4 py-2">Pregunta 2</th>
+            <th className="px-4 py-2">Pregunta 3</th>
           </tr>
         </thead>
         <tbody>
@@ -97,8 +97,8 @@ export const Lista = ({
         <td className="px-4 py-2 relative">
         <div
           onClick={() => toggleDropdown(idx)}
-          className={`w-4 h-4 rounded cursor-pointer ${statusColorMap[row.estado] || 'bg-gray-300'}`}
-          title={row.estado}
+          className={`w-4 h-4 rounded cursor-pointer ${statusColorMap[row.estatus] || 'bg-gray-300'}`}
+          title={row.estatus}
         />
 
         
@@ -110,7 +110,7 @@ export const Lista = ({
           className="flex items-center gap-2 cursor-pointer p-1 hover:bg-gray-100 rounded"
           onClick={() => {
             handleSelect(idx, option);
-            // Aquí también podrías actualizar row.estado si lo deseas
+            // Aquí también podrías actualizar row.estatus si lo deseas
           }}
         >
           <div className={`w-4 h-4 rounded ${option.color}`} />
@@ -121,12 +121,14 @@ export const Lista = ({
   )}
 </td>
 
+              <td className="px-4 py-2">{row.estatus}</td>
               <td className="px-4 py-2">{row.matricula}</td>
-              <td className="px-4 py-2">{row.correo}</td>
+              <td className="px-4 py-2">{row.email}</td>
               <td className="px-4 py-2">{row.carrera}</td>
-              <td className="px-4 py-2">{row.telefono}</td>
-              <td className="px-4 py-2 truncate max-w-[200px]">{row.pregunta1}</td>
-              <td className="px-4 py-2 truncate max-w-[200px]">{row.pregunta2}</td>
+              <td className="px-4 py-2">{row.numero}</td>
+              <td className="px-4 py-2 truncate max-w-[200px]">{row.respuesta_1}</td>
+              <td className="px-4 py-2 truncate max-w-[200px]">{row.respuesta_2}</td>
+              <td className="px-4 py-2 truncate max-w-[200px]">{row.respuesta_3}</td>
             </tr>
           ))}
         </tbody>

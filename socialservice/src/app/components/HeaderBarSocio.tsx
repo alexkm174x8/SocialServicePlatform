@@ -8,7 +8,7 @@ interface HeaderBarProps {
 
 export const HeaderBarSocio = ({ proyecto }: HeaderBarProps) => {
   return (
-    <header className="fixed top-0 left-0 w-full flex items-center bg-gray-100 px-15 py-2 z-40">
+    <header className="fixed top-0 left-0 w-full flex items-center bg-[#0a2170] px-15 py-2 z-40">
       <div className="flex items-center gap-4">
         <Image
           src="/logoss.svg" // Asegúrate que este archivo esté en /public
@@ -16,8 +16,8 @@ export const HeaderBarSocio = ({ proyecto }: HeaderBarProps) => {
           width={25}
           height={25}
         />
-        <h1 className="text-2xl md:text-2xl font-extrabold text-[#001C55]">
-        {`Solicitudes ${proyecto}`}
+        <h1 className="text-2xl md:text-2xl font-extrabold text-white">
+        {`Solicitudes para ${proyecto}`}
         </h1>
       </div>
     </header>
