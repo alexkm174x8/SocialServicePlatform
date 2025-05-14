@@ -40,7 +40,6 @@ export const Lista = ({
     data.map(() => statusOptions[3])
   );
 
-
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -70,7 +69,7 @@ export const Lista = ({
     const updatedData = [...data];
     updatedData[index] = {
       ...updatedData[index],
-      estatus: option.label, 
+      estatus: option.label,
     };
     setData(updatedData);
     setActiveDropdown(null);

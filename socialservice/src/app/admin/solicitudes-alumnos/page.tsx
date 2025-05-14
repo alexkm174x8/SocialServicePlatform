@@ -140,8 +140,7 @@ export default function Solicitud() {
      
              <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
                <div className="flex items-center gap-4">
-                 <DetailButton texto="Enviar" size="auto" onClick ={console.log("Enviar")} />
-                 <DetailButton texto="Descargar" size="auto" onClick ={console.log("Enviar")}/>
+                 <DetailButton texto="Comparar" size="auto"/>
                </div>
      
                <div className="flex flex-wrap gap-4 items-center text-sm">
