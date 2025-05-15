@@ -6,7 +6,7 @@ import { SearchBar } from "@/app/components/SearchBar";
 import { FilterButton } from "@/app/components/FilterButton";
 import { CardItem } from "@/app/alumno/components/custom/CardItem";
 import { SideBar } from "@/app/alumno/components/custom/StudentSideBar";
-import { Compass, Trash2 } from "lucide-react";
+import { Compass } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 type Project = {
@@ -110,7 +110,7 @@ export default function Explorar() {
               className="border border-gray-600 text-gray-500 font-semibold rounded-full px-4 py-1 text-sm hover:bg-gray-300 transition"
               onClick={resetFilters}
             >
-              <Trash2 className="w-5 h-5" />
+              Limpiar filtros
             </button>
 
             <FilterButton
