@@ -117,7 +117,7 @@ export default function Solicitudes() {
                      setSearch("");
                    }}
                  >
-                   <Trash2 className="w-5 h-5" />
+                  Limpiar filtros
                  </button>
      
                  <FilterButton

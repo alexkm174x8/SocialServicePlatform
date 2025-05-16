@@ -10,7 +10,6 @@ import { SideBar } from "@/app/admin/components/custom/AdminSideBar";
 import { Inbox} from "lucide-react";
 import UploaderButton from "@/app/admin/components/custom/UploaderButton";
 import DownloadModal from '@/app/admin/components/custom/DownloadModal';
-import { Trash2 } from "lucide-react";
 import {DetailButton} from "@/app/components/DetailButton";
 import { Lista } from "@/app/components/Lista";
 
@@ -119,7 +118,7 @@ export default function Solicitud() {
                      setSearch("");
                    }}
                  >
-                   <Trash2 className="w-5 h-5" />
+                  Limpiar filtros
                  </button>
      
                  <FilterButton
@@ -131,7 +130,7 @@ export default function Solicitud() {
      
                  <FilterButton
                    label="Estado"
-                   options={[...new Set(solicitudes.map((s) => s.estado))]}
+                   options={[...new Set(solicitudes.map((s) => s.estatus))]}
                    selectedValues={filterEstado}
                    onChange={setFilterEstado}
                  />
@@ -164,10 +163,9 @@ export default function Solicitud() {
              </div>
      
              <div className="rounded-lg">
-             <Lista data={filtered} />
+             <Lista data={filtered} setData={setSolicitudes} />
              </div>
            </main>
          </>
        );
      }
-     
