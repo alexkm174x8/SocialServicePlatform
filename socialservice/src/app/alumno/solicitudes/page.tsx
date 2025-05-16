@@ -318,7 +318,7 @@ export default function Solicitudes() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-white">
       <SideBar />
       <div className="flex-1 p-4 md:p-4">
         <HeaderBar titulo="Solicitudes" Icono={FileText} />

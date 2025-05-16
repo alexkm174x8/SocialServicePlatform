@@ -2,6 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const columnOptions = ['Estado', 'Matrícula', 'Correo', 'Carrera', 'Teléfono', 'Pregunta 1', 'Pregunta 2', 'Pregunta 3'];
 
@@ -39,6 +42,50 @@ const DownloadModal: React.FC<DownloadModalProps> = ({ onClose }) => {
     };
   }, [onClose]);
 
+  const handleDownload = async () => {
+    try {
+      // Obtener los datos de la tabla "postulacion" desde Supabase
+      const { data, error } = await supabase.from('postulacion').select('*');
+
+      if (error) {
+        console.error('Error al obtener los datos:', error);
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        console.warn('No hay datos disponibles para descargar.');
+        return;
+      }
+
+      if (format === 'CSV') {
+        // Generar archivo CSV
+        const csvContent = [
+          Object.keys(data[0]).join(','), // Encabezados
+          ...data.map((row) => Object.values(row).join(',')),
+        ].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'informacion.csv';
+        link.click();
+        URL.revokeObjectURL(url);
+      } else if (format === 'PDF') {
+        // Generar archivo PDF
+        const doc = new jsPDF({ orientation: 'landscape' });
+        const headers = Object.keys(data[0]);
+        const rows = data.map((row) => Object.values(row));
+
+        doc.text('Postulaciones de alumnos', 10, 10);
+        autoTable(doc, { head: [headers], body: rows });
+        doc.save('postulaciones.pdf');
+      }
+    } catch (error) {
+      console.error('Error al descargar la información:', error);
+    }
+  };
+
   return (
       <div className="popup-content bg-white rounded-xl p-6 shadow-lg w-full max-w-md mx-auto my-8 border border-gray-300">
         <div className="flex justify-between items-center mb-6">
@@ -71,16 +118,7 @@ const DownloadModal: React.FC<DownloadModalProps> = ({ onClose }) => {
         {/* Botón Descargar */}
         <div className="mt-6 text-center">
           <button
-            onClick={() => {
-              const data = { columns, recordRange, format };
-              const blob = new Blob([JSON.stringify(data, null, 2)], { type: format === 'PDF' ? 'application/pdf' : 'text/csv' });
-              const url = URL.createObjectURL(blob);
-              const link = document.createElement('a');
-              link.href = url;
-              link.download = `informacion.${format.toLowerCase()}`;
-              link.click();
-              URL.revokeObjectURL(url);
-            }}
+            onClick={handleDownload}
             className="bg-blue-900 text-white px-6 py-2 rounded-full hover:bg-blue-800"
           >
             Descargar

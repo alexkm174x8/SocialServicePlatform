@@ -18,6 +18,9 @@ type ProjectData = {
   ubicacion: string;
   horario: string;
   horas: number;
+  pregunta_1: string;
+  pregunta_2: string;
+  pregunta_3: string;
 };
 
 export default function Formulario() {
@@ -37,6 +40,9 @@ export default function Formulario() {
     carreraCompleta: "",
     correo: "",
     telefono: "",
+    r1: "",
+    r2: "", 
+    r3: "",
   });
 
   const [estatus, setEstatus] = useState("");
@@ -208,9 +214,9 @@ export default function Formulario() {
           carrera: form.carreraCompleta,
           email: session.user.email, // Use the email from session instead of form
           numero: form.telefono,
-          respuesta_1: null,
-          respuesta_2: null,
-          respuesta_3: null
+          respuesta_1: form.r1,
+          respuesta_2: form.r2, 
+          respuesta_3: form.r3,
         });
 
       if (error) throw error;
@@ -424,6 +430,43 @@ export default function Formulario() {
                     </div>
                   </div>
                 </div>
+              </div>
+              <div>
+                <label className="block font-semibold text-[#0a2170]">{project.pregunta_1}</label>
+                <input
+                  name="pregunta1"
+                  type="text"
+                  value={form.r1}
+                  onChange={handleChange}
+                  placeholder="Ingresa tu respuesta"
+                  className="w-full border rounded-md p-2"
+                />
+                {errors.r1 && <p className="text-red-600">{errors.r1}</p>}
+              </div>
+              <div>
+                <label className="block font-semibold text-[#0a2170]">{project.pregunta_2}</label>
+                <input
+                  name="pregunta2"
+                  type="text"
+                  value={form.r1}
+                  onChange={handleChange}
+                  placeholder="Ingresa tu respuesta"
+                  className="w-full border rounded-md p-2"
+                />
+                {errors.r2 && <p className="text-red-600">{errors.r2}</p>}
+              </div>
+              <div>
+                <label className="block font-semibold text-[#0a2170]">{project.pregunta_3}</label>
+                <input
+                  name="pregunta3"
+                  type="text"
+                  value={form.r1}
+                  onChange={handleChange}
+                  placeholder="Ingresa tu respuesta"
+                  className="w-full border rounded-md p-2"
+                />
+                {errors.r3 && <p className="text-red-600">{errors.r3}</p>}
+              </div>
 
                 {warning && <p className="text-red-600">{warning}</p>}
 

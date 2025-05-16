@@ -10,7 +10,6 @@ import { SideBar } from "@/app/admin/components/custom/AdminSideBar";
 import { FolderOpen } from "lucide-react";
 import UploaderButton from "@/app/admin/components/custom/UploaderButton";
 import DownloadModal from '@/app/admin/components/custom/DownloadModal';
-import { Trash2 } from "lucide-react";
 import { DetailButton } from "@/app/components/DetailButton";
 
 type Explorar = {
@@ -116,7 +115,7 @@ export default function Explorar() {
                 setSearch("");
               }}
             >
-              <Trash2 className="w-5 h-5" />
+              Limpiar filtros
             </button>
 
             <FilterButton
