@@ -5,6 +5,7 @@ import { HeaderBar } from "@/app/components/HeaderBar"
 import { SideBar } from "@/app/alumno/components/custom/StudentSideBar"
 import { FileText, Check, X, Loader2, Lock, ArrowLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { supabase } from "@/lib/supabase"
 
 type Status = "completed" | "in-progress" | "locked" | "rejected"
 
@@ -13,49 +14,64 @@ type Step = {
   status: Status
 }
 
+type PostulacionDB = {
+  id_proyecto: number
+  estatus: string
+  email: string
+  proyectos_solidarios: {
+    proyecto: string
+  }
+}
+
+type Postulacion = {
+  id_proyecto: number
+  proyecto: string
+  estatus: string
+  fecha_postulacion: string
+  fecha_actualizacion: string
+}
+
 type CardProps = {
   title: string
   requestedDate: string
   updatedDate: string
   actionLabel: string
   steps: Step[]
+  id_proyecto: number
 }
 
-const examples: CardProps[] = [
-  {
-    title: "Special Olympics",
-    requestedDate: "03/03/25",
-    updatedDate: "05/03/25",
-    actionLabel: "Ver proyecto",
-    steps: [
-      { label: "Enviado", status: "completed" },
-      { label: "Resultado", status: "completed" },
-      { label: "Mi Respuesta", status: "in-progress" },
-    ],
-  },
-  {
-    title: "Patitas sin Rumbo",
-    requestedDate: "03/03/25",
-    updatedDate: "05/03/25",
-    actionLabel: "Ver proyecto",
-    steps: [
-      { label: "Enviado", status: "completed" },
-      { label: "Resultado", status: "rejected" },
-      { label: "Mi Respuesta", status: "rejected" },
-    ],
-  },
-  {
-    title: "Proyecto X",
-    requestedDate: "04/04/25",
-    updatedDate: "04/04/25",
-    actionLabel: "Ver proyecto",
-    steps: [
-      { label: "Enviado", status: "completed" },
-      { label: "Resultado", status: "completed" },
-      { label: "Mi Respuesta", status: "completed" },
-    ],
-  },
-]
+const mapStatusToSteps = (estatus: string): Step[] => {
+  const baseSteps = [
+    { label: "Enviado", status: "completed" as Status },
+    { label: "Resultado", status: "locked" as Status },
+    { label: "Mi Respuesta", status: "locked" as Status },
+  ]
+
+  switch (estatus.toLowerCase()) {
+    case "postulado":
+      return baseSteps
+    case "aceptado":
+      return [
+        { label: "Enviado", status: "completed" as Status },
+        { label: "Resultado", status: "completed" as Status },
+        { label: "Mi Respuesta", status: "in-progress" as Status },
+      ]
+    case "no":
+      return [
+        { label: "Enviado", status: "completed" as Status },
+        { label: "Resultado", status: "rejected" as Status },
+        { label: "Mi Respuesta", status: "rejected" as Status },
+      ]
+    case "esperando":
+      return [
+        { label: "Enviado", status: "completed" as Status },
+        { label: "Resultado", status: "completed" as Status },
+        { label: "Mi Respuesta", status: "in-progress" as Status },
+      ]
+    default:
+      return baseSteps
+  }
+}
 
 interface ActionButtonProps {
   texto: string
@@ -87,7 +103,7 @@ const ActionButton = ({ texto, size, colorClass = 'bg-blue-400 hover:bg-blue-900
   </button>
 )
 
-const ProgressTrackerCard = ({ title, requestedDate, updatedDate, actionLabel, steps }: CardProps) => {
+const ProgressTrackerCard = ({ title, requestedDate, updatedDate, actionLabel, steps, id_proyecto }: CardProps) => {
   const router = useRouter()
   const [localSteps, setLocalSteps] = useState<Step[]>([])
   const [isResponding, setIsResponding] = useState(false)
@@ -159,11 +175,18 @@ const ProgressTrackerCard = ({ title, requestedDate, updatedDate, actionLabel, s
         <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 mt-1 md:mt-0">
           <div className="text-xs md:text-sm"><span className="opacity-80">Solicitado: </span>{requestedDate}</div>
           <div className="text-xs md:text-sm"><span className="opacity-80">Actualizado: </span>{updatedDate}</div>
-          <ActionButton texto={actionLabel} size="auto" onClick={() => router.push("explorar/proyecto")} />
-          {renderResponderButton()}
+          <div className="flex gap-2">
+            <ActionButton 
+              texto={actionLabel} 
+              size="auto" 
+              onClick={() => router.push(`/alumno/explorar/proyecto/${id_proyecto}`)} 
+              colorClass="bg-white hover:bg-gray-100 text-[#0a2170] border border-[#0a2170]"
+            />
+            {renderResponderButton()}
+          </div>
         </div>
       </div>
-      <div className="flex items-center justify-center">
+      <div className="flex items-center justify-center pb-6">
         <div className="flex items-center justify-center gap-4">
           {localSteps.map((step, index) => (
             <div key={index} className="flex items-center">
@@ -192,6 +215,108 @@ const ProgressTrackerCard = ({ title, requestedDate, updatedDate, actionLabel, s
 }
 
 export default function Solicitudes() {
+  const [postulaciones, setPostulaciones] = useState<Postulacion[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchPostulaciones = async () => {
+      try {
+        setError(null)
+        // Get the current user's session
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session?.user?.email) {
+          setError("No se encontró una sesión activa. Por favor inicia sesión.")
+          return
+        }
+
+        const userEmail = session.user.email
+        console.log("Fetching applications for user:", userEmail)
+
+        // Fetch postulaciones for this specific user's email
+        const { data, error } = await supabase
+          .from('postulacion')
+          .select(`
+            id_proyecto,
+            estatus,
+            email,
+            proyectos_solidarios (
+              proyecto
+            )
+          `)
+          .eq('email', userEmail) // Filter by the user's email
+          .returns<PostulacionDB[]>()
+
+        if (error) {
+          console.error("Error fetching postulaciones:", error)
+          setError("Error al cargar las solicitudes. Por favor intenta de nuevo.")
+          return
+        }
+
+        if (!data || data.length === 0) {
+          setError("No se encontraron solicitudes para tu cuenta.")
+          return
+        }
+
+        // Format the data
+        const formattedData: Postulacion[] = data.map(item => ({
+          id_proyecto: item.id_proyecto,
+          proyecto: item.proyectos_solidarios.proyecto,
+          estatus: item.estatus,
+          fecha_postulacion: new Date().toISOString(), // You might want to add this column to your database
+          fecha_actualizacion: new Date().toISOString(), // You might want to add this column to your database
+        }))
+
+        setPostulaciones(formattedData)
+      } catch (error) {
+        console.error("Error in fetchPostulaciones:", error)
+        setError("Ocurrió un error inesperado. Por favor intenta de nuevo.")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchPostulaciones()
+  }, [])
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen bg-gray-100">
+        <SideBar />
+        <div className="flex-1 p-4 md:p-4">
+          <HeaderBar titulo="Solicitudes" Icono={FileText} />
+          <main className="flex items-center justify-center mt-20 ml-30 mr-10">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-900" />
+          </main>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen bg-gray-100">
+        <SideBar />
+        <div className="flex-1 p-4 md:p-4">
+          <HeaderBar titulo="Solicitudes" Icono={FileText} />
+          <main className="flex items-center justify-center mt-20 ml-30 mr-10">
+            <div className="text-center">
+              <p className="text-red-600 mb-4">{error}</p>
+              {error.includes("No se encontraron solicitudes") && (
+                <button
+                  onClick={() => window.location.href = '/alumno/explorar'}
+                  className="bg-blue-400 hover:bg-blue-900 text-white font-semibold py-2 px-4 rounded-full transition duration-200"
+                >
+                  Explorar Proyectos
+                </button>
+              )}
+            </div>
+          </main>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex min-h-screen bg-white">
       <SideBar />
@@ -199,8 +324,16 @@ export default function Solicitudes() {
         <HeaderBar titulo="Solicitudes" Icono={FileText} />
         <main className={`transition-all mt-20 ml-30 mr-10`}>
           <div className="space-y-6 mt-6">
-            {examples.map((tracker, index) => (
-              <ProgressTrackerCard key={index} {...tracker} />
+            {postulaciones.map((postulacion) => (
+              <ProgressTrackerCard
+                key={postulacion.id_proyecto}
+                title={postulacion.proyecto}
+                requestedDate={new Date(postulacion.fecha_postulacion).toLocaleDateString()}
+                updatedDate={new Date(postulacion.fecha_actualizacion).toLocaleDateString()}
+                actionLabel="Ver proyecto"
+                steps={mapStatusToSteps(postulacion.estatus)}
+                id_proyecto={postulacion.id_proyecto}
+              />
             ))}
           </div>
         </main>

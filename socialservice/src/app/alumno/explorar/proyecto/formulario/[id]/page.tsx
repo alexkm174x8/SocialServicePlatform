@@ -32,6 +32,7 @@ export default function Formulario() {
   const [project, setProject] = useState<ProjectData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasExistingApplication, setHasExistingApplication] = useState(false);
 
   const [form, setForm] = useState({
     nombre: "",
@@ -72,6 +73,69 @@ export default function Formulario() {
 
     if (params.id) fetchProjectDetails();
   }, [params.id, router]);
+
+  useEffect(() => {
+    const checkExistingApplication = async () => {
+      try {
+        // Get the current user's session
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session?.user?.email) {
+          console.error("No active session")
+          return
+        }
+
+        // Check if user has already applied to this project
+        const { data, error } = await supabase
+          .from('postulacion')
+          .select('id_proyecto, estatus')
+          .eq('email', session.user.email)
+          .eq('id_proyecto', params.id)
+          .single()
+
+        if (error && error.code !== 'PGRST116') { // Ignore "no rows found" error
+          console.error("Error checking existing application:", error)
+          return
+        }
+
+        if (data) {
+          setHasExistingApplication(true)
+          setWarning("Ya has postulado a este proyecto. No puedes postularte nuevamente.")
+        }
+      } catch (error) {
+        console.error("Error checking existing application:", error)
+      }
+    }
+
+    if (params.id) {
+      checkExistingApplication()
+    }
+  }, [params.id])
+
+  useEffect(() => {
+    const initializeFormFromSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session?.user?.email) {
+          console.error("No active session")
+          return
+        }
+
+        const userEmail = session.user.email
+        // Extract matricula from email (remove @tec.mx)
+        const matricula = userEmail.replace('@tec.mx', '')
+
+        setForm(prev => ({
+          ...prev,
+          correo: userEmail,
+          matricula: matricula
+        }))
+      } catch (error) {
+        console.error("Error getting session data:", error)
+      }
+    }
+
+    initializeFormFromSession()
+  }, [])
 
   const regexMap: { [key: string]: { regex: RegExp; message: string } } = {
     nombre: {
@@ -115,10 +179,31 @@ export default function Formulario() {
   };
 
   const handleSubmit = async () => {
-    if (!project) return;
+    if (!project || hasExistingApplication) return;
 
     setIsSubmitting(true);
     try {
+      // Get the current user's session
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.user?.email) {
+        setWarning("No se encontró una sesión activa. Por favor inicia sesión.")
+        return
+      }
+
+      // Double check if application already exists (race condition prevention)
+      const { data: existingApp } = await supabase
+        .from('postulacion')
+        .select('id_proyecto')
+        .eq('email', session.user.email)
+        .eq('id_proyecto', project.id_proyecto)
+        .single()
+
+      if (existingApp) {
+        setWarning("Ya has postulado a este proyecto. No puedes postularte nuevamente.")
+        setShowPopup(false)
+        return
+      }
+
       const { error } = await supabase
         .from("postulacion")
         .insert({
@@ -127,7 +212,7 @@ export default function Formulario() {
           estatus: "postulado",
           nombre: form.nombre,
           carrera: form.carreraCompleta,
-          email: form.correo,
+          email: session.user.email, // Use the email from session instead of form
           numero: form.telefono,
           respuesta_1: form.r1,
           respuesta_2: form.r2, 
@@ -217,116 +302,132 @@ export default function Formulario() {
         <SideBar />
         <div className="flex flex-col flex-1 p-4">
           <HeaderBar titulo="Proyecto" Icono={ArrowLeft} onClick={() => router.back()} />
-          <div className="max-w-2xl w-full mx-auto mt-4 rounded-md p-6 border-blue-900 border-2">
-            <div className="space-y-4">
-              <div>
-                <label className="block font-semibold text-[#0a2170]">Nombre completo</label>
-                <input
-                  name="nombre"
-                  type="text"
-                  value={form.nombre}
-                  onChange={handleChange}
-                  placeholder="Ingresa tu nombre"
-                  className="w-full border rounded-md p-2"
+          {hasExistingApplication ? (
+            <div className="max-w-2xl w-full mx-auto mt-4 rounded-md p-6 border-red-500 border-2 bg-red-50">
+              <h2 className="text-xl font-semibold text-red-600 mb-4">Ya has postulado a este proyecto</h2>
+              <p className="text-gray-700 mb-4">No puedes postularte nuevamente al mismo proyecto.</p>
+              <button
+                onClick={() => router.push('/alumno/explorar')}
+                className="px-6 py-2 rounded-full bg-blue-400 hover:bg-blue-900 text-white font-semibold 
+                          transition-colors duration-200"
+              >
+                Explorar otros proyectos
+              </button>
+            </div>
+          ) : (
+            <div className="max-w-2xl w-full mx-auto mt-4 rounded-md p-6 border-blue-900 border-2">
+              <div className="space-y-4">
+                <div>
+                  <label className="block font-semibold text-[#0a2170]">Nombre completo</label>
+                  <input
+                    name="nombre"
+                    type="text"
+                    value={form.nombre}
+                    onChange={handleChange}
+                    placeholder="Ingresa tu nombre"
+                    className="w-full border rounded-md p-2"
+                  />
+                  {errors.nombre && <p className="text-red-600">{errors.nombre}</p>}
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-[#0a2170]">Matrícula</label>
+                  <input
+                    name="matricula"
+                    type="text"
+                    value={form.matricula}
+                    onChange={handleChange}
+                    placeholder="Ingresa tu matrícula"
+                    className="w-full border rounded-md p-2 bg-gray-50"
+                    readOnly
+                  />
+                  {errors.matricula && <p className="text-red-600">{errors.matricula}</p>}
+                </div>
+
+                <Carrera carreras={["IBT", "IC", "LC", "IIS", "IM", "IMT", "IQ", "IRS", "ITC"]} />
+
+                <div>
+                  <label className="block font-semibold text-[#0a2170]">Correo institucional</label>
+                  <input
+                    name="correo"
+                    type="email"
+                    value={form.correo}
+                    onChange={handleChange}
+                    placeholder="ejemplo@correo.com"
+                    className="w-full border rounded-md p-2 bg-gray-50"
+                    readOnly
+                  />
+                  {errors.correo && <p className="text-red-600">{errors.correo}</p>}
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-[#0a2170]">Teléfono (a 10 dígitos y sin espacios)</label>
+                  <input
+                    name="telefono"
+                    type="tel"
+                    value={form.telefono}
+                    onChange={handleChange}
+                    placeholder="Ingresa tu número"
+                    className="w-full border rounded-md p-2"
+                  />
+                  {errors.telefono && <p className="text-red-600">{errors.telefono}</p>}
+                </div>
+
+                <RadioGroup 
+                  label="Estatus en el que te encuentras:"
+                  name="estatus"
+                  options={["Postuladx"]}
+                  value={estatus}
+                  onChange={setEstatus}
                 />
-                {errors.nombre && <p className="text-red-600">{errors.nombre}</p>}
-              </div>
-
-              <div>
-                <label className="block font-semibold text-[#0a2170]">Matrícula</label>
-                <input
-                  name="matricula"
-                  type="text"
-                  value={form.matricula}
-                  onChange={handleChange}
-                  placeholder="Ingresa tu matrícula"
-                  className="w-full border rounded-md p-2"
+                <RadioGroup 
+                  label="Proyecto al que te estás postulando"
+                  name="proyecto"
+                  options={[project.proyecto]}
+                  value={proyecto}
+                  onChange={setProyecto}
                 />
-                {errors.matricula && <p className="text-red-600">{errors.matricula}</p>}
-              </div>
-
-              <Carrera carreras={["IBT", "IC", "LC", "IIS", "IM", "IMT", "IQ", "IRS", "ITC"]} />
-
-              <div>
-                <label className="block font-semibold text-[#0a2170]">Correo institucional</label>
-                <input
-                  name="correo"
-                  type="email"
-                  value={form.correo}
-                  onChange={handleChange}
-                  placeholder="ejemplo@correo.com"
-                  className="w-full border rounded-md p-2"
+                <DetalleProyecto
+                  detalles={{
+                    modalidad: project.modalidad,
+                    periodo: project.fecha_ejecucion,
+                    ubicacion: project.ubicacion,
+                    diasEjecucion: [
+                      `Horario: ${project.horario}`,
+                      `Horas totales: ${project.horas}`,
+                    ],
+                  }}
                 />
-                {errors.correo && <p className="text-red-600">{errors.correo}</p>}
-              </div>
 
-              <div>
-                <label className="block font-semibold text-[#0a2170]">Teléfono (a 10 dígitos y sin espacios)</label>
-                <input
-                  name="telefono"
-                  type="tel"
-                  value={form.telefono}
-                  onChange={handleChange}
-                  placeholder="Ingresa tu número"
-                  className="w-full border rounded-md p-2"
-                />
-                {errors.telefono && <p className="text-red-600">{errors.telefono}</p>}
-              </div>
-
-              <RadioGroup 
-                label="Estatus en el que te encuentras:"
-                name="estatus"
-                options={["Postuladx"]}
-                value={estatus}
-                onChange={setEstatus}
-              />
-              <RadioGroup 
-                label="Proyecto al que te estás postulando"
-                name="proyecto"
-                options={[project.proyecto]}
-                value={proyecto}
-                onChange={setProyecto}
-              />
-              <DetalleProyecto
-                detalles={{
-                  modalidad: project.modalidad,
-                  periodo: project.fecha_ejecucion,
-                  ubicacion: project.ubicacion,
-                  diasEjecucion: [
-                    `Horario: ${project.horario}`,
-                    `Horas totales: ${project.horas}`,
-                  ],
-                }}
-              />
-
-              <div>
-                <label className="block font-semibold text-[#0a2170]">
-                  ¿Estás dispuestx a seguir con las postulación?
-                </label>
-                <div className="space-y-3 text-sm text-gray-800">
-                  <div className="flex items-start gap-3">
-                    <input
-                      type="radio"
-                      id="si-compromiso"
-                      name="compromiso"
-                      value="si"
-                      className="accent-[#0a2170] mt-1"
-                    />
-                    <label htmlFor="si-compromiso" className="block">
-                      Sí, estoy dispuestx a ejecutar el Proyecto Solidario con las condiciones de días y horarios requeridos.
-                    </label>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <input
-                      type="radio"
-                      id="no-compromiso"
-                      name="compromiso"
-                      value="no"
-                      className="accent-[#0a2170] mt-1"
-                    />
-                    <label htmlFor="no-compromiso" className="block">
-                      No, mis actividades escolares y personales no me permitirán participar en el proyecto. Gracias.
-                    </label>
+                <div>
+                  <label className="block font-semibold text-[#0a2170]">
+                    ¿Estás dispuestx a seguir con las postulación?
+                  </label>
+                  <div className="space-y-3 text-sm text-gray-800">
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="radio"
+                        id="si-compromiso"
+                        name="compromiso"
+                        value="si"
+                        className="accent-[#0a2170] mt-1"
+                      />
+                      <label htmlFor="si-compromiso" className="block">
+                        Sí, estoy dispuestx a ejecutar el Proyecto Solidario con las condiciones de días y horarios requeridos.
+                      </label>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="radio"
+                        id="no-compromiso"
+                        name="compromiso"
+                        value="no"
+                        className="accent-[#0a2170] mt-1"
+                      />
+                      <label htmlFor="no-compromiso" className="block">
+                        No, mis actividades escolares y personales no me permitirán participar en el proyecto. Gracias.
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -367,34 +468,34 @@ export default function Formulario() {
                 {errors.r3 && <p className="text-red-600">{errors.r3}</p>}
               </div>
 
-              {warning && <p className="text-red-600">{warning}</p>}
+                {warning && <p className="text-red-600">{warning}</p>}
 
-              <div className="flex justify-end gap-4 mt-6">
-                <button
-                  type="button"
-                  onClick={() => router.back()}
-                  className="px-6 py-2 rounded-full border border-[#0a2170] text-[#0a2170] font-semibold 
-                            hover:bg-[#0a2170] hover:text-white transition-colors duration-200"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="button"
-                  onClick={handleNextClick}
-                  className="px-6 py-2 rounded-full border border-[#0a2170] bg-[#0a2170] text-white font-semibold 
-                            hover:bg-black hover:text-white hover:border-black transition-colors duration-200"
-                >
-                  Siguiente
-                </button>
+                <div className="flex justify-end gap-4 mt-6">
+                  <button
+                    type="button"
+                    onClick={() => router.back()}
+                    className="px-6 py-2 rounded-full border border-[#0a2170] text-[#0a2170] font-semibold 
+                              hover:bg-[#0a2170] hover:text-white transition-colors duration-200"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleNextClick}
+                    className="px-6 py-2 rounded-full border border-[#0a2170] bg-[#0a2170] text-white font-semibold 
+                              hover:bg-black hover:text-white hover:border-black transition-colors duration-200"
+                  >
+                    Siguiente
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
-        {showPopup && (
+        {showPopup && !hasExistingApplication && (
           <SubmissionConfirmation 
             onClose={() => setShowPopup(false)} 
             onSubmit={handleSubmit}
-            isSubmitting={isSubmitting}
           />
         )}
       </div>
