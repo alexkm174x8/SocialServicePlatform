@@ -18,6 +18,11 @@ type Project = {
   modalidad: any;
 };
 
+type Postulacion = {
+  id_proyecto: number;
+  email: string;
+};
+
 const getBackgroundColor = (hours: number): string => {
   const colors: Record<number, string> = {
     180: "bg-teal-300",
@@ -30,13 +35,29 @@ const getBackgroundColor = (hours: number): string => {
   return colors[hours] || "bg-gray-400";
 };
 
-const fetchProjects = async () => {
-  const { data, error } = await supabase
+const fetchProjects = async (userEmail: string) => {
+  // First get all projects
+  const { data: projects, error: projectsError } = await supabase
     .from('proyectos_solidarios')
     .select('id_proyecto, proyecto, estatus_ps, objetivo_ps, horas, modalidad');
 
-  if (error) throw new Error(error.message);
-  return data || [];
+  if (projectsError) throw new Error(projectsError.message);
+
+  // Then get user's postulations
+  const { data: postulaciones, error: postulacionesError } = await supabase
+    .from('postulacion')
+    .select('id_proyecto')
+    .eq('email', userEmail);
+
+  if (postulacionesError) throw new Error(postulacionesError.message);
+
+  // Create a set of project IDs that the user has already applied to
+  const appliedProjectIds = new Set(postulaciones?.map(p => p.id_proyecto) || []);
+
+  // Filter out projects that the user has already applied to
+  const availableProjects = projects?.filter(project => !appliedProjectIds.has(project.id_proyecto)) || [];
+
+  return availableProjects;
 };
 
 const useProjects = () => {
@@ -49,7 +70,16 @@ const useProjects = () => {
       try {
         setIsLoading(true);
         setError(null);
-        const data = await fetchProjects();
+        
+        // Get the current user's session
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user?.email) {
+          setError("No se encontró una sesión activa. Por favor inicia sesión.");
+          return;
+        }
+
+        const userEmail = session.user.email;
+        const data = await fetchProjects(userEmail);
         setProjects(data);
       } catch (err: any) {
         setError(err.message);
@@ -129,7 +159,7 @@ export default function Explorar() {
           </div>
         </div>
 
-        {isLoading && <p className="text-center">Loading projects...</p>}
+        {isLoading && <p className="text-center">Cargando proyectos...</p>}
         {error && <p className="text-center text-red-600">Error: {error}</p>}
 
         {!isLoading && !error && (
@@ -150,7 +180,7 @@ export default function Explorar() {
                 />
               ))
             ) : (
-              <p className="text-center col-span-full">No projects found.</p>
+              <p className="text-center col-span-full">No hay proyectos disponibles con este nombre.</p>
             )}
           </div>
         )}

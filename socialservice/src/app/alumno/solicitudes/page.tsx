@@ -189,7 +189,7 @@ const ProgressTrackerCard = ({ title, requestedDate, updatedDate, actionLabel, s
       <div className="flex items-center justify-center pb-6">
         <div className="flex items-center justify-center gap-4">
           {localSteps.map((step, index) => (
-            <div key={index} className="flex items-center">
+            <div key={`${step.label}-${index}`} className="flex items-center">
               <div className="flex flex-col items-center relative z-10">
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
                   step.status === "completed" ? "bg-[#00c48c]" : step.status === "rejected" ? "bg-[#ff5757]" : "bg-white"
