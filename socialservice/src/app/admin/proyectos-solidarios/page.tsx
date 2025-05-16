@@ -19,7 +19,6 @@ type Explorar = {
   grupo: string;
   clave: string;
   proyecto: string;
-  representante: string;
   contacto: string;
   manejar: string;
 };
@@ -46,7 +45,7 @@ export default function Explorar() {
       try {
         const { data, error } = await supabase
           .from('proyectos_solidarios')
-          .select(`id_proyecto, perfil_aceptacion, proyecto, grupo, clave, id_socioformador, socioformador ( correo )`);
+          .select(`id_proyecto, perfil_aceptacion, proyecto, grupo, clave, id_socioformador, representante_osf, socioformador ( correo )`);
 
         if (error) {
           throw error;
@@ -59,8 +58,7 @@ export default function Explorar() {
           grupo: item.grupo,
           clave: item.clave,
           proyecto: item.proyecto,
-          contacto: item.socioformador?.correo || 'N/A', // Use correo from socioformador or fallback to 'N/A'
-          representante: 'N/A', // Placeholder for "representante"
+          contacto: item.representante_osf, // Use correo from socioformador or fallback to 'N/A'
           manejar: 'N/A', // Placeholder for "manejar"
         }));
         setExplorar(formattedData);
@@ -84,7 +82,6 @@ export default function Explorar() {
       s.grupo.toLowerCase().includes(searchTerm) ||
       s.clave.toLowerCase().includes(searchTerm) ||
       s.proyecto.toLowerCase().includes(searchTerm) ||
-      s.representante.toLowerCase().includes(searchTerm) ||
       s.contacto.toLowerCase().includes(searchTerm) ||
       s.manejar.toLowerCase().includes(searchTerm);
 

@@ -99,7 +99,7 @@ export default function Solicitudes() {
         proyecto="Special Olympics"
       />
 
-     <main className="mt-20 ml-15 px-15">
+     <main className="mt-22 px-15">
              <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
                <SearchBar
                  search={search}

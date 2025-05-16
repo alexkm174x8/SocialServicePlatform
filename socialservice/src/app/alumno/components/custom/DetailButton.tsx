@@ -21,7 +21,7 @@ export const DetailButton = ({ texto, size, id }: Props) => {
     <button
       onClick={handleNavigation}
       className={`
-        bg-blue-400 hover:bg-blue-900
+        bg-[#3154bb] hover:bg-blue-900
         text-white font-semibold text-sm
         px-8 py-[6px] 
         rounded-full

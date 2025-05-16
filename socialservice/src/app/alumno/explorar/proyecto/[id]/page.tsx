@@ -122,10 +122,10 @@ export default function ProjectPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Columna de información más ancha */}
               <div className="md:col-span-2">
-                <h1 className="text-lg font-bold text-blue-900">{project.proyecto}</h1>
+                <h1 className="text-2xl font-bold text-blue-900">{project.proyecto}</h1>
                 <div className="flex gap-2 mt-2 flex-wrap">
-                  <FeatureButton texto={project.modalidad} color="white" size="sm" />
-                  <FeatureButton texto={`${project.horas} horas`} color="white" size="sm" />
+                  <FeatureButton texto={project.modalidad} color="white" size="md" />
+                  <FeatureButton texto={`${project.horas} horas`} color="white" size="md" />
                 </div>
                 <div className="mt-2 space-y-1">
                   <ProjectDetails label="Modalidad" value={project.modalidad} />

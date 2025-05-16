@@ -9,7 +9,7 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const validateFields = (fields) => {
-  const requiredFields = ["id_proyecto", "perfil_aceptacion", "proyecto", "grupo", "clave"];
+  const requiredFields = ["id_proyecto", "perfil_aceptacion", "proyecto", "grupo", "clave", "representante_osf"];
   const normalizedFields = fields.map((field) => field.trim().toLowerCase());
   console.log("Campos detectados (normalizados):", normalizedFields);
   console.log("Campos requeridos:", requiredFields);
@@ -17,7 +17,7 @@ const validateFields = (fields) => {
 };
 
 const filterRequiredFields = (data) => {
-  const requiredFields = ["id_proyecto", "perfil_aceptacion", "proyecto", "grupo", "clave"];
+  const requiredFields = ["id_proyecto", "perfil_aceptacion", "proyecto", "grupo", "clave", "representante_osf"];
   return data.map((record) => {
     const filteredRecord = {};
     requiredFields.forEach((field) => {

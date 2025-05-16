@@ -45,7 +45,7 @@ export function SideBar() {
         </div>
         <nav className="flex flex-col gap-4">
           <button
-            className={`flex items-center gap-3 p-2 rounded-md transition ${
+            className={`flex items-center gap-3 p-2 rounded-md transition text-blue-900 hover:text-blue-900 hover:bg-white transition ${
               pathname === "/alumno/explorar" ? "bg-white text-blue-900" : "text-white"
             }`}
             onClick={() => handleNavigation( "/alumno/explorar")}
@@ -54,7 +54,7 @@ export function SideBar() {
             {isSidebarOpen && <span>Explorar</span>}
           </button>
           <button
-            className={`flex items-center gap-3 p-2 rounded-md transition ${
+            className={`flex items-center gap-3 p-2 rounded-md transition text-blue-900 hover:text-blue-900 hover:bg-white transition ${
               pathname === "/alumno/solicitudes" ? "bg-white text-blue-900" : "text-white"
             }`}
             onClick={() => handleNavigation( "/alumno/solicitudes")}

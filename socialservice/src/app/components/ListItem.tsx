@@ -11,12 +11,11 @@ export const ListItem = ({ data }: { data: any[] }) => {
           <tr>
             <th className="px-4 py-2">Subido</th>
             <th className="px-4 py-2">Estatus</th>
-            <th className="px-4 py-2">Perfil de Aceptación</th>
+            <th className="px-4 py-2">Perfil de aceptación</th>
             <th className="px-4 py-2">Grupo</th>
             <th className="px-4 py-2">Clave</th>
-            <th className="px-4 py-2">Título de Proyecto</th>
-            <th className="px-4 py-2">Representante</th>
-            <th className="px-4 py-2">Contacto</th>
+            <th className="px-4 py-2">Título de proyecto</th>
+            <th className="px-4 py-2">Correo del responsable</th>
             <th className="px-4 py-2">Acciones</th>
           </tr>
         </thead>
@@ -31,7 +30,6 @@ export const ListItem = ({ data }: { data: any[] }) => {
               <td className="px-4 py-2">{row.grupo}</td>
               <td className="px-4 py-2">{row.clave}</td>
               <td className="px-4 py-2">{row.proyecto}</td>
-              <td className="px-4 py-2">{row.representante}</td>
               <td className="px-4 py-2">
                 <a href={`mailto:${row.contacto}`} className="underline">
                   {row.contacto}
