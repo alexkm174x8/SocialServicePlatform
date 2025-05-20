@@ -28,7 +28,7 @@ export const SearchBar = ({ search, setSearch, onSearchApply, onSearchClear }: P
             inputRef.current?.blur();
           }
         }}
-        className="border-0 outline-none ring-0 focus:outline-none focus:ring-0 focus:border-transparent border-transparent bg-transparent placeholder:text-gray-400 text-blue-800"
+        className="border-0 outline-none ring-0 focus:outline-none focus:ring-0 focus:border-transparent border-transparent bg-transparent placeholder:text-gray-400 text-blue-800 shadow-none"
       />
 
       {search.length > 0 && (

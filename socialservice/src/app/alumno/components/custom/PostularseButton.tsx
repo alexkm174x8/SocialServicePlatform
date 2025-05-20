@@ -19,7 +19,7 @@ export const PostularseButton = ({ texto, id_proyecto }: Props) => {
     <button
       onClick={handleNavigation}
       className={`
-        bg-blue-400 hover:bg-blue-900
+        bg-blue-900 hover:bg-[#3154bb]
         text-white font-semibold text-md
         px-10 py-[10px] 
         rounded-full

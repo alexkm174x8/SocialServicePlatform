@@ -23,6 +23,8 @@ type Solicitud = {
   respuesta_1: string;
   respuesta_2: string;
   respuesta_3: string;
+  id_proyecto?: number;
+  proyecto?: string; // Título del proyecto
 };
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -44,27 +46,47 @@ export default function Solicitudes() {
   useEffect(() => {
     const fetchProyectos = async () => {
       try {
-        const { data, error } = await supabase
+        // Obtener postulaciones con id_proyecto
+        const { data: postulaciones, error: errorPostulaciones } = await supabase
           .from('postulacion')
-          .select(`estatus, matricula, email, carrera, numero, respuesta_1, respuesta_2, respuesta_3`);
+          .select(`estatus, matricula, email, carrera, numero, respuesta_1, respuesta_2, respuesta_3, id_proyecto`);
 
-        if (error) {
-          throw error;
+        if (errorPostulaciones) {
+          throw errorPostulaciones;
         }
 
-        const formattedData = data.map((item) => ({
-          estatus: item.estatus,
-          matricula: item.matricula,
-          email: item.email,
-          carrera: item.carrera,
-          numero: item.numero,
-          respuesta_1: item.respuesta_1,
-          respuesta_2: item.respuesta_2,
-          respuesta_3: item.respuesta_3,
-        }));
+        // Obtener todos los proyectos para hacer el match
+        const { data: proyectos, error: errorProyectos } = await supabase
+          .from('proyectos_solidarios')
+          .select(`id_proyecto, proyecto`);
+
+        if (errorProyectos) {
+          throw errorProyectos;
+        }
+
+        // Hacer match y agregar el título del proyecto
+        const formattedData = postulaciones.map((item) => {
+          const proyectoMatch = proyectos.find((p) => p.id_proyecto === item.id_proyecto);
+          return {
+            estatus: item.estatus,
+            matricula: item.matricula,
+            email: item.email,
+            carrera: item.carrera,
+            numero: item.numero,
+            respuesta_1: item.respuesta_1,
+            respuesta_2: item.respuesta_2,
+            respuesta_3: item.respuesta_3,
+            id_proyecto: item.id_proyecto,
+            proyecto: proyectoMatch ? proyectoMatch.proyecto : undefined,
+          };
+        });
         setSolicitudes(formattedData);
       } catch (error) {
-        console.error('Error fetching proyectos_solidarios:', error.message || error);
+        if (error instanceof Error) {
+          console.error('Error fetching proyectos_solidarios:', error.message);
+        } else {
+          console.error('Error fetching proyectos_solidarios:', error);
+        }
       }
     };
 
@@ -99,7 +121,7 @@ export default function Solicitudes() {
         proyecto="Special Olympics"
       />
 
-     <main className="mt-20 ml-15 px-15">
+     <main className="mt-22 px-15">
              <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
                <SearchBar
                  search={search}
@@ -138,8 +160,8 @@ export default function Solicitudes() {
      
              <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
                <div className="flex items-center gap-4">
-                 <DetailButton texto="Enviar" size="auto" onClick ={console.log("Enviar")} />
-                 <DetailButton texto="Descargar" size="auto" onClick={() => setIsDownloadModalOpen(true)} />
+                 <DetailButton texto="Enviar" size="auto" color="blue" id={0} onClick={() => {}} />
+                 <DetailButton texto="Descargar" size="auto" color="blue" id={1} onClick={() => setIsDownloadModalOpen(true)} />
                </div>
      
                <div className="flex flex-wrap gap-4 items-center text-sm">

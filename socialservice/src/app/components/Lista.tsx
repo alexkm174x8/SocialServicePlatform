@@ -11,6 +11,8 @@ type Solicitud = {
   respuesta_1: string;
   respuesta_2: string;
   respuesta_3: string;
+  id_proyecto?: number;
+  proyecto?: string;
 };
 
 const statusColorMap: Record<string, string> = {
@@ -86,9 +88,10 @@ export const Lista = ({
             <th className="px-4 py-2">Correo</th>
             <th className="px-4 py-2">Carrera</th>
             <th className="px-4 py-2">Teléfono</th>
-            <th className="px-4 py-2">Pregunta 1</th>
-            <th className="px-4 py-2">Pregunta 2</th>
-            <th className="px-4 py-2">Pregunta 3</th>
+            <th className="px-4 py-2">Título del proyecto</th>
+            <th className="px-4 py-2">Respuesta 1</th>
+            <th className="px-4 py-2">Respuesta 2</th>
+            <th className="px-4 py-2">Respuesta 3</th>
           </tr>
         </thead>
         <tbody>
@@ -126,6 +129,7 @@ export const Lista = ({
               <td className="px-4 py-2">{row.email}</td>
               <td className="px-4 py-2">{row.carrera}</td>
               <td className="px-4 py-2">{row.numero}</td>
+              <td className="px-4 py-2">{row.proyecto || ''}</td>
               <td className="px-4 py-2 truncate max-w-[200px]">{row.respuesta_1}</td>
               <td className="px-4 py-2 truncate max-w-[200px]">{row.respuesta_2}</td>
               <td className="px-4 py-2 truncate max-w-[200px]">{row.respuesta_3}</td>
