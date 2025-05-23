@@ -42,6 +42,7 @@ export default function Solicitudes() {
   const [filterCarrera, setFilterCarrera] = useState<string[]>([]);
   const [filterEstado, setFilterEstado] = useState<string[]>([]);
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+  const [solicitudesOriginal, setSolicitudesOriginal] = useState<Solicitud[]>([]); // Para comparar cambios
 
   useEffect(() => {
     const fetchProyectos = async () => {
@@ -82,6 +83,7 @@ export default function Solicitudes() {
           };
         });
         setSolicitudes(formattedData);
+        setSolicitudesOriginal(formattedData); // Guardar copia original
       } catch (error) {
         if (error instanceof Error) {
           console.error('Error fetching proyectos_solidarios:', error.message);
@@ -115,6 +117,25 @@ export default function Solicitudes() {
 
     return matchesSearch && matchesCarrera && matchesEstado;
   });
+
+  // Enviar los cambios de estatus a la base de datos
+  const handleEnviar = async () => {
+    try {
+      const updates = solicitudes.filter((s, idx) => s.estatus !== solicitudesOriginal[idx]?.estatus);
+      for (const solicitud of updates) {
+        await supabase
+          .from('postulacion')
+          .update({ estatus: solicitud.estatus })
+          .eq('matricula', solicitud.matricula)
+          .eq('id_proyecto', solicitud.id_proyecto);
+      }
+      setSolicitudesOriginal([...solicitudes]);
+      alert('Estados actualizados correctamente.');
+    } catch (error) {
+      alert('Error al actualizar los estados.');
+      console.error(error);
+    }
+  };
 
   return (
     <>
@@ -161,7 +182,7 @@ export default function Solicitudes() {
      
              <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
                <div className="flex items-center gap-4">
-                 <DetailButton texto="Enviar" size="auto" color="blue" id={0} onClick={() => {}} />
+                 <DetailButton texto="Enviar" size="auto" color="blue" id={0} onClick={handleEnviar} />
                  <DetailButton texto="Descargar" size="auto" color="blue" id={1} onClick={() => setIsDownloadModalOpen(true)} />
                </div>
      
