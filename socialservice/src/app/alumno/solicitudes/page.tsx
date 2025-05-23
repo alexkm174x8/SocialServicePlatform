@@ -18,17 +18,11 @@ type PostulacionDB = {
   id_proyecto: number
   estatus: string
   email: string
-  proyectos_solidarios: {
-    proyecto: string
-  }
-}
-
-type Postulacion = {
-  id_proyecto: number
-  proyecto: string
-  estatus: string
   fecha_postulacion: string
   fecha_actualizacion: string
+  proyectos_solidarios: {
+    proyecto: string
+  } | null
 }
 
 type CardProps = {
@@ -126,7 +120,6 @@ const ProgressTrackerCard = ({ title, requestedDate, updatedDate, actionLabel, s
     setLocalSteps(normalize(steps))
   }, [steps])
 
-  
   const canRespond = localSteps[2]?.status === 'in-progress'
 
   const renderResponderButton = () => {
@@ -136,26 +129,57 @@ const ProgressTrackerCard = ({ title, requestedDate, updatedDate, actionLabel, s
     return <ActionButton {...baseProps} colorClass={colorClass} />
   }
 
-  if (isResponding) {
-    const handleAccept = () => {
+  const handleAccept = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.user?.email) return
+
+      const { error } = await supabase
+        .from('postulacion')
+        .update({ estatus: 'esperando' })
+        .eq('email', session.user.email)
+        .eq('id_proyecto', id_proyecto)
+
+      if (error) throw error
+
       const updated = localSteps.map((step, i) => ({
         ...step,
         status: i >= 2 ? 'completed' as Status : step.status
       }))
       setLocalSteps(normalize(updated))
       setIsResponding(false)
+    } catch (error) {
+      console.error('Error updating status:', error)
     }
-    const handleReject = () => {
+  }
+
+  const handleReject = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.user?.email) return
+
+      const { error } = await supabase
+        .from('postulacion')
+        .update({ estatus: 'no' })
+        .eq('email', session.user.email)
+        .eq('id_proyecto', id_proyecto)
+
+      if (error) throw error
+
       const updated = localSteps.map((step, i) => ({
         ...step,
         status: i >= 2 ? 'rejected' as Status : step.status
       }))
       setLocalSteps(normalize(updated))
       setIsResponding(false)
+    } catch (error) {
+      console.error('Error updating status:', error)
     }
+  }
 
+  if (isResponding) {
     return (
-      <div className="w-full  lg:h-30 max-w-4xl mx-auto bg-[#0a2170] text-white rounded-xl p-4 md:p-6 mb-4">
+      <div className="w-full lg:h-30 max-w-4xl mx-auto bg-[#0a2170] text-white rounded-xl p-4 md:p-6 mb-4">
         <div className="flex items-center mb-4">
           <ArrowLeft className="w-6 h-6 cursor-pointer mr-2" onClick={() => setIsResponding(false)} />
           <h2 className="text-xl font-bold"> {`¿Aceptas ${title} como proyecto solidario definitivo?`} </h2>
@@ -215,7 +239,7 @@ const ProgressTrackerCard = ({ title, requestedDate, updatedDate, actionLabel, s
 }
 
 export default function Solicitudes() {
-  const [postulaciones, setPostulaciones] = useState<Postulacion[]>([])
+  const [postulaciones, setPostulaciones] = useState<PostulacionDB[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -223,7 +247,6 @@ export default function Solicitudes() {
     const fetchPostulaciones = async () => {
       try {
         setError(null)
-        // Get the current user's session
         const { data: { session } } = await supabase.auth.getSession()
         if (!session?.user?.email) {
           setError("No se encontró una sesión activa. Por favor inicia sesión.")
@@ -231,46 +254,31 @@ export default function Solicitudes() {
         }
 
         const userEmail = session.user.email
-        console.log("Fetching applications for user:", userEmail)
-
-        // Fetch postulaciones for this specific user's email
         const { data, error } = await supabase
           .from('postulacion')
           .select(`
             id_proyecto,
             estatus,
             email,
-            proyectos_solidarios (
+            fecha_postulacion,
+            proyectos_solidarios!inner (
               proyecto
             )
           `)
-          .eq('email', userEmail) // Filter by the user's email
+          .eq('email', userEmail)
           .returns<PostulacionDB[]>()
 
-        if (error) {
-          console.error("Error fetching postulaciones:", error)
-          setError("Error al cargar las solicitudes. Por favor intenta de nuevo.")
-          return
-        }
+        if (error) throw error
 
         if (!data || data.length === 0) {
           setError("No se encontraron solicitudes para tu cuenta.")
           return
         }
 
-        // Format the data
-        const formattedData: Postulacion[] = data.map(item => ({
-          id_proyecto: item.id_proyecto,
-          proyecto: item.proyectos_solidarios.proyecto,
-          estatus: item.estatus,
-          fecha_postulacion: new Date().toISOString(), // You might want to add this column to your database
-          fecha_actualizacion: new Date().toISOString(), // You might want to add this column to your database
-        }))
-
-        setPostulaciones(formattedData)
-      } catch (error) {
-        console.error("Error in fetchPostulaciones:", error)
-        setError("Ocurrió un error inesperado. Por favor intenta de nuevo.")
+        setPostulaciones(data)
+      } catch (error: any) {
+        console.error("Error fetching postulaciones:", error)
+        setError("Error al cargar las solicitudes. Por favor intenta de nuevo.")
       } finally {
         setIsLoading(false)
       }
@@ -299,7 +307,7 @@ export default function Solicitudes() {
         <SideBar />
         <div className="flex-1 p-4 md:p-4">
           <HeaderBar titulo="Solicitudes" Icono={FileText} />
-          <main className="flex items-center justify-center mt-20 ml-30 mr-10">
+          <main className="flex justify-center mt-20 ml-30 mr-10">
             <div className="text-center">
               <p className="text-red-600 mb-4">{error}</p>
               {error.includes("No se encontraron solicitudes") && (
@@ -327,7 +335,7 @@ export default function Solicitudes() {
             {postulaciones.map((postulacion) => (
               <ProgressTrackerCard
                 key={postulacion.id_proyecto}
-                title={postulacion.proyecto}
+                title={postulacion.proyectos_solidarios?.proyecto || 'Proyecto no disponible'}
                 requestedDate={new Date(postulacion.fecha_postulacion).toLocaleDateString()}
                 updatedDate={new Date(postulacion.fecha_actualizacion).toLocaleDateString()}
                 actionLabel="Ver proyecto"
