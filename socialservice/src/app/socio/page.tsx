@@ -47,6 +47,7 @@ export default function Solicitudes() {
     const fetchProyectos = async () => {
       try {
         // Obtener postulaciones con id_proyecto
+        //
         const { data: postulaciones, error: errorPostulaciones } = await supabase
           .from('postulacion')
           .select(`estatus, matricula, email, carrera, numero, respuesta_1, respuesta_2, respuesta_3, id_proyecto`);
