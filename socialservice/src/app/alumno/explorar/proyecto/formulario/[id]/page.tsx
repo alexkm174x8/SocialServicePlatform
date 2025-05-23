@@ -121,7 +121,6 @@ export default function Formulario() {
         }
 
         const userEmail = session.user.email
-        // Extract matricula from email (remove @tec.mx)
         const matricula = userEmail.replace('@tec.mx', '')
 
         setForm(prev => ({
@@ -157,6 +156,18 @@ export default function Formulario() {
     telefono: {
       regex: /^\d{10}$/,
       message: "Teléfono inválido. Debe contener exactamente 10 dígitos.",
+    },
+    r1: {
+      regex: /^.{10,}$/,
+      message: "La respuesta debe tener al menos 10 caracteres.",
+    },
+    r2: {
+      regex: /^.{10,}$/,
+      message: "La respuesta debe tener al menos 10 caracteres.",
+    },
+    r3: {
+      regex: /^.{10,}$/,
+      message: "La respuesta debe tener al menos 10 caracteres.",
     },
   };
 
@@ -297,176 +308,177 @@ export default function Formulario() {
   }
 
   return (
-    <main className="flex-1 overflow-y-auto mt-20 ml-30 mr-10">
-      <div>
-        <SideBar />
-        <div className="flex flex-col flex-1 p-4">
-          <HeaderBar titulo="Proyecto" Icono={ArrowLeft} onClick={() => router.back()} />
-          {hasExistingApplication ? (
-            <div className="max-w-2xl w-full mx-auto mt-4 rounded-md p-6 border-red-500 border-2 bg-red-50">
-              <h2 className="text-xl font-semibold text-red-600 mb-4">Ya has postulado a este proyecto</h2>
-              <p className="text-gray-700 mb-4">No puedes postularte nuevamente al mismo proyecto.</p>
-              <button
-                onClick={() => router.push('/alumno/explorar')}
-                className="px-6 py-2 rounded-full bg-blue-400 hover:bg-blue-900 text-white font-semibold 
-                          transition-colors duration-200"
-              >
-                Explorar otros proyectos
-              </button>
-            </div>
-          ) : (
-            <div className="max-w-2xl w-full mx-auto mt-4 rounded-md p-6 border-blue-900 border-2">
-              <div className="space-y-4">
-                <div>
-                  <label className="block font-semibold text-[#0a2170]">Nombre completo</label>
-                  <input
-                    name="nombre"
-                    type="text"
-                    value={form.nombre}
-                    onChange={handleChange}
-                    placeholder="Ingresa tu nombre"
-                    className="w-full border rounded-md p-2"
+    <>
+      <main className="flex-1 overflow-y-auto mt-20 ml-30 mr-10">
+        <div>
+          <SideBar />
+          <div className="flex flex-col flex-1 p-4">
+            <HeaderBar titulo="Proyecto" Icono={ArrowLeft} onClick={() => router.back()} />
+            {hasExistingApplication ? (
+              <div className="max-w-2xl w-full mx-auto mt-4 rounded-md p-6 border-red-500 border-2 bg-red-50">
+                <h2 className="text-xl font-semibold text-red-600 mb-4">Ya has postulado a este proyecto</h2>
+                <p className="text-gray-700 mb-4">No puedes postularte nuevamente al mismo proyecto.</p>
+                <button
+                  onClick={() => router.push('/alumno/explorar')}
+                  className="px-6 py-2 rounded-full bg-blue-400 hover:bg-blue-900 text-white font-semibold 
+                            transition-colors duration-200"
+                >
+                  Explorar otros proyectos
+                </button>
+              </div>
+            ) : (
+              <div className="max-w-2xl w-full mx-auto mt-4 rounded-md p-6 border-blue-900 border-2">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block font-semibold text-[#0a2170]">Nombre completo</label>
+                    <input
+                      name="nombre"
+                      type="text"
+                      value={form.nombre}
+                      onChange={handleChange}
+                      placeholder="Ingresa tu nombre"
+                      className="w-full border rounded-md p-2"
+                    />
+                    {errors.nombre && <p className="text-red-600">{errors.nombre}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block font-semibold text-[#0a2170]">Matrícula</label>
+                    <input
+                      name="matricula"
+                      type="text"
+                      value={form.matricula}
+                      onChange={handleChange}
+                      placeholder="Ingresa tu matrícula"
+                      className="w-full border rounded-md p-2 bg-gray-50"
+                      readOnly
+                    />
+                    {errors.matricula && <p className="text-red-600">{errors.matricula}</p>}
+                  </div>
+
+                  <Carrera carreras={["IBT", "IC", "LC", "IIS", "IM", "IMT", "IQ", "IRS", "ITC"]} />
+
+                  <div>
+                    <label className="block font-semibold text-[#0a2170]">Correo institucional</label>
+                    <input
+                      name="correo"
+                      type="email"
+                      value={form.correo}
+                      onChange={handleChange}
+                      placeholder="ejemplo@correo.com"
+                      className="w-full border rounded-md p-2 bg-gray-50"
+                      readOnly
+                    />
+                    {errors.correo && <p className="text-red-600">{errors.correo}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block font-semibold text-[#0a2170]">Teléfono (a 10 dígitos y sin espacios)</label>
+                    <input
+                      name="telefono"
+                      type="tel"
+                      value={form.telefono}
+                      onChange={handleChange}
+                      placeholder="Ingresa tu número"
+                      className="w-full border rounded-md p-2"
+                    />
+                    {errors.telefono && <p className="text-red-600">{errors.telefono}</p>}
+                  </div>
+
+                  <RadioGroup 
+                    label="Estatus en el que te encuentras:"
+                    name="estatus"
+                    options={["Postuladx"]}
+                    value={estatus}
+                    onChange={setEstatus}
                   />
-                  {errors.nombre && <p className="text-red-600">{errors.nombre}</p>}
-                </div>
-
-                <div>
-                  <label className="block font-semibold text-[#0a2170]">Matrícula</label>
-                  <input
-                    name="matricula"
-                    type="text"
-                    value={form.matricula}
-                    onChange={handleChange}
-                    placeholder="Ingresa tu matrícula"
-                    className="w-full border rounded-md p-2 bg-gray-50"
-                    readOnly
+                  <RadioGroup 
+                    label="Proyecto al que te estás postulando"
+                    name="proyecto"
+                    options={[project.proyecto]}
+                    value={proyecto}
+                    onChange={setProyecto}
                   />
-                  {errors.matricula && <p className="text-red-600">{errors.matricula}</p>}
-                </div>
-
-                <Carrera carreras={["IBT", "IC", "LC", "IIS", "IM", "IMT", "IQ", "IRS", "ITC"]} />
-
-                <div>
-                  <label className="block font-semibold text-[#0a2170]">Correo institucional</label>
-                  <input
-                    name="correo"
-                    type="email"
-                    value={form.correo}
-                    onChange={handleChange}
-                    placeholder="ejemplo@correo.com"
-                    className="w-full border rounded-md p-2 bg-gray-50"
-                    readOnly
+                  <DetalleProyecto
+                    detalles={{
+                      modalidad: project.modalidad,
+                      periodo: project.fecha_ejecucion,
+                      ubicacion: project.ubicacion,
+                      diasEjecucion: [
+                        `Horario: ${project.horario}`,
+                        `Horas totales: ${project.horas}`,
+                      ],
+                    }}
                   />
-                  {errors.correo && <p className="text-red-600">{errors.correo}</p>}
-                </div>
 
-                <div>
-                  <label className="block font-semibold text-[#0a2170]">Teléfono (a 10 dígitos y sin espacios)</label>
-                  <input
-                    name="telefono"
-                    type="tel"
-                    value={form.telefono}
-                    onChange={handleChange}
-                    placeholder="Ingresa tu número"
-                    className="w-full border rounded-md p-2"
-                  />
-                  {errors.telefono && <p className="text-red-600">{errors.telefono}</p>}
-                </div>
-
-                <RadioGroup 
-                  label="Estatus en el que te encuentras:"
-                  name="estatus"
-                  options={["Postuladx"]}
-                  value={estatus}
-                  onChange={setEstatus}
-                />
-                <RadioGroup 
-                  label="Proyecto al que te estás postulando"
-                  name="proyecto"
-                  options={[project.proyecto]}
-                  value={proyecto}
-                  onChange={setProyecto}
-                />
-                <DetalleProyecto
-                  detalles={{
-                    modalidad: project.modalidad,
-                    periodo: project.fecha_ejecucion,
-                    ubicacion: project.ubicacion,
-                    diasEjecucion: [
-                      `Horario: ${project.horario}`,
-                      `Horas totales: ${project.horas}`,
-                    ],
-                  }}
-                />
-
-                <div>
-                  <label className="block font-semibold text-[#0a2170]">
-                    ¿Estás dispuestx a seguir con las postulación?
-                  </label>
-                  <div className="space-y-3 text-sm text-gray-800">
-                    <div className="flex items-start gap-3">
-                      <input
-                        type="radio"
-                        id="si-compromiso"
-                        name="compromiso"
-                        value="si"
-                        className="accent-[#0a2170] mt-1"
-                      />
-                      <label htmlFor="si-compromiso" className="block">
-                        Sí, estoy dispuestx a ejecutar el Proyecto Solidario con las condiciones de días y horarios requeridos.
-                      </label>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <input
-                        type="radio"
-                        id="no-compromiso"
-                        name="compromiso"
-                        value="no"
-                        className="accent-[#0a2170] mt-1"
-                      />
-                      <label htmlFor="no-compromiso" className="block">
-                        No, mis actividades escolares y personales no me permitirán participar en el proyecto. Gracias.
-                      </label>
+                  <div>
+                    <label className="block font-semibold text-[#0a2170]">
+                      ¿Estás dispuestx a seguir con las postulación?
+                    </label>
+                    <div className="space-y-3 text-sm text-gray-800">
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="radio"
+                          id="si-compromiso"
+                          name="compromiso"
+                          value="si"
+                          className="accent-[#0a2170] mt-1"
+                        />
+                        <label htmlFor="si-compromiso" className="block">
+                          Sí, estoy dispuestx a ejecutar el Proyecto Solidario con las condiciones de días y horarios requeridos.
+                        </label>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="radio"
+                          id="no-compromiso"
+                          name="compromiso"
+                          value="no"
+                          className="accent-[#0a2170] mt-1"
+                        />
+                        <label htmlFor="no-compromiso" className="block">
+                          No, mis actividades escolares y personales no me permitirán participar en el proyecto. Gracias.
+                        </label>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-              <div>
-                <label className="block font-semibold text-[#0a2170]">{project.pregunta_1}</label>
-                <input
-                  name="pregunta1"
-                  type="text"
-                  value={form.r1}
-                  onChange={handleChange}
-                  placeholder="Ingresa tu respuesta"
-                  className="w-full border rounded-md p-2"
-                />
-                {errors.r1 && <p className="text-red-600">{errors.r1}</p>}
-              </div>
-              <div>
-                <label className="block font-semibold text-[#0a2170]">{project.pregunta_2}</label>
-                <input
-                  name="pregunta2"
-                  type="text"
-                  value={form.r1}
-                  onChange={handleChange}
-                  placeholder="Ingresa tu respuesta"
-                  className="w-full border rounded-md p-2"
-                />
-                {errors.r2 && <p className="text-red-600">{errors.r2}</p>}
-              </div>
-              <div>
-                <label className="block font-semibold text-[#0a2170]">{project.pregunta_3}</label>
-                <input
-                  name="pregunta3"
-                  type="text"
-                  value={form.r1}
-                  onChange={handleChange}
-                  placeholder="Ingresa tu respuesta"
-                  className="w-full border rounded-md p-2"
-                />
-                {errors.r3 && <p className="text-red-600">{errors.r3}</p>}
-              </div>
+                <div>
+                  <label className="block font-semibold text-[#0a2170]">{project.pregunta_1}</label>
+                  <input
+                    name="r1"
+                    type="text"
+                    value={form.r1}
+                    onChange={handleChange}
+                    placeholder="Ingresa tu respuesta"
+                    className="w-full border rounded-md p-2"
+                  />
+                  {errors.r1 && <p className="text-red-600">{errors.r1}</p>}
+                </div>
+                <div>
+                  <label className="block font-semibold text-[#0a2170]">{project.pregunta_2}</label>
+                  <input
+                    name="r2"
+                    type="text"
+                    value={form.r2}
+                    onChange={handleChange}
+                    placeholder="Ingresa tu respuesta"
+                    className="w-full border rounded-md p-2"
+                  />
+                  {errors.r2 && <p className="text-red-600">{errors.r2}</p>}
+                </div>
+                <div>
+                  <label className="block font-semibold text-[#0a2170]">{project.pregunta_3}</label>
+                  <input
+                    name="r3"
+                    type="text"
+                    value={form.r3}
+                    onChange={handleChange}
+                    placeholder="Ingresa tu respuesta"
+                    className="w-full border rounded-md p-2"
+                  />
+                  {errors.r3 && <p className="text-red-600">{errors.r3}</p>}
+                </div>
 
                 {warning && <p className="text-red-600">{warning}</p>}
 
@@ -489,8 +501,8 @@ export default function Formulario() {
                   </button>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
         {showPopup && !hasExistingApplication && (
           <SubmissionConfirmation 
@@ -498,7 +510,7 @@ export default function Formulario() {
             onSubmit={handleSubmit}
           />
         )}
-      </div>
-    </main>
+      </main>
+    </>
   );
 } 
