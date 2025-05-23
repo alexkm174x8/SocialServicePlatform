@@ -1,5 +1,14 @@
 import React, { useEffect } from "react";
 
+type Project = {
+  id_proyecto: any;
+  proyecto: any;
+  cupos: any;
+  objetivo_ps: any;
+  horas: any;
+  modalidad: any;
+};
+
 interface SubmissionConfirmationProps {
   onClose: () => void;
   onSubmit: () => Promise<void>;
