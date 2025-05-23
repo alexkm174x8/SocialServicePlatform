@@ -22,6 +22,28 @@ type Explorar = {
   representante: string;
   contacto: string;
   manejar: string;
+  // nuevos campos
+  cupos: string;
+  objetivo_ps: string;
+  num_pmt: string;
+  ods_ps: string;
+  actividades: string;
+  detalles_horario: string;
+  habilidades: string;
+  modalidad: string;
+  lugar_trabajo: string;
+  duracion: string;
+  horas: string;
+  tipo_inscripcion: string;
+  ruta_maps: string;
+  crn: string;
+  periodo_academico: string;
+  fecha_pue: string;
+  pregunta_1: string;
+  pregunta_2: string;
+  pregunta_3: string;
+  id_socioformador: string;
+  carreras: string;
 };
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -46,22 +68,41 @@ export default function Explorar() {
       try {
         const { data, error } = await supabase
           .from('proyectos_solidarios')
-          .select(`id_proyecto, perfil_aceptacion, proyecto, grupo, clave, id_socioformador, socioformador ( correo )`);
+          .select(`*`);
 
         if (error) {
           throw error;
         }
 
         const formattedData = data.map((item) => ({
-          subido: new Date().toISOString(), // Placeholder for "subido"
-          estatus: 'Pendiente', // Placeholder for "estatus"
+          // nuevo acomodo 
+          subido: new Date().toISOString(),
+          cupos: item.cupos,
           perfil: item.perfil_aceptacion,
-          grupo: item.grupo,
-          clave: item.clave,
           proyecto: item.proyecto,
           contacto: item.socioformador?.correo || 'N/A', // Use correo from socioformador or fallback to 'N/A'
-          representante: 'N/A', // Placeholder for "representante"
-          manejar: 'N/A', // Placeholder for "manejar"
+          objetivo_ps: item.objetivo_ps,
+          num_pmt: item.num_pmt,
+          ods_ps: item.ods_ps,
+          actividades: item.actividades,
+          detalles_horario: item.detalles_horario,
+          habilidades: item.habilidades,
+          modalidad: item.modalidad,
+          lugar_trabajo: item.lugar_trabajo,
+          duracion: item.duracion,
+          horas: item.horas,
+          tipo_inscripcion: item.tipo_inscripcion,
+          ruta_maps: item.ruta_maps,
+          crn: item.crn,
+          grupo: item.grupo,
+          clave: item.clave,
+          periodo_academico: item.periodo_academico,
+          fecha_pue: item.fecha_pue,
+          pregunta_1: item.pregunta_1,
+          pregunta_2: item.pregunta_2,
+          pregunta_3: item.pregunta_3,
+          id_socioformador: item.id_socioformador,
+          carreras: item.carreras,
         }));
         setExplorar(formattedData);
       } catch (error) {
@@ -80,13 +121,32 @@ export default function Explorar() {
     const searchTerm = search.toLowerCase();
     const matchesSearch =
       s.subido.toLowerCase().includes(searchTerm) ||
+      s.cupos.toLowerCase
       s.perfil.toLowerCase().includes(searchTerm) ||
+      s.proyecto.toLowerCase().includes(searchTerm) ||
+      s.contacto.toLowerCase().includes(searchTerm) ||
+      s.objetivo_ps.toLowerCase().includes(searchTerm) ||
+      s.num_pmt.toLowerCase().includes(searchTerm) ||
+      s.ods_ps.toLowerCase().includes(searchTerm) ||
+      s.actividades.toLowerCase().includes(searchTerm) ||
+      s.detalles_horario.toLowerCase().includes(searchTerm) ||
+      s.habilidades.toLowerCase().includes(searchTerm) ||
+      s.modalidad.toLowerCase().includes(searchTerm) ||
+      s.lugar_trabajo.toLowerCase().includes(searchTerm) ||
+      s.duracion.toLowerCase().includes(searchTerm) ||
+      s.horas.toLowerCase().includes(searchTerm) ||
+      s.tipo_inscripcion.toLowerCase().includes(searchTerm) ||
+      s.ruta_maps.toLowerCase().includes(searchTerm) ||
+      s.crn.toLowerCase().includes(searchTerm) ||
       s.grupo.toLowerCase().includes(searchTerm) ||
       s.clave.toLowerCase().includes(searchTerm) ||
-      s.proyecto.toLowerCase().includes(searchTerm) ||
-      s.representante.toLowerCase().includes(searchTerm) ||
-      s.contacto.toLowerCase().includes(searchTerm) ||
-      s.manejar.toLowerCase().includes(searchTerm);
+      s.periodo_academico.toLowerCase().includes(searchTerm) ||
+      s.fecha_pue.toLowerCase().includes(searchTerm) ||
+      s.pregunta_1.toLowerCase().includes(searchTerm) ||
+      s.pregunta_2.toLowerCase().includes(searchTerm) ||
+      s.pregunta_3.toLowerCase().includes(searchTerm) ||
+      s.id_socioformador.toLowerCase().includes(searchTerm) ||
+      s.carreras.toLowerCase().includes(searchTerm);
 
     const matchesEstado =
       filterEstado.length === 0 || filterEstado.includes(s.estatus);

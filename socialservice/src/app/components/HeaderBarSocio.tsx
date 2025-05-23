@@ -8,7 +8,7 @@ interface HeaderBarProps {
 
 export const HeaderBarSocio = ({ proyecto }: HeaderBarProps) => {
   return (
-    <header className="fixed top-0 left-0 w-full flex items-center bg-[#0a2170] px-15 py-2 z-40">
+    <header className="fixed top-0 left-0 w-full flex items-center bg-[#0a2170] px-15 py-3 z-40">
       <div className="flex items-center gap-4">
         <Image
           src="/logoss.svg" // Asegúrate que este archivo esté en /public

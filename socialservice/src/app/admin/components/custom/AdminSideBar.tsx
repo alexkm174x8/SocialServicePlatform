@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter, usePathname} from "next/navigation";
 import { LogOut,  Inbox , FolderOpen, AlignJustify } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 export function SideBar() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -11,6 +12,15 @@ export function SideBar() {
 
   const handleNavigation = ( path: string) => {
     router.push(path);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+        router.push('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
   return (
@@ -35,7 +45,7 @@ export function SideBar() {
         </div>
         <nav className="flex flex-col gap-4">
           <button
-            className={`flex items-center gap-3 p-2 rounded-md transition ${
+            className={`flex items-center gap-3 p-2 rounded-md transition text-blue-900 hover:text-blue-900 hover:bg-white transition ${
               pathname === "/admin/proyectos-solidarios" ? "bg-white text-blue-900" : "text-white"
             }`}
             onClick={() => handleNavigation( "/admin/proyectos-solidarios")}
@@ -44,7 +54,7 @@ export function SideBar() {
             {isSidebarOpen && <span>Explorar</span>}
           </button>
           <button
-            className={`flex items-center gap-3 p-2 rounded-md transition ${
+            className={`flex items-center gap-3 p-2 rounded-md transition text-blue-900 hover:text-blue-900 hover:bg-white transition ${
               pathname === "/admin/solicitudes-alumnos" ? "bg-white text-blue-900" : "text-white"
             }`}
             onClick={() => handleNavigation( "/admin/solicitudes-alumnos")}
@@ -55,7 +65,8 @@ export function SideBar() {
         </nav>
       </div>
       <button
-        className="flex items-center gap-3 p-2 rounded-md text-black hover:text-black hover:bg-white transition"
+        className="flex items-center gap-3 p-2 rounded-md text-white hover:text-black hover:bg-white transition"
+        onClick={handleLogout}
       >
         <LogOut size={24} />
         {isSidebarOpen && <span>Cerrar sesión</span>}
