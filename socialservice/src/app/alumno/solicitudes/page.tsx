@@ -169,7 +169,7 @@ const ProgressTrackerCard = ({ title, requestedDate, updatedDate, actionLabel, s
   }
 
   return (
-    <div className="w-full lg:h-45 max-w-4xl mx-auto bg-[#0a2170] text-white rounded-xl p-4 md:p-6 mb-4">
+    <div className="w-full lg:h-50 max-w-4xl mx-auto bg-[#0a2170] text-white rounded-xl p-4 md:p-6 mb-4">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
         <h2 className="text-xl font-bold">{title}</h2>
         <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 mt-1 md:mt-0">
@@ -180,13 +180,13 @@ const ProgressTrackerCard = ({ title, requestedDate, updatedDate, actionLabel, s
               texto={actionLabel} 
               size="auto" 
               onClick={() => router.push(`/alumno/explorar/proyecto/${id_proyecto}`)} 
-              colorClass="bg-white hover:bg-gray-100 text-[#0a2170] border border-[#0a2170]"
+              colorClass="bg-cyan-500 hover:bg-blue-700 text-[#0a2170] border border-[#0a2170]"
             />
             {renderResponderButton()}
           </div>
         </div>
       </div>
-      <div className="flex items-center justify-center pb-6">
+      <div className="flex items-center justify-center mb-6">
         <div className="flex items-center justify-center gap-4">
           {localSteps.map((step, index) => (
             <div key={index} className="flex items-center">

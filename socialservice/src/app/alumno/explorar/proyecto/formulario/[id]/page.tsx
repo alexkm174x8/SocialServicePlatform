@@ -18,6 +18,7 @@ type ProjectData = {
   ubicacion: string;
   horario: string;
   horas: number;
+  cupos: number;
   pregunta_1: string;
   pregunta_2: string;
   pregunta_3: string;
@@ -179,58 +180,65 @@ export default function Formulario() {
   };
 
   const handleSubmit = async () => {
-    if (!project || hasExistingApplication) return;
+  if (!project || hasExistingApplication) return;
 
-    setIsSubmitting(true);
-    try {
-      // Get the current user's session
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.user?.email) {
-        setWarning("No se encontró una sesión activa. Por favor inicia sesión.")
-        return
-      }
-
-      // Double check if application already exists (race condition prevention)
-      const { data: existingApp } = await supabase
-        .from('postulacion')
-        .select('id_proyecto')
-        .eq('email', session.user.email)
-        .eq('id_proyecto', project.id_proyecto)
-        .single()
-
-      if (existingApp) {
-        setWarning("Ya has postulado a este proyecto. No puedes postularte nuevamente.")
-        setShowPopup(false)
-        return
-      }
-
-      const { error } = await supabase
-        .from("postulacion")
-        .insert({
-          matricula: form.matricula,
-          id_proyecto: project.id_proyecto,
-          estatus: "postulado",
-          nombre: form.nombre,
-          carrera: form.carreraCompleta,
-          email: session.user.email, // Use the email from session instead of form
-          numero: form.telefono,
-          respuesta_1: form.r1,
-          respuesta_2: form.r2, 
-          respuesta_3: form.r3,
-        });
-
-      if (error) throw error;
-
-      // Redirect to explore page after successful submission
-      router.push("/alumno/explorar");
-    } catch (error) {
-      console.error("Error submitting application:", error);
-      setWarning("Error al enviar la postulación. Por favor intenta de nuevo.");
-      setShowPopup(false);
-    } finally {
-      setIsSubmitting(false);
+  setIsSubmitting(true);
+  try {
+    // Get the current user's session
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user?.email) {
+      setWarning("No se encontró una sesión activa. Por favor inicia sesión.");
+      return;
     }
-  };
+
+    // Double check if application already exists (race condition prevention)
+    const { data: existingApp } = await supabase
+      .from('postulacion')
+      .select('id_proyecto')
+      .eq('email', session.user.email)
+      .eq('id_proyecto', project.id_proyecto)
+      .single();
+
+    if (existingApp) {
+      setWarning("Ya has postulado a este proyecto. No puedes postularte nuevamente.");
+      setShowPopup(false);
+      return;
+    }
+
+   // 1. Obtener los cupos actuales
+const { data: proyectoActual, error: fetchError } = await supabase
+  .from("proyectos_solidarios")
+  .select("cupos")
+  .eq("id_proyecto", project.id_proyecto)
+  .single();
+
+if (fetchError) throw fetchError;
+
+const cuposActuales = typeof proyectoActual.cupos === "number"
+  ? proyectoActual.cupos
+  : parseInt(new TextDecoder().decode(proyectoActual.cupos));
+
+if (isNaN(cuposActuales) || cuposActuales <= 0) {
+  throw new Error("No hay cupos disponibles.");
+}
+
+// 2. Hacer el update restando 1
+const { error: updateError } = await supabase
+  .from("proyectos_solidarios")
+  .update({ cupos: cuposActuales - 1 })
+  .eq("id_proyecto", project.id_proyecto);
+
+if (updateError) throw updateError;
+    // Redirigir tras éxito
+    router.push("/alumno/explorar");
+  } catch (error) {
+    console.error("Error submitting application:", error);
+    setWarning("Error al enviar la postulación. Por favor intenta de nuevo.");
+    setShowPopup(false);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleNextClick = () => {
     const inputs = document.querySelectorAll("input, select") as NodeListOf<HTMLInputElement | HTMLSelectElement>;
