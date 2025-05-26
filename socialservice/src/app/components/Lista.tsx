@@ -97,33 +97,27 @@ export const Lista = ({
         <tbody>
           {data.map((row, idx) => (
             <tr key={idx} className="hover:bg-gray-50 relative">
-        <td className="px-4 py-2 relative">
-        <div
-          onClick={() => toggleDropdown(idx)}
-          className={`w-4 h-4 rounded cursor-pointer ${statusColorMap[row.estatus] || 'bg-gray-300'}`}
-          title={row.estatus}
-        />
-
-        
-  {activeDropdown === idx && (
-    <div className="absolute z-50 bg-white border shadow-lg rounded-lg mt-2 w-60 p-3">
-      {statusOptions.map((option, i) => (
-        <div
-          key={i}
-          className="flex items-center gap-2 cursor-pointer p-1 hover:bg-gray-100 rounded"
-          onClick={() => {
-            handleSelect(idx, option);
-            // Aquí también podrías actualizar row.estatus si lo deseas
-          }}
-        >
-          <div className={`w-4 h-4 rounded ${option.color}`} />
-          <span className="text-sm text-blue-900">{option.label}</span>
-        </div>
-      ))}
-    </div>
-  )}
-</td>
-
+              <td className="px-4 py-2 relative">
+                <div
+                  onClick={() => toggleDropdown(idx)}
+                  className={`w-4 h-4 rounded cursor-pointer ${statusColorMap[row.estatus] || 'bg-gray-300'}`}
+                  title={row.estatus}
+                />
+                {activeDropdown === idx && (
+                  <div className="absolute z-50 bg-white border shadow-lg rounded-lg mt-2 w-60 p-3">
+                    {statusOptions.map((option, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center gap-2 cursor-pointer p-1 hover:bg-gray-100 rounded"
+                        onClick={() => handleSelect(idx, option)}
+                      >
+                        <div className={`w-4 h-4 rounded ${option.color}`} />
+                        <span className="text-sm text-blue-900">{option.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </td>
               <td className="px-4 py-2">{row.estatus}</td>
               <td className="px-4 py-2">{row.matricula}</td>
               <td className="px-4 py-2">{row.email}</td>

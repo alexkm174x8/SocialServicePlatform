@@ -1,16 +1,33 @@
 "use client";
 import Image from "next/image";
 import { useState } from "react";
+import { createClient } from '@supabase/supabase-js';
+import { useRouter } from 'next/navigation';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl!, supabaseKey!);
 
 export default function LoginSocioformador() {
+  const router = useRouter();
   const [correo, setCorreo] = useState("");
   const [clave, setClave] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const [showErrors, setShowErrors] = useState({
     correo: false,
     clave: false,
   });
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    // Reset states
+    setError("");
+    setShowErrors({
+      correo: false,
+      clave: false,
+    });
+
+    // Validate inputs
     const newErrors = {
       correo: correo.trim() === "",
       clave: clave.trim() === "",
@@ -21,8 +38,69 @@ export default function LoginSocioformador() {
     const hasErrors = Object.values(newErrors).some((val) => val);
     if (hasErrors) return;
 
-    alert(`Correo: ${correo}, Clave: ${clave}`);
-    // Aquí podrías manejar la autenticación real
+    try {
+      setIsLoading(true);
+
+      // Attempt to sign in
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email: correo,
+        password: clave,
+      });
+
+      if (signInError) {
+        if (signInError.message === 'Invalid login credentials') {
+          setError('Correo o contraseña incorrectos');
+        } else {
+          setError('Error al iniciar sesión. Por favor, intenta de nuevo.');
+        }
+        console.error('Error signing in:', signInError);
+        return;
+      }
+
+      // Get user metadata to check if it's a project account
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        setError('Error al verificar la cuenta. Por favor, intenta de nuevo.');
+        console.error('Error getting user:', userError);
+        return;
+      }
+
+      if (!user?.user_metadata?.id_proyecto) {
+        setError('Esta cuenta no tiene acceso a la plataforma de servicio social.');
+        return;
+      }
+
+      // Get project information
+      const { data: projectData, error: projectError } = await supabase
+        .from('proyectos_solidarios')
+        .select('*')
+        .eq('id_proyecto', user.user_metadata.id_proyecto)
+        .single();
+
+      if (projectError) {
+        setError('Error al obtener información del proyecto.');
+        console.error('Error getting project:', projectError);
+        return;
+      }
+
+      if (!projectData) {
+        setError('No se encontró información del proyecto.');
+        return;
+      }
+
+      // Store project info in session storage for easy access
+      sessionStorage.setItem('projectInfo', JSON.stringify(projectData));
+
+      // Redirect to dashboard
+      router.push('/dashboard');
+      
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      setError('Ocurrió un error inesperado. Por favor, intenta de nuevo.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -56,23 +134,30 @@ export default function LoginSocioformador() {
             Hola, inicia sesión con tu cuenta registrada.
           </p>
 
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded relative" role="alert">
+              <span className="block sm:inline">{error}</span>
+            </div>
+          )}
+
           <div className="text-left space-y-4">
             <div>
               <label
                 htmlFor="correo"
                 className="block text-lg font-semibold text-[#0a2170] mb-1"
               >
-                Correo del socioformador
+                Correo del proyecto
               </label>
               <input
                 id="correo"
                 type="email"
                 value={correo}
                 onChange={(e) => setCorreo(e.target.value)}
-                placeholder="ejemplo@correo.com"
+                placeholder="proyecto.id@serviciosocial.com"
                 className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${
                   showErrors.correo ? "border-red-500 ring-red-500" : "focus:ring-[#0a2170]"
                 }`}
+                disabled={isLoading}
               />
               {showErrors.correo && (
                 <p className="text-red-600 text-sm mt-1">El correo es obligatorio.</p>
@@ -84,28 +169,34 @@ export default function LoginSocioformador() {
                 htmlFor="clave"
                 className="block text-lg font-semibold text-[#0a2170] mb-1"
               >
-                Clave otorgada
+                Contraseña
               </label>
               <input
                 id="clave"
                 type="password"
                 value={clave}
                 onChange={(e) => setClave(e.target.value)}
-                placeholder="Clave"
+                placeholder="Contraseña"
                 className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${
                   showErrors.clave ? "border-red-500 ring-red-500" : "focus:ring-[#0a2170]"
                 }`}
+                disabled={isLoading}
               />
               {showErrors.clave && (
-                <p className="text-red-600 text-sm mt-1">La clave es obligatoria.</p>
+                <p className="text-red-600 text-sm mt-1">La contraseña es obligatoria.</p>
               )}
             </div>
 
             <button
               onClick={handleSubmit}
-              className="w-full mt-6 px-6 py-2 border border-[#0a2170] text-[#0a2170] font-semibold rounded-lg hover:bg-[#0a2170] hover:text-white transition"
+              disabled={isLoading}
+              className={`w-full mt-6 px-6 py-2 border border-[#0a2170] text-[#0a2170] font-semibold rounded-lg transition
+                ${isLoading 
+                  ? 'opacity-50 cursor-not-allowed' 
+                  : 'hover:bg-[#0a2170] hover:text-white'
+                }`}
             >
-              INICIAR SESIÓN
+              {isLoading ? 'INICIANDO SESIÓN...' : 'INICIAR SESIÓN'}
             </button>
           </div>
         </div>
