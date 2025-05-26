@@ -488,6 +488,8 @@ export default function Formulario() {
   </div>
 )}
 
+{warning && <p className="text-red-600">{warning}</p>}
+
 
                 <div className="flex justify-end gap-4 mt-6">
                   <button
