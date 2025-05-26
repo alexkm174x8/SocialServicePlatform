@@ -7,7 +7,6 @@ import { v4 as uuidv4 } from 'uuid';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl!, supabaseKey!);
-
 const generateSecurePassword = () => {
   const length = 12;
   const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
@@ -20,7 +19,6 @@ const generateSecurePassword = () => {
 
 const validateFields = (fields: string[]) => {
   const requiredFields = ["id_proyecto", "perfil_aceptacion", "proyecto", "grupo", "clave", "email"];
-
   const normalizedFields = fields.map((field) => field.trim().toLowerCase());
   
         {/*
@@ -164,8 +162,7 @@ const validateFields = (fields: string[]): boolean => {
   console.log("Campos requeridos:", requiredFields);
   return requiredFields.every((field) => normalizedFields.includes(field.toLowerCase()));
 };
-
-
+  
 const filterRequiredFields = (data: any[]) => {
   const requiredFields = ["id_proyecto", "perfil_aceptacion", "proyecto", "grupo", "clave", "email"];
   return data.map((record) => {
@@ -226,6 +223,7 @@ const sendWelcomeEmail = async (originalEmail: string, projectEmail: string, pas
     throw error;
   }
 };
+
 const handleFileUpload = async (file: File) => {
   const reader = new FileReader();
 
@@ -332,7 +330,6 @@ const handleFileUpload = async (file: File) => {
           emailErrors.push({ email: record.email, error: authError.message });
           continue;
         }
-
         // Store the user credentials for later display
         createdUsers.push({
           originalEmail: record.email,
@@ -356,7 +353,6 @@ const handleFileUpload = async (file: File) => {
           emailErrors.push({ email: record.email, error: insertError.message });
           continue;
         }
-
         // Send welcome email to the original email address
         try {
           await sendWelcomeEmail(record.email, projectEmail, password, record.proyecto);
@@ -386,7 +382,6 @@ const handleFileUpload = async (file: File) => {
           message += `- ${email}: ${error}\n`;
         });
       }
-
       alert(message);
     } catch (err) {
       console.error("Error al procesar el archivo:", err);

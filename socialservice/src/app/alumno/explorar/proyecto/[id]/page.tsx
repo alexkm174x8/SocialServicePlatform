@@ -88,8 +88,8 @@ export default function ProjectPage() {
       }
     };
 
-    if (params.id) fetchProjectDetails();
-  }, [params.id, router]);
+    if (id) fetchProjectDetails();
+  }, [id, router]);
 
   useEffect(() => {
     const checkExistingApplication = async () => {
