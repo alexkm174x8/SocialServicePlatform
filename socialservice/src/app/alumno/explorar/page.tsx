@@ -63,7 +63,6 @@ const useProjects = () => {
 
   return { projects, isLoading, error };
 };
-
 const useFilteredProjects = (projects: Project[], filters: any) => {
   return projects.filter((project) => {
     const { search, filterModalities, filterHours } = filters;
@@ -73,7 +72,9 @@ const useFilteredProjects = (projects: Project[], filters: any) => {
     const matchesSearch = project.proyecto.toLowerCase().includes(search.toLowerCase()) ||
                           project.objetivo_ps.toLowerCase().includes(search.toLowerCase());
 
-    return matchesModality && matchesHours && matchesSearch;
+    const hasAvailableCupos = parseInt(project.cupos) > 0;
+
+    return matchesModality && matchesHours && matchesSearch && hasAvailableCupos;
   });
 };
 

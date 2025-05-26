@@ -8,8 +8,6 @@ import { FilterButton } from "@/app/components/FilterButton";
 import { ListItem } from "@/app/components/ListItem";
 import { SideBar } from "@/app/admin/components/custom/AdminSideBar";
 import { Inbox} from "lucide-react";
-import UploaderButton from "@/app/admin/components/custom/UploaderButton";
-import DownloadModal from '@/app/admin/components/custom/DownloadModal';
 import {DetailButton} from "@/app/components/DetailButton";
 import { Lista } from "@/app/components/Lista";
 

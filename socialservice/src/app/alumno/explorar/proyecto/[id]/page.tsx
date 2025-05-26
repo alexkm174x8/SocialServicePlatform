@@ -1,71 +1,88 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Image from "next/image";
+import { ArrowLeft } from "lucide-react";
+
+import { supabase } from "@/lib/supabase";
 import { HeaderBar } from "@/app/components/HeaderBar";
 import { SideBar } from "@/app/alumno/components/custom/StudentSideBar";
-import { ArrowLeft } from "lucide-react";
-import { DetalleProyecto } from "@/app/alumno/components/custom/DetalleProyecto";
-import { Carrera } from "@/app/alumno/components/custom/Carrera";
-import { RadioGroup } from "@/app/alumno/components/custom/RadioGroup";
-import SubmissionConfirmation from "@/app/alumno/components/custom/SubmissionConfirmation";
-import { supabase } from "@/lib/supabase";
+import { FeatureButton } from "@/app/alumno/components/custom/FeatureButton";
+import { ProjectDetails } from "@/app/alumno/components/custom/ProjectDetails";
+import { Properties } from "@/app/alumno/components/custom/Properties";
+import { PostularseButton } from "@/app/alumno/components/custom/PostularseButton";
 
 type ProjectData = {
-  id_proyecto: number;
+  clave: string;
   proyecto: string;
-  modalidad: string;
-  fecha_ejecucion: string;
+  estatus_ps: string;
+  objetivo_ps: string;
   ubicacion: string;
+  descripcion: string;
+  requisitos: string;
+  fecha_ejecucion: string;
+  organizacion: string;
+  responsable: string;
   horario: string;
+  modalidad: string;
   horas: number;
-  pregunta_1: string;
-  pregunta_2: string;
-  pregunta_3: string;
+  actividades: string;
 };
 
-export default function Formulario() {
+export default function ProjectPage() {
+  const { id } = useParams();
   const router = useRouter();
-  const params = useParams();
-  const [showPopup, setShowPopup] = useState(false);
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [warning, setWarning] = useState("");
+
   const [project, setProject] = useState<ProjectData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [hasExistingApplication, setHasExistingApplication] = useState(false);
-
-  const [form, setForm] = useState({
-    nombre: "",
-    matricula: "",
-    carreraCompleta: "",
-    correo: "",
-    telefono: "",
-    r1: "",
-    r2: "", 
-    r3: "",
-  });
-
-  const [estatus, setEstatus] = useState("");
-  const [proyecto, setProyecto] = useState("");
-  const [compromiso, setCompromiso] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProjectDetails = async () => {
       setIsLoading(true);
+      setError(null);
+
       try {
         const { data, error } = await supabase
           .from("proyectos_solidarios")
           .select("*")
-          .eq("id_proyecto", params.id)
+          .eq("id_proyecto", id)
           .single();
 
         if (error) throw error;
         
-        setProject(data);
-        setProyecto(data.proyecto);
+        // Log the data we receive
+        console.log("Received project data:", data);
+
+        // Check if we have the minimum required data
+        if (!data || !data.proyecto) {
+          throw new Error("Project not found");
+        }
+
+        // Set default values for optional fields
+        const projectData: ProjectData = {
+          clave: data.clave || "N/A",
+          proyecto: data.proyecto,
+          estatus_ps: data.estatus_ps || "Activo",
+          objetivo_ps: data.objetivo_ps || "No especificado",
+          ubicacion: data.ubicacion || "No especificada",
+          descripcion: data.descripcion || "No especificada",
+          requisitos: data.requisitos || "No especificados",
+          fecha_ejecucion: data.fecha_ejecucion || "No especificada",
+          organizacion: data.organizacion || "No especificada",
+          responsable: data.responsable || "No especificado",
+          horario: data.horario || "No especificado",
+          modalidad: data.modalidad || "No especificada",
+          horas: data.horas || 0,
+          actividades: data.actividades || "No especificadas"
+        };
+
+        setProject(projectData);
       } catch (error) {
         console.error("Error fetching project:", error);
-        router.push("/alumno/explorar"); 
+        setError(error instanceof Error ? error.message : "Error fetching project");
+        router.push("/alumno/explorar"); // Redirect to explore page if project not found
       } finally {
         setIsLoading(false);
       }
@@ -190,58 +207,83 @@ export default function Formulario() {
   };
 
   const handleSubmit = async () => {
-    if (!project || hasExistingApplication) return;
-
-    setIsSubmitting(true);
-    try {
-      // Get the current user's session
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.user?.email) {
-        setWarning("No se encontró una sesión activa. Por favor inicia sesión.")
-        return
-      }
-
-      // Double check if application already exists (race condition prevention)
-      const { data: existingApp } = await supabase
-        .from('postulacion')
-        .select('id_proyecto')
-        .eq('email', session.user.email)
-        .eq('id_proyecto', project.id_proyecto)
-        .single()
-
-      if (existingApp) {
-        setWarning("Ya has postulado a este proyecto. No puedes postularte nuevamente.")
-        setShowPopup(false)
-        return
-      }
-
-      const { error } = await supabase
-        .from("postulacion")
-        .insert({
-          matricula: form.matricula,
-          id_proyecto: project.id_proyecto,
-          estatus: "postulado",
-          nombre: form.nombre,
-          carrera: form.carreraCompleta,
-          email: session.user.email, // Use the email from session instead of form
-          numero: form.telefono,
-          respuesta_1: form.r1,
-          respuesta_2: form.r2, 
-          respuesta_3: form.r3,
-        });
-
-      if (error) throw error;
-
-      // Redirect to explore page after successful submission
-      router.push("/alumno/explorar");
-    } catch (error) {
-      console.error("Error submitting application:", error);
-      setWarning("Error al enviar la postulación. Por favor intenta de nuevo.");
-      setShowPopup(false);
-    } finally {
-      setIsSubmitting(false);
+  if (!project || hasExistingApplication) return;
+  setIsSubmitting(true);
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user?.email) {
+      setWarning("No se encontró una sesión activa. Por favor inicia sesión.");
+      return;
     }
-  };
+
+    const { data: existingApp } = await supabase
+      .from('postulacion')
+      .select('id_proyecto')
+      .eq('email', session.user.email)
+      .eq('id_proyecto', project.id_proyecto)
+      .single();
+
+    if (existingApp) {
+      setWarning("Ya has postulado a este proyecto. No puedes postularte nuevamente.");
+      setShowPopup(false);
+      return;
+    }
+
+    // Obtener y actualizar cupos
+    const { data: proyectoActual, error: fetchError } = await supabase
+      .from("proyectos_solidarios")
+      .select("cupos")
+      .eq("id_proyecto", project.id_proyecto)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    const decodeCupos = (raw: any): number => {
+      if (typeof raw === "number") return raw;
+      if (raw instanceof Uint8Array || raw instanceof ArrayBuffer) {
+        return parseInt(new TextDecoder().decode(raw));
+      }
+      return parseInt(raw);
+    };
+
+    const cuposActuales = decodeCupos(proyectoActual.cupos);
+    if (isNaN(cuposActuales) || cuposActuales <= 0) {
+      throw new Error("No hay cupos disponibles.");
+    }
+
+    const { error: insertError } = await supabase
+      .from("postulacion")
+      .insert({
+        matricula: form.matricula,
+        id_proyecto: project.id_proyecto,
+        estatus: "postulado",
+        nombre: form.nombre,
+        carrera: form.carreraCompleta,
+        email: session.user.email,
+        numero: form.telefono,
+        respuesta_1: form.r1,
+        respuesta_2: form.r2,
+        respuesta_3: form.r3,
+      });
+
+    if (insertError) throw insertError;
+
+    const { error: updateError } = await supabase
+      .from("proyectos_solidarios")
+      .update({ cupos: cuposActuales - 1 })
+      .eq("id_proyecto", project.id_proyecto);
+
+    if (updateError) throw updateError;
+
+    router.push("/alumno/explorar");
+  } catch (error) {
+    console.error("Error submitting application:", error);
+    setWarning("Error al enviar la postulación. Por favor intenta de nuevo.");
+    setShowPopup(false);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleNextClick = () => {
     const inputs = document.querySelectorAll("input, select") as NodeListOf<HTMLInputElement | HTMLSelectElement>;
@@ -295,222 +337,71 @@ export default function Formulario() {
 
   if (isLoading) {
     return (
-      <main className="flex-1 overflow-y-auto mt-20 ml-30 mr-10">
-        <div className="flex justify-center items-center h-full">
-          <p>Cargando...</p>
+      <div className="flex min-h-screen bg-white">
+        <SideBar />
+        <div className="flex-1 flex flex-col h-screen">
+          <HeaderBar titulo="Proyecto" Icono={ArrowLeft} onClick={() => router.back()} />
+          <main className="flex-1 overflow-y-auto mt-20 ml-30 mr-10">
+            <div className="flex justify-center items-center h-full">
+              <p>Cargando...</p>
+            </div>
+          </main>
         </div>
-      </main>
+      </div>
     );
   }
 
-  if (!project) {
-    return null; 
+  if (error || !project) {
+    return null; // Will redirect in useEffect
   }
 
   return (
-    <>
-      <main className="flex-1 overflow-y-auto mt-20 ml-30 mr-10">
-        <div>
-          <SideBar />
-          <div className="flex flex-col flex-1 p-4">
-            <HeaderBar titulo="Proyecto" Icono={ArrowLeft} onClick={() => router.back()} />
-            {hasExistingApplication ? (
-              <div className="max-w-2xl w-full mx-auto mt-4 rounded-md p-6 border-red-500 border-2 bg-red-50">
-                <h2 className="text-xl font-semibold text-red-600 mb-4">Ya has postulado a este proyecto</h2>
-                <p className="text-gray-700 mb-4">No puedes postularte nuevamente al mismo proyecto.</p>
-                <button
-                  onClick={() => router.push('/alumno/explorar')}
-                  className="px-6 py-2 rounded-full bg-blue-400 hover:bg-blue-900 text-white font-semibold 
-                            transition-colors duration-200"
-                >
-                  Explorar otros proyectos
-                </button>
-              </div>
-            ) : (
-              <div className="max-w-2xl w-full mx-auto mt-4 rounded-md p-6 border-blue-900 border-2">
-                <div className="space-y-4">
-                  <div>
-                    <label className="block font-semibold text-[#0a2170]">Nombre completo</label>
-                    <input
-                      name="nombre"
-                      type="text"
-                      value={form.nombre}
-                      onChange={handleChange}
-                      placeholder="Ingresa tu nombre"
-                      className="w-full border rounded-md p-2"
-                    />
-                    {errors.nombre && <p className="text-red-600">{errors.nombre}</p>}
-                  </div>
-
-                  <div>
-                    <label className="block font-semibold text-[#0a2170]">Matrícula</label>
-                    <input
-                      name="matricula"
-                      type="text"
-                      value={form.matricula}
-                      onChange={handleChange}
-                      placeholder="Ingresa tu matrícula"
-                      className="w-full border rounded-md p-2 bg-gray-50"
-                      readOnly
-                    />
-                    {errors.matricula && <p className="text-red-600">{errors.matricula}</p>}
-                  </div>
-
-                  <Carrera carreras={["IBT", "IC", "LC", "IIS", "IM", "IMT", "IQ", "IRS", "ITC"]} />
-
-                  <div>
-                    <label className="block font-semibold text-[#0a2170]">Correo institucional</label>
-                    <input
-                      name="correo"
-                      type="email"
-                      value={form.correo}
-                      onChange={handleChange}
-                      placeholder="ejemplo@correo.com"
-                      className="w-full border rounded-md p-2 bg-gray-50"
-                      readOnly
-                    />
-                    {errors.correo && <p className="text-red-600">{errors.correo}</p>}
-                  </div>
-
-                  <div>
-                    <label className="block font-semibold text-[#0a2170]">Teléfono (a 10 dígitos y sin espacios)</label>
-                    <input
-                      name="telefono"
-                      type="tel"
-                      value={form.telefono}
-                      onChange={handleChange}
-                      placeholder="Ingresa tu número"
-                      className="w-full border rounded-md p-2"
-                    />
-                    {errors.telefono && <p className="text-red-600">{errors.telefono}</p>}
-                  </div>
-
-                  <RadioGroup 
-                    label="Estatus en el que te encuentras:"
-                    name="estatus"
-                    options={["Postuladx"]}
-                    value={estatus}
-                    onChange={setEstatus}
-                  />
-                  <RadioGroup 
-                    label="Proyecto al que te estás postulando"
-                    name="proyecto"
-                    options={[project.proyecto]}
-                    value={proyecto}
-                    onChange={setProyecto}
-                  />
-                  <DetalleProyecto
-                    detalles={{
-                      modalidad: project.modalidad,
-                      periodo: project.fecha_ejecucion,
-                      ubicacion: project.ubicacion,
-                      diasEjecucion: [
-                        `Horario: ${project.horario}`,
-                        `Horas totales: ${project.horas}`,
-                      ],
-                    }}
-                  />
-
-                  <div>
-                    <label className="block font-semibold text-[#0a2170]">
-                      ¿Estás dispuestx a seguir con las postulación?
-                    </label>
-                    <div className="space-y-3 text-sm text-gray-800">
-                      <div className="flex items-start gap-3">
-                        <input
-                          type="radio"
-                          id="si-compromiso"
-                          name="compromiso"
-                          value="si"
-                          className="accent-[#0a2170] mt-1"
-                        />
-                        <label htmlFor="si-compromiso" className="block">
-                          Sí, estoy dispuestx a ejecutar el Proyecto Solidario con las condiciones de días y horarios requeridos.
-                        </label>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <input
-                          type="radio"
-                          id="no-compromiso"
-                          name="compromiso"
-                          value="no"
-                          className="accent-[#0a2170] mt-1"
-                        />
-                        <label htmlFor="no-compromiso" className="block">
-                          No, mis actividades escolares y personales no me permitirán participar en el proyecto. Gracias.
-                        </label>
-                      </div>
-                    </div>
-                  </div>
+    <div className="flex min-h-screen bg-white">
+      <SideBar />
+      <div className="flex-1 flex flex-col h-screen">
+        <HeaderBar titulo="Proyecto" Icono={ArrowLeft} onClick={() => router.back()} />
+        <main className="flex-1 overflow-y-auto mt-20 ml-30 mr-10">
+          <div className="w-full mx-auto border border-blue-900 rounded-2xl shadow bg-white p-5">
+            {/* Encabezado */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Columna de información más ancha */}
+              <div className="md:col-span-2">
+                <h1 className="text-lg font-bold text-blue-900">{project.proyecto}</h1>
+                <div className="flex gap-2 mt-2 flex-wrap">
+                  <FeatureButton texto={project.modalidad} color="white" size="sm" />
+                  <FeatureButton texto={`${project.horas} horas`} color="white" size="sm" />
                 </div>
-                <div>
-                  <label className="block font-semibold text-[#0a2170]">{project.pregunta_1}</label>
-                  <input
-                    name="r1"
-                    type="text"
-                    value={form.r1}
-                    onChange={handleChange}
-                    placeholder="Ingresa tu respuesta"
-                    className="w-full border rounded-md p-2"
-                  />
-                  {errors.r1 && <p className="text-red-600">{errors.r1}</p>}
-                </div>
-                <div>
-                  <label className="block font-semibold text-[#0a2170]">{project.pregunta_2}</label>
-                  <input
-                    name="r2"
-                    type="text"
-                    value={form.r2}
-                    onChange={handleChange}
-                    placeholder="Ingresa tu respuesta"
-                    className="w-full border rounded-md p-2"
-                  />
-                  {errors.r2 && <p className="text-red-600">{errors.r2}</p>}
-                </div>
-                <div>
-                  <label className="block font-semibold text-[#0a2170]">{project.pregunta_3}</label>
-                  <input
-                    name="r3"
-                    type="text"
-                    value={form.r3}
-                    onChange={handleChange}
-                    placeholder="Ingresa tu respuesta"
-                    className="w-full border rounded-md p-2"
-                  />
-                  {errors.r3 && <p className="text-red-600">{errors.r3}</p>}
-                </div>
-
-                {warning && <p className="text-red-600">{warning}</p>}
-
-                <div className="flex justify-end gap-4 mt-6">
-                  <button
-                    type="button"
-                    onClick={() => router.back()}
-                    className="px-6 py-2 rounded-full border border-[#0a2170] text-[#0a2170] font-semibold 
-                              hover:bg-[#0a2170] hover:text-white transition-colors duration-200"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleNextClick}
-                    className="px-6 py-2 rounded-full border border-[#0a2170] bg-[#0a2170] text-white font-semibold 
-                              hover:bg-black hover:text-white hover:border-black transition-colors duration-200"
-                  >
-                    Siguiente
-                  </button>
+                <div className="mt-2 space-y-1">
+                  <ProjectDetails label="Modalidad" value={project.modalidad} />
+                  <ProjectDetails label="Periodo" value={project.fecha_ejecucion} />
+                  <ProjectDetails label="Clave" value={project.clave} />
+                  <ProjectDetails label="Horario" value={project.horario} />
                 </div>
               </div>
-            )}
+
+              {/* Columna más chica para imagen y botón */}
+              <div className="md:col-span-1 flex flex-col items-center gap-4">
+                <PostularseButton texto="Postularme" color="bg-blue-400" id_proyecto={Number(id)} />
+                <Image
+                  src="/images/example.jpg"
+                  alt="Imagen del proyecto"
+                  width={160}
+                  height={160}
+                  className="object-cover rounded-lg"
+                />
+              </div>
+            </div>
+
+
+            {/* Detalles */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
+              <Properties label="Objetivo" value={<p>{project.objetivo_ps}</p>} />
+              <Properties label="Ubicación" value={<p>{project.ubicacion}</p>} />
+              <Properties label="Actividades" value={<p>{project.actividades}</p>} />
+            </div>
           </div>
-        </div>
-        {showPopup && !hasExistingApplication && (
-          <SubmissionConfirmation 
-            onClose={() => setShowPopup(false)} 
-            onSubmit={handleSubmit}
-          />
-        )}
-      </main>
-    </>
+        </main>
+      </div>
+    </div>
   );
 }
