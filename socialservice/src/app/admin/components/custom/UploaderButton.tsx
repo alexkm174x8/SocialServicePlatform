@@ -196,6 +196,7 @@ const UploaderButton: React.FC<UploaderButtonProps> = ({ onClose }) => {
       </div>
       <div className= "pt-3">
       {errorMessage && <div className="text-red-600 text-sm font-medium">{errorMessage}</div>}
+      {successMessage && <div className="text-green-600 text-sm font-medium">{successMessage}</div>}
       </div>
   
       <div className="flex gap-4 mt-4">

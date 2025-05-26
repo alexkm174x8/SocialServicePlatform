@@ -16,18 +16,19 @@ type Solicitud = {
 };
 
 const statusColorMap: Record<string, string> = {
+  "Aceptadx por el alumnx": "bg-green-700",
   "Aceptadx": "bg-green-500",
   "Declinadx por el alumnx": "bg-orange-400",
   "No aceptadx": "bg-red-500",
   "En revisión": "bg-indigo-400",
-};
+} as const;
 
-const statusOptions = [
+const STATUS_OPTIONS = [
   { label: "Aceptadx", color: "bg-green-500" },
   { label: "Declinadx por el alumnx", color: "bg-orange-400" },
   { label: "No aceptadx", color: "bg-red-500" },
   { label: "En revisión", color: "bg-indigo-400" },
-];
+] as const;
 
 export const Lista = ({
   data,
@@ -39,7 +40,10 @@ export const Lista = ({
 
   const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<{ label: string; color: string }[]>(
-    data.map(() => statusOptions[3])
+    data.map((item) => {
+      const matchingOption = STATUS_OPTIONS.find(option => option.label === item.estatus) || STATUS_OPTIONS[4];
+      return matchingOption;
+    })
   );
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -59,21 +63,29 @@ export const Lista = ({
   }, []);
 
   useEffect(() => {
-    // Reset status if data changes
-    setSelectedStatus(data.map(() => statusOptions[3]));
+    // Update selectedStatus when data changes
+    setSelectedStatus(data.map((item) => {
+      const matchingOption = STATUS_OPTIONS.find(option => option.label === item.estatus) || STATUS_OPTIONS[4];
+      return matchingOption;
+    }));
   }, [data]);
 
   const toggleDropdown = (index: number) => {
     setActiveDropdown(activeDropdown === index ? null : index);
   };
 
-  const handleSelect = (index: number, option: { label: string; color: string }) => {
+  const handleSelect = (index: number, option: typeof STATUS_OPTIONS[number]) => {
     const updatedData = [...data];
     updatedData[index] = {
       ...updatedData[index],
       estatus: option.label,
     };
     setData(updatedData);
+    setSelectedStatus(prev => {
+      const newStatus = [...prev];
+      newStatus[index] = option;
+      return newStatus;
+    });
     setActiveDropdown(null);
   };
   
@@ -105,16 +117,22 @@ export const Lista = ({
                 />
                 {activeDropdown === idx && (
                   <div className="absolute z-50 bg-white border shadow-lg rounded-lg mt-2 w-60 p-3">
-                    {statusOptions.map((option, i) => (
-                      <div
-                        key={i}
-                        className="flex items-center gap-2 cursor-pointer p-1 hover:bg-gray-100 rounded"
-                        onClick={() => handleSelect(idx, option)}
-                      >
-                        <div className={`w-4 h-4 rounded ${option.color}`} />
-                        <span className="text-sm text-blue-900">{option.label}</span>
-                      </div>
-                    ))}
+                    {STATUS_OPTIONS.map((option, i) => {
+                      console.log('Rendering option:', option);
+                      return (
+                        <div
+                          key={i}
+                          className="flex items-center gap-2 cursor-pointer p-1 hover:bg-gray-100 rounded"
+                          onClick={() => {
+                            console.log('Selected option:', option);
+                            handleSelect(idx, option);
+                          }}
+                        >
+                          <div className={`w-4 h-4 rounded ${option.color}`} />
+                          <span className="text-sm text-blue-900">{option.label}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </td>
