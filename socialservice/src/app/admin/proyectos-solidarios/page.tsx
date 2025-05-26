@@ -75,12 +75,14 @@ export default function Explorar() {
         }
 
         const formattedData = data.map((item) => ({
-          // nuevo acomodo 
           subido: new Date().toISOString(),
+          estatus: "Activo",
+          representante: item.responsable || "N/A",
+          manejar: "Ver detalles",
           cupos: item.cupos,
           perfil: item.perfil_aceptacion,
           proyecto: item.proyecto,
-          contacto: item.socioformador?.correo || 'N/A', // Use correo from socioformador or fallback to 'N/A'
+          contacto: item.socioformador?.correo || 'N/A',
           objetivo_ps: item.objetivo_ps,
           num_pmt: item.num_pmt,
           ods_ps: item.ods_ps,
@@ -106,7 +108,7 @@ export default function Explorar() {
         }));
         setExplorar(formattedData);
       } catch (error) {
-        console.error('Error fetching proyectos_solidarios:', error.message || error);
+        console.error('Error fetching proyectos_solidarios:', error instanceof Error ? error.message : String(error));
       }
     };
 
@@ -191,6 +193,8 @@ export default function Explorar() {
           <DetailButton
             texto="Importar"
             size="auto"
+            color="blue"
+            id={0}
             onClick={() => setIsUploaderVisible(true)}
           />
         </div>
