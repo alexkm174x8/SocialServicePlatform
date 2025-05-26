@@ -12,10 +12,15 @@ import { supabase } from "@/lib/supabase";
 type Project = {
   id_proyecto: any;
   proyecto: any;
-  cupos: any;
+  estatus_ps: any;
   objetivo_ps: any;
   horas: any;
   modalidad: any;
+};
+
+type Postulacion = {
+  id_proyecto: number;
+  email: string;
 };
 
 const getBackgroundColor = (hours: number): string => {
@@ -30,13 +35,29 @@ const getBackgroundColor = (hours: number): string => {
   return colors[hours] || "bg-gray-400";
 };
 
-const fetchProjects = async () => {
-  const { data, error } = await supabase
+const fetchProjects = async (userEmail: string) => {
+  // First get all projects
+  const { data: projects, error: projectsError } = await supabase
     .from('proyectos_solidarios')
-    .select('id_proyecto, proyecto, cupos, objetivo_ps, horas, modalidad');
+    .select('id_proyecto, proyecto, estatus_ps, objetivo_ps, horas, modalidad');
 
-  if (error) throw new Error(error.message);
-  return data || [];
+  if (projectsError) throw new Error(projectsError.message);
+
+  // Then get user's postulations
+  const { data: postulaciones, error: postulacionesError } = await supabase
+    .from('postulacion')
+    .select('id_proyecto')
+    .eq('email', userEmail);
+
+  if (postulacionesError) throw new Error(postulacionesError.message);
+
+  // Create a set of project IDs that the user has already applied to
+  const appliedProjectIds = new Set(postulaciones?.map(p => p.id_proyecto) || []);
+
+  // Filter out projects that the user has already applied to
+  const availableProjects = projects?.filter(project => !appliedProjectIds.has(project.id_proyecto)) || [];
+
+  return availableProjects;
 };
 
 const useProjects = () => {
@@ -49,7 +70,16 @@ const useProjects = () => {
       try {
         setIsLoading(true);
         setError(null);
-        const data = await fetchProjects();
+        
+        // Get the current user's session
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user?.email) {
+          setError("No se encontró una sesión activa. Por favor inicia sesión.");
+          return;
+        }
+
+        const userEmail = session.user.email;
+        const data = await fetchProjects(userEmail);
         setProjects(data);
       } catch (err: any) {
         setError(err.message);
@@ -63,6 +93,7 @@ const useProjects = () => {
 
   return { projects, isLoading, error };
 };
+
 const useFilteredProjects = (projects: Project[], filters: any) => {
   return projects.filter((project) => {
     const { search, filterModalities, filterHours } = filters;
@@ -72,9 +103,7 @@ const useFilteredProjects = (projects: Project[], filters: any) => {
     const matchesSearch = project.proyecto.toLowerCase().includes(search.toLowerCase()) ||
                           project.objetivo_ps.toLowerCase().includes(search.toLowerCase());
 
-    const hasAvailableCupos = parseInt(project.cupos) > 0;
-
-    return matchesModality && matchesHours && matchesSearch && hasAvailableCupos;
+    return matchesModality && matchesHours && matchesSearch;
   });
 };
 
@@ -130,7 +159,7 @@ export default function Explorar() {
           </div>
         </div>
 
-        {isLoading && <p className="text-center">Loading projects...</p>}
+        {isLoading && <p className="text-center">Cargando proyectos...</p>}
         {error && <p className="text-center text-red-600">Error: {error}</p>}
 
         {!isLoading && !error && (
@@ -143,7 +172,7 @@ export default function Explorar() {
                   description={project.objetivo_ps
                     ? project.objetivo_ps.split(" ").slice(0, 15).join(" ") + (project.objetivo_ps.split(" ").length > 15 ? "..." : "")
                     : "No description available"}
-                  state={project.cupos}
+                  state={project.estatus_ps}
                   id_project={project.id_proyecto}
                   hours={project.horas}
                   format={project.modalidad}
@@ -151,7 +180,7 @@ export default function Explorar() {
                 />
               ))
             ) : (
-              <p className="text-center col-span-full">No projects found.</p>
+              <p className="text-center col-span-full">No hay proyectos disponibles con este nombre.</p>
             )}
           </div>
         )}
