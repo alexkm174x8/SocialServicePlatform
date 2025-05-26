@@ -12,7 +12,7 @@ import { supabase } from "@/lib/supabase";
 type Project = {
   id_proyecto: any;
   proyecto: any;
-  estatus_ps: any;
+  cupos: any;
   objetivo_ps: any;
   horas: any;
   modalidad: any;
@@ -39,7 +39,7 @@ const fetchProjects = async (userEmail: string) => {
   // First get all projects
   const { data: projects, error: projectsError } = await supabase
     .from('proyectos_solidarios')
-    .select('id_proyecto, proyecto, estatus_ps, objetivo_ps, horas, modalidad');
+    .select('id_proyecto, proyecto, cupos, objetivo_ps, horas, modalidad');
 
   if (projectsError) throw new Error(projectsError.message);
 
@@ -172,7 +172,7 @@ export default function Explorar() {
                   description={project.objetivo_ps
                     ? project.objetivo_ps.split(" ").slice(0, 15).join(" ") + (project.objetivo_ps.split(" ").length > 15 ? "..." : "")
                     : "No description available"}
-                  state={project.estatus_ps}
+                  state={project.cupos}
                   id_project={project.id_proyecto}
                   hours={project.horas}
                   format={project.modalidad}
