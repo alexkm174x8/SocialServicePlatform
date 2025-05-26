@@ -88,8 +88,252 @@ export default function ProjectPage() {
       }
     };
 
-    if (id) fetchProjectDetails();
-  }, [id, router]);
+    if (params.id) fetchProjectDetails();
+  }, [params.id, router]);
+
+  useEffect(() => {
+    const checkExistingApplication = async () => {
+      try {
+        // Get the current user's session
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session?.user?.email) {
+          console.error("No active session")
+          return
+        }
+
+        // Check if user has already applied to this project
+        const { data, error } = await supabase
+          .from('postulacion')
+          .select('id_proyecto, estatus')
+          .eq('email', session.user.email)
+          .eq('id_proyecto', params.id)
+          .single()
+
+        if (error && error.code !== 'PGRST116') { // Ignore "no rows found" error
+          console.error("Error checking existing application:", error)
+          return
+        }
+
+        if (data) {
+          setHasExistingApplication(true)
+          setWarning("Ya has postulado a este proyecto. No puedes postularte nuevamente.")
+        }
+      } catch (error) {
+        console.error("Error checking existing application:", error)
+      }
+    }
+
+    if (params.id) {
+      checkExistingApplication()
+    }
+  }, [params.id])
+
+  useEffect(() => {
+    const initializeFormFromSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session?.user?.email) {
+          console.error("No active session")
+          return
+        }
+
+        const userEmail = session.user.email
+        const matricula = userEmail.replace('@tec.mx', '')
+
+        setForm(prev => ({
+          ...prev,
+          correo: userEmail,
+          matricula: matricula
+        }))
+      } catch (error) {
+        console.error("Error getting session data:", error)
+      }
+    }
+
+    initializeFormFromSession()
+  }, [])
+
+  const regexMap: { [key: string]: { regex: RegExp; message: string } } = {
+    nombre: {
+      regex: /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{3,}$/,
+      message: "Nombre inválido. Usa solo letras y mínimo 3 caracteres.",
+    },
+    matricula: {
+      regex: /^[Aa]\d{8}$/,
+      message: "Matrícula inválida. Debe iniciar con 'A' o 'a' seguido de 8 números.",
+    },
+    carreraCompleta: {
+      regex: /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{3,}$/,
+      message: "Nombre de carrera inválido. Usa solo letras.",
+    },
+    correo: {
+      regex: /^[a-zA-Z0-9._%+-]+@tec\.mx$/,
+      message: "Correo inválido. Debe terminar en @tec.mx",
+    },
+    telefono: {
+      regex: /^\d{10}$/,
+      message: "Teléfono inválido. Debe contener exactamente 10 dígitos.",
+    },
+    r1: {
+      regex: /^.{10,}$/,
+      message: "La respuesta debe tener al menos 10 caracteres.",
+    },
+    r2: {
+      regex: /^.{10,}$/,
+      message: "La respuesta debe tener al menos 10 caracteres.",
+    },
+    r3: {
+      regex: /^.{10,}$/,
+      message: "La respuesta debe tener al menos 10 caracteres.",
+    },
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+
+    if (regexMap[name]) {
+      const { regex, message } = regexMap[name];
+      if (!regex.test(value)) {
+        setErrors((prev) => ({ ...prev, [name]: message }));
+      } else {
+        setErrors((prev) => {
+          const updated = { ...prev };
+          delete updated[name];
+          return updated;
+        });
+      }
+    }
+  };
+
+  const handleSubmit = async () => {
+  if (!project || hasExistingApplication) return;
+  setIsSubmitting(true);
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user?.email) {
+      setWarning("No se encontró una sesión activa. Por favor inicia sesión.");
+      return;
+    }
+
+    const { data: existingApp } = await supabase
+      .from('postulacion')
+      .select('id_proyecto')
+      .eq('email', session.user.email)
+      .eq('id_proyecto', project.id_proyecto)
+      .single();
+
+    if (existingApp) {
+      setWarning("Ya has postulado a este proyecto. No puedes postularte nuevamente.");
+      setShowPopup(false);
+      return;
+    }
+
+    // Obtener y actualizar cupos
+    const { data: proyectoActual, error: fetchError } = await supabase
+      .from("proyectos_solidarios")
+      .select("cupos")
+      .eq("id_proyecto", project.id_proyecto)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    const decodeCupos = (raw: any): number => {
+      if (typeof raw === "number") return raw;
+      if (raw instanceof Uint8Array || raw instanceof ArrayBuffer) {
+        return parseInt(new TextDecoder().decode(raw));
+      }
+      return parseInt(raw);
+    };
+
+    const cuposActuales = decodeCupos(proyectoActual.cupos);
+    if (isNaN(cuposActuales) || cuposActuales <= 0) {
+      throw new Error("No hay cupos disponibles.");
+    }
+
+    const { error: insertError } = await supabase
+      .from("postulacion")
+      .insert({
+        matricula: form.matricula,
+        id_proyecto: project.id_proyecto,
+        estatus: "postulado",
+        nombre: form.nombre,
+        carrera: form.carreraCompleta,
+        email: session.user.email,
+        numero: form.telefono,
+        respuesta_1: form.r1,
+        respuesta_2: form.r2,
+        respuesta_3: form.r3,
+      });
+
+    if (insertError) throw insertError;
+
+    const { error: updateError } = await supabase
+      .from("proyectos_solidarios")
+      .update({ cupos: cuposActuales - 1 })
+      .eq("id_proyecto", project.id_proyecto);
+
+    if (updateError) throw updateError;
+
+    router.push("/alumno/explorar");
+  } catch (error) {
+    console.error("Error submitting application:", error);
+    setWarning("Error al enviar la postulación. Por favor intenta de nuevo.");
+    setShowPopup(false);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+  const handleNextClick = () => {
+    const inputs = document.querySelectorAll("input, select") as NodeListOf<HTMLInputElement | HTMLSelectElement>;
+    const missingFields: string[] = [];
+
+    inputs.forEach((input) => {
+      const label = input.closest("label")?.textContent || input.getAttribute("placeholder") || input.name;
+      const fieldNamesMap: { [key: string]: string } = {
+        "Ingresa tu nombre": "Nombre completo",
+        "Ingresa tu matrícula": "Matrícula",
+        "Ingresa tu carrera": "Carrera",
+        "ejemplo@correo.com": "Correo electrónico",
+        "Ingresa tu número": "Número de teléfono",
+        "estatus": "Estatus",
+        "proyecto": "Proyecto",
+        "compromiso": "Compromiso",
+      };
+
+      const fieldName = fieldNamesMap[label] || label;
+
+      if (
+        (input.type === "radio" &&
+          !document.querySelector(`input[name="${input.name}"]:checked`)) ||
+        ((input.type !== "radio" && input.type !== "submit" && input.type !== "button") &&
+          input.value.trim() === "")
+      ) {
+        if (!missingFields.includes(fieldName)) {
+          missingFields.push(fieldName);
+        }
+      }
+    });
+
+    if (missingFields.length > 0) {
+      setWarning(`Por favor completa los siguientes campos: ${missingFields.join(", ")}.`);
+      return;
+    }
+
+    // Get the selected compromiso value
+    const selectedCompromiso = document.querySelector('input[name="compromiso"]:checked') as HTMLInputElement;
+    if (selectedCompromiso) {
+      setCompromiso(selectedCompromiso.value);
+    }
+
+    setWarning("");
+    setShowPopup(true);
+  };
+
+  const handleClosePopup = () => {
+    setShowPopup(false);
+  };
 
   if (isLoading) {
     return (

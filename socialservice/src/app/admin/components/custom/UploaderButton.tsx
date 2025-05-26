@@ -8,6 +8,10 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+const validateFields = (fields) => {
+  const requiredFields = [ "perfil_aceptacion", "proyecto", "grupo", "clave"];
+  const normalizedFields = fields.map((field) => field.trim().toLowerCase());
+  
         {/*
 const REQUIRED_FIELDS = [
   "id_proyecto", "perfil_aceptacion", "proyecto", "grupo", "clave", "representante",
@@ -144,14 +148,16 @@ type RecordType = {
 
 const validateFields = (fields: string[]): boolean => {
   const normalizedFields = fields.map((field: string) => field.trim().toLowerCase());
+
   console.log("Campos detectados (normalizados):", normalizedFields);
   console.log("Campos requeridos:", requiredFields);
   return requiredFields.every((field) => normalizedFields.includes(field.toLowerCase()));
 };
 
-const filterRequiredFields = (data: any[]): RecordType[] => {
-  return data.map((record: any) => {
-    const filteredRecord: RecordType = {};
+const filterRequiredFields = (data) => {
+  const requiredFields = [ "perfil_aceptacion", "proyecto", "grupo", "clave"];
+  return data.map((record) => {
+    const filteredRecord = {};
     requiredFields.forEach((field) => {
       // Busca el campo en el registro, normalizando los nombres
       const key = Object.keys(record).find(k => normalize(k) === field);
