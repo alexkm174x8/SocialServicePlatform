@@ -152,47 +152,45 @@ const UploaderButton: React.FC<UploaderButtonProps> = ({ onClose }) => {
   };
 
   return (
-    <div
-      className="w-full max-w-sm h-auto p-6 bg-gray-100 border-2 border-dashed border-gray-400 rounded-2xl text-center flex flex-col items-center justify-center space-y-4"
+    <div className="w-full max-w-sm h-auto  rounded-2xl text-center flex flex-col items-center justify-center"
       onDrop={handleDrop}
       onDragOver={handleDragOver}
     >
-      <img src="/upload.svg" alt="upload" className="h-8 w-8" />
-      <p className="text-base font-semibold text-gray-800">Arrastra y suelta para subir</p>
-      <p className="text-sm text-gray-600">
-        También puedes <label htmlFor="file-upload" className="text-blue-600 font-semibold cursor-pointer">buscar</label> en tu explorador
-      </p>
-      <input
-        id="file-upload"
-        type="file"
-        accept=".csv,.xlsx"
-        className="hidden"
-        onChange={handleFileChange}
-      />
-
-      {fileName && (
-        <p className="text-sm text-green-700 truncate">{fileName}</p>
-      )}
-
-      {errorMessage && (
-        <div className="text-red-600 text-sm font-medium">{errorMessage}</div>
-      )}
-
-      {successMessage && (
-        <div className="text-green-600 text-sm font-medium">{successMessage}</div>
-      )}
-
+      <div className="border-2 border-dashed border-blue-900 w-full flex flex-col items-center justify-center space-y-4 hover:bg-blue-50 p-4 rounded-xl">
+        <img src="/upload.svg" alt="upload" className="h-8 w-8 text-blue-900" />
+        <p className="text-xl font-semibold mb-4 text-blue-900">Arrastra y suelta para subir</p>
+        <p className="text-sm text-gray-600">
+          También puedes{' '}
+          <label htmlFor="file-upload" className="text-blue-600 font-semibold cursor-pointer">
+            buscar
+          </label>{' '}
+          en tu explorador
+        </p>
+        <p className="text-[11px] text-gray-600">Se aceptan subir archivos .CSV o .XLSX</p>
+        <input
+          id="file-upload"
+          type="file"
+          accept=".csv,.xlsx"
+          className="hidden"
+          onChange={handleFileChange}
+        />
+        {fileName && <p className="text-sm text-green-700 truncate">{fileName}</p>}
+        {errorMessage && <div className="text-red-600 text-sm font-medium">{errorMessage}</div>}
+        {successMessage && <div className="text-green-600 text-sm font-medium">{successMessage}</div>}
+      </div>
+  
+      {/* Botones separados visualmente del hover */}
       <div className="flex gap-4 mt-4">
-      <button
-        onClick={() => {
-          resetUploader();
-          onClose();
-        }}
-        className="border border-blue-900 rounded-full px-6 py-2 text-sm font-semibold text-blue-900 hover:bg-blue-50 transition duration-200"
-      >
-        Cancelar
-      </button>
-
+        <button
+          onClick={() => {
+            resetUploader();
+            onClose();
+          }}
+          className="border border-blue-900 rounded-full px-6 py-2 text-sm font-semibold text-blue-900 hover:bg-transparent transition duration-200"
+        >
+          Cancelar
+        </button>
+  
         <button
           onClick={handleImport}
           disabled={!file || isImporting}
@@ -204,7 +202,8 @@ const UploaderButton: React.FC<UploaderButtonProps> = ({ onClose }) => {
       </div>
     </div>
   );
-};
+};  
+
 
 export default UploaderButton;
 
