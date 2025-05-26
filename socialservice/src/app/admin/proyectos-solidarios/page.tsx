@@ -189,7 +189,7 @@ export default function Explorar() {
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+        <div className="">
           <DetailButton
             texto="Importar"
             size="auto"
@@ -202,11 +202,11 @@ export default function Explorar() {
         {isUploaderVisible && (
           <div
             className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-            onClick={() => setIsUploaderVisible(false)}
+            onClick={() => setIsUploaderVisible(false)}  // Aquí usas onClick para cerrar
           >
             <div
               className="bg-white p-6 rounded-lg shadow-lg"
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()} // Evita cerrar al hacer clic dentro
             >
               <button
                 className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
@@ -214,7 +214,8 @@ export default function Explorar() {
               >
                 X
               </button>
-              <UploaderButton onFileUpload={handleFileUpload} />
+              {/* Aquí sí pasas el onClose esperado */}
+              <UploaderButton onClose={() => setIsUploaderVisible(false)} />
             </div>
           </div>
         )}
