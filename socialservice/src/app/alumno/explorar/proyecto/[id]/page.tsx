@@ -16,7 +16,7 @@ import { PostularseButton } from "@/app/alumno/components/custom/PostularseButto
 type ProjectData = {
   clave: string;
   proyecto: string;
-  estatus_ps: string;
+ cupos: string;
   objetivo_ps: string;
   ubicacion: string;
   descripcion: string;
@@ -64,7 +64,7 @@ export default function ProjectPage() {
         const projectData: ProjectData = {
           clave: data.clave || "N/A",
           proyecto: data.proyecto,
-          estatus_ps: data.estatus_ps || "Activo",
+          cupos: data.estatus_ps || "0",
           objetivo_ps: data.objetivo_ps || "No especificado",
           ubicacion: data.ubicacion || "No especificada",
           descripcion: data.descripcion || "No especificada",
