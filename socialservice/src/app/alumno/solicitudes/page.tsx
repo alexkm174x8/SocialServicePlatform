@@ -132,7 +132,7 @@ const ProgressTrackerCard = ({ title, requestedDate, updatedDate, actionLabel, s
   const renderResponderButton = () => {
     const handleClick = () => setIsResponding(true)
     const baseProps = { texto: 'Responder', size: 'auto' as const, onClick: handleClick, disabled: !canRespond }
-    const colorClass = canRespond ? 'bg-blue-400 hover:bg-blue-900' : 'bg-gray-400 hover:bg-gray-600'
+    const colorClass = canRespond ? 'bg-green-400 hover:bg-green-900' : 'bg-gray-400 hover:bg-gray-600'
     return <ActionButton {...baseProps} colorClass={colorClass} />
   }
 
