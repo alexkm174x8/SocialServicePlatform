@@ -175,11 +175,12 @@ const UploaderButton: React.FC<UploaderButtonProps> = ({ onClose }) => {
           onChange={handleFileChange}
         />
         {fileName && <p className="text-sm text-green-700 truncate">{fileName}</p>}
-        {errorMessage && <div className="text-red-600 text-sm font-medium">{errorMessage}</div>}
-        {successMessage && <div className="text-green-600 text-sm font-medium">{successMessage}</div>}
+      </div>
+      <div className= "pt-3">
+      {errorMessage && <div className="text-red-600 text-sm font-medium">{errorMessage}</div>}
+      {successMessage && <div className="text-green-600 text-sm font-medium">{successMessage}</div>}
       </div>
   
-      {/* Botones separados visualmente del hover */}
       <div className="flex gap-4 mt-4">
         <button
           onClick={() => {
@@ -206,4 +207,3 @@ const UploaderButton: React.FC<UploaderButtonProps> = ({ onClose }) => {
 
 
 export default UploaderButton;
-
