@@ -1,16 +1,154 @@
-"use client";
+'use client';
 
-import React, { useCallback, useState } from "react";
-import { createClient } from '@supabase/supabase-js';
+import React, { useCallback, useState } from 'react';
 import * as XLSX from 'xlsx';
+import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 const validateFields = (fields) => {
   const requiredFields = [ "perfil_aceptacion", "proyecto", "grupo", "clave"];
   const normalizedFields = fields.map((field) => field.trim().toLowerCase());
+  
+        {/*
+const REQUIRED_FIELDS = [
+  "id_proyecto", "perfil_aceptacion", "proyecto", "grupo", "clave", "representante",
+  "contacto", "cupos", "objetivo_ps", "num_pmt", "ods_ps", "actividades",
+  "detalles_horario", "habilidades", "modalidad", "lugar_trabajo", "duracion",
+  "horas", "tipo_inscripcion", "ruta_maps", "crn", "periodo_academico",
+  "fecha_pue", "pregunta_1", "pregunta_2", "pregunta_3", "id_socioformador",
+  "carreras"
+];
+
+const validateFields = (fields: string[]) => {
+  const normalized = fields.map(f => f.trim().toLowerCase());
+  return REQUIRED_FIELDS.every(field => normalized.includes(field));
+};
+
+interface UploaderButtonProps {
+  onClose: () => void;
+}
+
+const UploaderButton: React.FC<UploaderButtonProps> = ({ onClose }) => {
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
+
+  const handleDrop = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    const droppedFile = event.dataTransfer.files[0];
+    processFile(droppedFile);
+  }, []);
+
+  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0];
+    processFile(selectedFile);
+  };
+
+  const processFile = (uploadedFile: File | undefined) => {
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    if (!uploadedFile) return;
+
+    const isCSV = uploadedFile.type === 'text/csv';
+    const isXLSX = uploadedFile.name.endsWith('.xlsx');
+
+    if (!isCSV && !isXLSX) {
+      setErrorMessage("Por favor, selecciona un archivo CSV o XLSX válido.");
+      return;
+    }
+
+    setFile(uploadedFile);
+    setFileName(uploadedFile.name);
+  };
+
+  const handleImport = async () => {
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    if (!file) {
+      setErrorMessage("Primero selecciona un archivo válido.");
+      return;
+    }
+
+    setIsImporting(true);
+    const reader = new FileReader();
+
+    reader.onload = async (event) => {
+      try {
+        const data = new Uint8Array(event.target!.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+        if (jsonData.length === 0) {
+          setErrorMessage("El archivo está vacío.");
+          setIsImporting(false);
+        */}
+
+const requiredFields = [
+  "estatus_ps",
+  "perfil_aceptacion",
+  "crn",
+  "grupo",
+  "clave",
+  "periodo_academico",
+  "pmt_nacional",
+  "fecha_ejecucion_nal",
+  "osf",
+  "proyecto",
+  "objetivo_ps",
+  "ods_ps",
+  "actividades",
+  "horario",
+  "detalles_horario",
+  "habilidades",
+  "modalidad",
+  "lugar_trabajo",
+  "duracion",
+  "horas",
+  "carreras",
+  "fecha_pue",
+  "modalidad_simple",
+  "num_pmt",
+  "imagen_ods",
+  "img_maps",
+  "tipo_inscripcion",
+  "enlace_proceso",
+  "video",
+  "img_video",
+  "ruta_maps",
+  "img_btnproceso",
+  "url_pue",
+  "correo",
+  "pregunta_1",
+  "pregunta_2",
+  "pregunta_3",
+  "cupos"
+] as const;
+
+// Normaliza los nombres de campos eliminando acentos y convirtiendo a minúsculas
+const normalize = (str: string) =>
+  str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "_").toLowerCase();
+
+type RequiredField = typeof requiredFields[number];
+
+type RecordType = {
+  [K in RequiredField]?: string | number | null;
+};
+
+const validateFields = (fields: string[]): boolean => {
+  const normalizedFields = fields.map((field: string) => field.trim().toLowerCase());
+
   console.log("Campos detectados (normalizados):", normalizedFields);
   console.log("Campos requeridos:", requiredFields);
   return requiredFields.every((field) => normalizedFields.includes(field.toLowerCase()));
@@ -21,45 +159,52 @@ const filterRequiredFields = (data) => {
   return data.map((record) => {
     const filteredRecord = {};
     requiredFields.forEach((field) => {
-      filteredRecord[field] = record[field];
+      // Busca el campo en el registro, normalizando los nombres
+      const key = Object.keys(record).find(k => normalize(k) === field);
+      filteredRecord[field] = key ? record[key] : null;
     });
     return filteredRecord;
   });
 };
 
-const handleFileUpload = async (file) => {
+const handleFileUpload = async (file: File) => {
   const reader = new FileReader();
 
-  reader.onload = async (event) => {
-    const data = new Uint8Array(event.target.result);
+  reader.onload = async (event: ProgressEvent<FileReader>) => {
+    const result = event.target?.result;
+    if (!result) {
+      alert("No se pudo leer el archivo.");
+      return;
+    }
+    const data = new Uint8Array(result as ArrayBuffer);
     const workbook = XLSX.read(data, { type: "array" });
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
     const jsonData = XLSX.utils.sheet_to_json(sheet);
 
-    if (jsonData.length === 0) {
+    if (!Array.isArray(jsonData) || jsonData.length === 0) {
       alert("El archivo está vacío.");
       return;
     }
 
-    const fields = Object.keys(jsonData[0]);
+    const firstRow = jsonData[0] as object;
+    const fields = Object.keys(firstRow);
     console.log("Campos detectados en el archivo:", fields);
-    if (!validateFields(fields)) {
-      alert("El archivo no contiene todos los campos requeridos.");
+    const normalizedFields = fields.map((field: string) => normalize(field));
+    const missingFields = requiredFields.filter((field) => !normalizedFields.includes(field));
+    if (missingFields.length > 0) {
+      alert(`El archivo no contiene todos los campos requeridos. Faltan: ${missingFields.join(", ")}`);
       return;
     }
 
-    const filteredData = jsonData.map((row) => {
-      const { id_proyecto, perfil_aceptacion, proyecto, grupo, clave } = row;
-      return { id_proyecto, perfil_aceptacion, proyecto, grupo, clave };
-    });
+    const filteredData = filterRequiredFields(jsonData);
 
     try {
       for (const record of filteredData) {
         const { data: existingRecord, error: fetchError } = await supabase
           .from('proyectos_solidarios')
-          .select('id_proyecto')
-          .eq('id_proyecto', record.id_proyecto)
+          .select('proyecto')
+          .eq('proyecto', record.proyecto)
           .single();
 
         if (fetchError && fetchError.code !== 'PGRST116') { // Ignore "no rows found" error
@@ -69,7 +214,7 @@ const handleFileUpload = async (file) => {
         }
 
         if (existingRecord) {
-          console.log(`El registro con id_proyecto ${record.id_proyecto} ya existe. Se omitirá.`);
+          console.log(`El registro con proyecto ${record.proyecto} ya existe. Se omitirá.`);
           continue;
         }
 
@@ -78,89 +223,124 @@ const handleFileUpload = async (file) => {
           .insert(record);
 
         if (insertError) {
-          console.error("Error al insertar el registro:", insertError);
-          alert(`Hubo un error al insertar el registro con id_proyecto ${record.id_proyecto}.`);
+          console.error("Error al insertar el registro:", insertError, record);
+          alert(`Hubo un error al insertar el registro con proyecto ${record.proyecto}.\n\nDetalle: ${JSON.stringify(insertError)}\nRegistro: ${JSON.stringify(record)}`);
           return;
         }
-      }
 
-      alert("Datos subidos exitosamente.");
-    } catch (err) {
-      console.error("Error al procesar el archivo:", err);
-      alert("Hubo un error al procesar el archivo.");
-    }
+        const fields = Object.keys(jsonData[0]);
+        const isValid = validateFields(fields);
+
+        if (!isValid) {
+          setErrorMessage("El archivo no contiene todos los campos requeridos.");
+          setFile(null); 
+          setFileName(null);
+          setIsImporting(false);
+          return;
+        }
+
+        for (const record of jsonData) {
+          const { data: existing, error: fetchError } = await supabase
+            .from('proyectos_solidarios')
+            .select('id_proyecto')
+            .eq('id_proyecto', record['id_proyecto'])
+            .single();
+
+          if (fetchError && fetchError.code !== 'PGRST116') {
+            setErrorMessage("Error al verificar duplicados.");
+            setIsImporting(false);
+            return;
+          }
+
+          if (existing) {
+            console.log(`Registro duplicado: ${record['id_proyecto']}`);
+            continue;
+          }
+
+          const { error: insertError } = await supabase
+            .from('proyectos_solidarios')
+            .insert(record);
+
+          if (insertError) {
+            setErrorMessage(`Error al insertar el registro ${record['id_proyecto']}`);
+            setIsImporting(false);
+            return;
+          }
+        }
+
+        setSuccessMessage("Archivo importado exitosamente.");
+        resetUploader();
+      } catch (err) {
+        setErrorMessage("Ocurrió un error al procesar el archivo.");
+        console.error(err);
+      } finally {
+        setIsImporting(false);
+      }
+    };
+
+    reader.readAsArrayBuffer(file);
   };
 
-  reader.readAsArrayBuffer(file);
-};
-
-interface UploadBoxProps {
-  onFileUpload: (file: File) => void;
-}
-
-const UploadBox: React.FC<UploadBoxProps> = ({ onFileUpload }) => {
-  const [fileName, setFileName] = useState<string | null>(null);
-
-  const handleDrop = useCallback(
-    (event: React.DragEvent<HTMLDivElement>) => {
-      event.preventDefault();
-      const file = event.dataTransfer.files[0];
-      if (file && (file.type === "text/csv" || file.name.endsWith(".xlsx"))) {
-        setFileName(file.name);
-        handleFileUpload(file);
-      } else {
-        alert("Por favor, sube un archivo en formato CSV o XLSX.");
-      }
-    },
-    []
-  );
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file && (file.type === "text/csv" || file.name.endsWith(".xlsx"))) {
-      setFileName(file.name);
-      handleFileUpload(file);
-    } else {
-      alert("Por favor, selecciona un archivo en formato CSV o XLSX.");
-    }
-  };
-
-  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
+  const resetUploader = () => {
+    setFile(null);
+    setFileName(null);
+    setErrorMessage(null);
+    setSuccessMessage(null);
   };
 
   return (
-    <div
-      className="w-full max-w-sm h-52 p-4 bg-gray-100 border-2 border-dashed border-gray-400 rounded-2xl text-center flex flex-col justify-center"
+    <div className="w-full max-w-sm h-auto  rounded-2xl text-center flex flex-col items-center justify-center"
       onDrop={handleDrop}
       onDragOver={handleDragOver}
     >
-      <div className="flex flex-col items-center space-y-1">
-        <img
-          src="/upload.svg"
-          alt="Ícono de subir archivo"
-          className="h-8 w-8 text-gray-600"
-        />
-        <p className="text-base font-semibold text-gray-800">Arrastra y suelta para subir</p>
+      <div className="border-2 border-dashed border-blue-900 w-full flex flex-col items-center justify-center space-y-4 hover:bg-blue-50 p-4 rounded-xl">
+        <img src="/upload.svg" alt="upload" className="h-8 w-8 text-blue-900" />
+        <p className="text-xl font-semibold mb-4 text-blue-900">Arrastra y suelta para subir</p>
         <p className="text-sm text-gray-600">
-          También puedes <label htmlFor="file-upload" className="text-blue-600 font-semibold cursor-pointer">buscar</label> en tu explorador de archivos
+          También puedes{' '}
+          <label htmlFor="file-upload" className="text-blue-600 font-semibold cursor-pointer">
+            buscar
+          </label>{' '}
+          en tu explorador
         </p>
-        <p className="text-xs text-gray-500">Formatos permitidos: CSV o XLSX</p>
+        <p className="text-[11px] text-gray-600">Se aceptan subir archivos .CSV o .XLSX</p>
         <input
           id="file-upload"
           type="file"
-          accept=".csv, .xlsx"
+          accept=".csv,.xlsx"
           className="hidden"
           onChange={handleFileChange}
         />
-        {fileName && (
-          <p className="mt-2 text-sm text-green-600 font-medium truncate max-w-[90%]">
-            {fileName}
-          </p>
-        )}
+        {fileName && <p className="text-sm text-green-700 truncate">{fileName}</p>}
+      </div>
+      <div className= "pt-3">
+      {errorMessage && <div className="text-red-600 text-sm font-medium">{errorMessage}</div>}
+      {successMessage && <div className="text-green-600 text-sm font-medium">{successMessage}</div>}
+      </div>
+  
+      <div className="flex gap-4 mt-4">
+        <button
+          onClick={() => {
+            resetUploader();
+            onClose();
+          }}
+          className="border border-blue-900 rounded-full px-6 py-2 text-sm font-semibold text-blue-900 hover:bg-transparent transition duration-200"
+        >
+          Cancelar
+        </button>
+  
+        <button
+          onClick={handleImport}
+          disabled={!file || isImporting}
+          className={`rounded-full px-6 py-2 text-sm font-semibold transition duration-200
+            ${file ? 'bg-blue-900 text-white hover:bg-[#3154bb]' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+        >
+          {isImporting ? 'Importando...' : 'Importar'}
+        </button>
       </div>
     </div>
   );
-};
+};  
 
-export default UploadBox;
+
+export default UploaderButton;
