@@ -22,7 +22,6 @@ export const DetailButton = ({ texto, size, onClick }: Props) => {
         rounded-full
         flex items-center justify-center
         leading-tight  
-        transition duration-200
       `}
     >
       {texto}
