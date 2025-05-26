@@ -8,46 +8,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const requiredFields = [
-  "cupos",
-  "perfil_aceptacion",
-  "crn",
-  "grupo",
-  "clave",
-  "periodo_academico",
-  "pmt_nacional",
-  "fecha_ejecucion_nal",
-  "osf",
-  "proyecto",
-  "objetivo_ps",
-  "ods_ps",
-  "actividades",
-  "horario",
-  "detalles_horario",
-  "habilidades",
-  "modalidad",
-  "lugar_trabajo",
-  "duracion",
-  "horas",
-  "carreras",
-  "fecha_pue",
-  "modalidad_simple",
-  "num_pmt",
-  "imagen_ods",
-  "img_maps",
-  "tipo_inscripcion",
-  "enlace_proceso",
-  "video",
-  "img_video",
-  "ruta_maps",
-  "img_btnproceso",
-  "url_pue",
-  "correo",
-  "pregunta_1",
-  "pregunta_2",
-  "pregunta_3",
-  "cupos"
-] as const;
+const requiredFields = ["id_proyecto","cupos", "perfil_aceptacion", "proyecto", "objetivo_ps", "num_pmt", "ods_ps", "actividades", "detalles_horario", "habilidades", "modalidad", "lugar_trabajo", "duracion", "horas", "tipo_inscripcion", "ruta_maps", "crn", "grupo", "clave", "periodo_academico", "fecha_pue", "pregunta_1", "pregunta_2", "pregunta_3", "carreras", "correo"] as const;
 
 // Normaliza los nombres de campos eliminando acentos y convirtiendo a minúsculas
 const normalize = (str: string) =>
@@ -118,6 +79,10 @@ const UploaderButton: React.FC<UploaderButtonProps> = ({ onClose }) => {
         const filteredData = filterRequiredFields(jsonData);
 
         for (const record of filteredData) {
+          if (!record.proyecto) {
+            setErrorMessage('Error al insertar el registro dado a que el campo "proyecto" está vacío');
+            return;
+          }
           const { data: existingRecord, error: fetchError } = await supabase
             .from('proyectos_solidarios')
             .select('proyecto')
@@ -139,13 +104,13 @@ const UploaderButton: React.FC<UploaderButtonProps> = ({ onClose }) => {
             .insert(record);
 
           if (insertError) {
-            setErrorMessage(`Error al insertar el registro con proyecto ${record.proyecto}`);
+            setErrorMessage(`Error al insertar el registro dado a que el campo "proyecto" es ${record.proyecto}`);
             return;
           }
         }
 
         setSuccessMessage("Archivo importado exitosamente.");
-        resetUploader();
+        // Ya no se limpia el formulario automáticamente, el mensaje permanece hasta que el usuario cancele o cierre
       } catch (err) {
         setErrorMessage("Ocurrió un error al procesar el archivo.");
         console.error(err);
@@ -215,6 +180,11 @@ const UploaderButton: React.FC<UploaderButtonProps> = ({ onClose }) => {
           en tu explorador
         </p>
         <p className="text-[11px] text-gray-600">Se aceptan subir archivos .CSV o .XLSX</p>
+        {successMessage && (
+          <div className="mt-2 text-green-700 text-sm font-semibold">
+            {successMessage}
+          </div>
+        )}
         <input
           id="file-upload"
           type="file"
