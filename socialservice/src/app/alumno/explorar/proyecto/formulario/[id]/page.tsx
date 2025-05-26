@@ -297,9 +297,9 @@ export default function Formulario() {
   }
 
   return (
-    <main className="flex-1 overflow-y-auto mt-20 ml-30 mr-10">
-      <div>
-        <SideBar />
+    <>
+      <SideBar />
+      <main className="flex-1 overflow-y-auto mt-20 ml-30 mr-10">
         <div className="flex flex-col flex-1 p-4">
           <HeaderBar titulo="Proyecto" Icono={ArrowLeft} onClick={() => router.back()} />
           {hasExistingApplication ? (
@@ -448,7 +448,7 @@ export default function Formulario() {
                 <input
                   name="pregunta2"
                   type="text"
-                  value={form.r1}
+                  value={form.r2}
                   onChange={handleChange}
                   placeholder="Ingresa tu respuesta"
                   className="w-full border rounded-md p-2"
@@ -460,7 +460,7 @@ export default function Formulario() {
                 <input
                   name="pregunta3"
                   type="text"
-                  value={form.r1}
+                  value={form.r3}
                   onChange={handleChange}
                   placeholder="Ingresa tu respuesta"
                   className="w-full border rounded-md p-2"
@@ -468,37 +468,36 @@ export default function Formulario() {
                 {errors.r3 && <p className="text-red-600">{errors.r3}</p>}
               </div>
 
-                {warning && <p className="text-red-600">{warning}</p>}
+              {warning && <p className="text-red-600">{warning}</p>}
 
-                <div className="flex justify-end gap-4 mt-6">
-                  <button
-                    type="button"
-                    onClick={() => router.back()}
-                    className="px-6 py-2 rounded-full border border-[#0a2170] text-[#0a2170] font-semibold 
-                              hover:bg-[#0a2170] hover:text-white transition-colors duration-200"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleNextClick}
-                    className="px-6 py-2 rounded-full border border-[#0a2170] bg-[#0a2170] text-white font-semibold 
-                              hover:bg-black hover:text-white hover:border-black transition-colors duration-200"
-                  >
-                    Siguiente
-                  </button>
-                </div>
+              <div className="flex justify-end gap-4 mt-6">
+                <button
+                  type="button"
+                  onClick={() => router.back()}
+                  className="px-6 py-2 rounded-full border border-[#0a2170] text-[#0a2170] font-semibold 
+                            hover:bg-[#0a2170] hover:text-white transition-colors duration-200"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleNextClick}
+                  className="px-6 py-2 rounded-full border border-[#0a2170] bg-[#0a2170] text-white font-semibold 
+                            hover:bg-black hover:text-white hover:border-black transition-colors duration-200"
+                >
+                  Siguiente
+                </button>
               </div>
             </div>
           )}
         </div>
         {showPopup && !hasExistingApplication && (
           <SubmissionConfirmation 
-            onClose={() => setShowPopup(false)} 
+            onClose={handleClosePopup} 
             onSubmit={handleSubmit}
           />
         )}
-      </div>
-    </main>
+      </main>
+    </>
   );
-} 
+}
