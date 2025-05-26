@@ -46,9 +46,26 @@ export default function Formulario() {
     r3: "",
   });
 
+
   const [estatus, setEstatus] = useState("");
   const [proyecto, setProyecto] = useState("");
   const [compromiso, setCompromiso] = useState("");
+
+
+  const datosParaInsertar = {
+    nombre: form.nombre,
+    matricula: form.matricula,
+    carrera: form.carreraCompleta,
+    correo: form.correo,
+    telefono: form.telefono,
+    estatus,
+    proyecto,
+    compromiso,
+    ...(project?.pregunta_1?.trim() && { respuesta_1: form.r1 }),
+    ...(project?.pregunta_2?.trim() && { respuesta_2: form.r2 }),
+    ...(project?.pregunta_3?.trim() && { respuesta_3: form.r3 }),
+  };
+
 
   useEffect(() => {
     const fetchProjectDetails = async () => {
@@ -240,6 +257,7 @@ if (updateError) throw updateError;
   }
 };
 
+    
   const handleNextClick = () => {
     const inputs = document.querySelectorAll("input, select") as NodeListOf<HTMLInputElement | HTMLSelectElement>;
     const missingFields: string[] = [];
@@ -271,12 +289,22 @@ if (updateError) throw updateError;
       }
     });
 
+    // Validar preguntas solo si existen
+    if (project?.pregunta_1?.trim() && form.r1.trim() === "") {
+      missingFields.push("Pregunta 1");
+    }
+    if (project?.pregunta_2?.trim() && form.r2.trim() === "") {
+      missingFields.push("Pregunta 2");
+    }
+    if (project?.pregunta_3?.trim() && form.r3.trim() === "") {
+      missingFields.push("Pregunta 3");
+    }
+
     if (missingFields.length > 0) {
       setWarning(`Por favor completa los siguientes campos: ${missingFields.join(", ")}.`);
       return;
     }
 
-    // Get the selected compromiso value
     const selectedCompromiso = document.querySelector('input[name="compromiso"]:checked') as HTMLInputElement;
     if (selectedCompromiso) {
       setCompromiso(selectedCompromiso.value);
@@ -285,7 +313,6 @@ if (updateError) throw updateError;
     setWarning("");
     setShowPopup(true);
   };
-
   const handleClosePopup = () => {
     setShowPopup(false);
   };
@@ -439,43 +466,53 @@ if (updateError) throw updateError;
                   </div>
                 </div>
               </div>
-              <div>
-                <label className="block font-semibold text-[#0a2170]">{project.pregunta_1}</label>
-                <input
-                  name="pregunta1"
-                  type="text"
-                  value={form.r1}
-                  onChange={handleChange}
-                  placeholder="Ingresa tu respuesta"
-                  className="w-full border rounded-md p-2"
-                />
-                {errors.r1 && <p className="text-red-600">{errors.r1}</p>}
-              </div>
-              <div>
-                <label className="block font-semibold text-[#0a2170]">{project.pregunta_2}</label>
-                <input
-                  name="pregunta2"
-                  type="text"
-                  value={form.r1}
-                  onChange={handleChange}
-                  placeholder="Ingresa tu respuesta"
-                  className="w-full border rounded-md p-2"
-                />
-                {errors.r2 && <p className="text-red-600">{errors.r2}</p>}
-              </div>
-              <div>
-                <label className="block font-semibold text-[#0a2170]">{project.pregunta_3}</label>
-                <input
-                  name="pregunta3"
-                  type="text"
-                  value={form.r1}
-                  onChange={handleChange}
-                  placeholder="Ingresa tu respuesta"
-                  className="w-full border rounded-md p-2"
-                />
-                {errors.r3 && <p className="text-red-600">{errors.r3}</p>}
-              </div>
 
+
+              {project?.pregunta_1?.trim() && (
+    <div>
+      <label className="block font-semibold text-[#0a2170]">{project.pregunta_1}</label>
+      <input
+        name="pregunta1"
+        type="text"
+        value={form.r1}
+        onChange={handleChange}
+        placeholder="Ingresa tu respuesta"
+        className="w-full border rounded-md p-2"
+      />
+      {errors.r1 && <p className="text-red-600">{errors.r1}</p>}
+    </div>
+  )}
+
+  {project?.pregunta_2?.trim() && (
+    <div>
+      <label className="block font-semibold text-[#0a2170]">{project.pregunta_2}</label>
+      <input
+        name="pregunta2"
+        type="text"
+        value={form.r2}
+        onChange={handleChange}
+        placeholder="Ingresa tu respuesta"
+        className="w-full border rounded-md p-2"
+      />
+      {errors.r2 && <p className="text-red-600">{errors.r2}</p>}
+    </div>
+  )}
+
+  {project?.pregunta_3?.trim() && (
+    <div>
+      <label className="block font-semibold text-[#0a2170]">{project.pregunta_3}</label>
+      <input
+        name="pregunta3"
+        type="text"
+        value={form.r3}
+        onChange={handleChange}
+        placeholder="Ingresa tu respuesta"
+        className="w-full border rounded-md p-2"
+      />
+      {errors.r3 && <p className="text-red-600">{errors.r3}</p>}
+    </div>
+  )}
+          
                 {warning && <p className="text-red-600">{warning}</p>}
 
                 <div className="flex justify-end gap-4 mt-6">
