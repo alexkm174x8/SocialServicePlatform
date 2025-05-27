@@ -7,7 +7,7 @@ import { ArrowLeft } from "lucide-react";
 
 import { supabase } from "@/lib/supabase";
 import { HeaderBar } from "@/app/components/HeaderBar";
-import { Mapa } from "@/app/components/Mapa";
+import Mapa from "@/app/components/Mapa";
 import { SideBar } from "@/app/alumno/components/custom/StudentSideBar";
 import { FeatureButton } from "@/app/alumno/components/custom/FeatureButton";
 import { ProjectDetails } from "@/app/alumno/components/custom/ProjectDetails";
@@ -223,6 +223,7 @@ export default function ProjectPage() {
                   </div>
                 }
               />
+
             </div>
 
           </div>
