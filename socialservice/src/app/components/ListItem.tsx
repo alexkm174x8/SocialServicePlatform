@@ -23,7 +23,7 @@ export const ListItem = ({ data }: { data: any[] }) => {
             <th className="px-6 py-3 min-w-[160px]">Modalidad de trabajo</th>
             <th className="px-6 py-3 min-w-[180px]">Lugar de trabajo</th>
             <th className="px-6 py-3 min-w-[120px]">Duración</th>
-            <th className="px-6 py-3 min-w-[80px]">Horas otorgadas</th>
+            <th className="px-6 py-3 min-w-[80px]">Horas a otorgar</th>
             <th className="px-6 py-3 min-w-[160px]">Tipo de inscripción</th>
             <th className="px-6 py-3 min-w-[100px]">Ruta de Google Maps</th>
             <th className="px-6 py-3 min-w-[100px]">CRN</th>
@@ -35,7 +35,7 @@ export const ListItem = ({ data }: { data: any[] }) => {
             <th className="px-6 py-3 min-w-[220px]">Pregunta personalizada 2</th>
             <th className="px-6 py-3 min-w-[220px]">Pregunta personalizada 3</th>
             <th className="px-6 py-3 min-w-[90px]">Id del socioformador</th>
-            <th className="px-6 py-3 min-w-[140px]">Carreras</th>
+            <th className="px-6 py-3 min-w-[140px]">Carreras solicitadas</th>
           </tr>
         </thead>
         <tbody>

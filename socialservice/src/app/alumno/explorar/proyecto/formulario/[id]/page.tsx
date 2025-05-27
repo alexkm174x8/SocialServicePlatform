@@ -443,42 +443,50 @@ export default function Formulario() {
                     </div>
                   </div>
                 </div>
-                <div>
-                  <label className="block font-semibold text-[#0a2170]">{project.pregunta_1}</label>
-                  <input
-                    name="r1"
-                    type="text"
-                    value={form.r1}
-                    onChange={handleChange}
-                    placeholder="Ingresa tu respuesta"
-                    className="w-full border rounded-md p-2"
-                  />
-                  {errors.r1 && <p className="text-red-600">{errors.r1}</p>}
-                </div>
-                <div>
-                  <label className="block font-semibold text-[#0a2170]">{project.pregunta_2}</label>
-                  <input
-                    name="r2"
-                    type="text"
-                    value={form.r2}
-                    onChange={handleChange}
-                    placeholder="Ingresa tu respuesta"
-                    className="w-full border rounded-md p-2"
-                  />
-                  {errors.r2 && <p className="text-red-600">{errors.r2}</p>}
-                </div>
-                <div>
-                  <label className="block font-semibold text-[#0a2170]">{project.pregunta_3}</label>
-                  <input
-                    name="r3"
-                    type="text"
-                    value={form.r3}
-                    onChange={handleChange}
-                    placeholder="Ingresa tu respuesta"
-                    className="w-full border rounded-md p-2"
-                  />
-                  {errors.r3 && <p className="text-red-600">{errors.r3}</p>}
-                </div>
+                {project.pregunta_1?.trim() && (
+                  <div>
+                    <label className="block font-semibold text-[#0a2170]">{project.pregunta_1}</label>
+                    <input
+                      name="r1"
+                      type="text"
+                      value={form.r1}
+                      onChange={handleChange}
+                      placeholder="Ingresa tu respuesta"
+                      className="w-full border rounded-md p-2"
+                    />
+                    {errors.r1 && <p className="text-red-600">{errors.r1}</p>}
+                  </div>
+                )}
+
+                {project.pregunta_2?.trim() && (
+                  <div>
+                    <label className="block font-semibold text-[#0a2170]">{project.pregunta_2}</label>
+                    <input
+                      name="r2"
+                      type="text"
+                      value={form.r2}
+                      onChange={handleChange}
+                      placeholder="Ingresa tu respuesta"
+                      className="w-full border rounded-md p-2"
+                    />
+                    {errors.r2 && <p className="text-red-600">{errors.r2}</p>}
+                  </div>
+                )}
+
+                {project.pregunta_3?.trim() && (
+                  <div>
+                    <label className="block font-semibold text-[#0a2170]">{project.pregunta_3}</label>
+                    <input
+                      name="r3"
+                      type="text"
+                      value={form.r3}
+                      onChange={handleChange}
+                      placeholder="Ingresa tu respuesta"
+                      className="w-full border rounded-md p-2"
+                    />
+                    {errors.r3 && <p className="text-red-600">{errors.r3}</p>}
+                  </div>
+                )}
 
                 {warning && <p className="text-red-600">{warning}</p>}
 

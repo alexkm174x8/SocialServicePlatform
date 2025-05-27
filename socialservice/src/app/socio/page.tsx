@@ -188,6 +188,10 @@ export default function Solicitudes() {
      
                <div className="flex flex-wrap gap-4 items-center text-sm">
                  <div className="flex items-center gap-1">
+                   <div className="w-4 h-4 rounded bg-green-700" />
+                   <span className="text-[#001C55] font-medium">Aceptadx por el alumnx</span>
+                 </div>
+                 <div className="flex items-center gap-1">
                    <div className="w-4 h-4 rounded bg-green-500" />
                    <span className="text-[#001C55] font-medium">Aceptadx</span>
                  </div>

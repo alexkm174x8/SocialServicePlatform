@@ -33,5 +33,4 @@ const Mapa = ({ embedUrl }: MapaProps) => {
   );
 };
 
-export default Mapa; 
-
+export default Mapa;
