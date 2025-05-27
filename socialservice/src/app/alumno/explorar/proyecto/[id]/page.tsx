@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react";
 
 import { supabase } from "@/lib/supabase";
 import { HeaderBar } from "@/app/components/HeaderBar";
+import { Mapa } from "@/app/components/Mapa";
 import { SideBar } from "@/app/alumno/components/custom/StudentSideBar";
 import { FeatureButton } from "@/app/alumno/components/custom/FeatureButton";
 import { ProjectDetails } from "@/app/alumno/components/custom/ProjectDetails";
@@ -16,19 +17,29 @@ import { PostularseButton } from "@/app/alumno/components/custom/PostularseButto
 type ProjectData = {
   clave: string;
   proyecto: string;
-  estatus_ps: string;
+  cupos: string;
   objetivo_ps: string;
-  ubicacion: string;
+  lugar_trabajo: string;
+  ods: number; 
+  tipo_inscripcion: string;
   descripcion: string;
-  requisitos: string;
-  fecha_ejecucion: string;
-  organizacion: string;
-  responsable: string;
-  horario: string;
+  periodo_academico: string; 
+  detalles_horario: string;
   modalidad: string;
   horas: number;
+  habilidades: string;
+  duracion: string;
   actividades: string;
+  ruta_maps: string;
+  carreras: string; 
+  ods_data: {
+    nombre_ods: string;
+    link_logo: string;
+  } | null;
 };
+
+
+
 
 export default function ProjectPage() {
   const { id } = useParams();
@@ -46,7 +57,7 @@ export default function ProjectPage() {
       try {
         const { data, error } = await supabase
           .from("proyectos_solidarios")
-          .select("*")
+          .select("*, ods(nombre_ods, link_logo)")
           .eq("id_proyecto", id)
           .single();
 
@@ -60,24 +71,27 @@ export default function ProjectPage() {
           throw new Error("Project not found");
         }
 
-        // Set default values for optional fields
         const projectData: ProjectData = {
           clave: data.clave || "N/A",
           proyecto: data.proyecto,
-          estatus_ps: data.estatus_ps || "Activo",
+          cupos: data.cupos || "Activo",
           objetivo_ps: data.objetivo_ps || "No especificado",
-          ubicacion: data.ubicacion || "No especificada",
+          lugar_trabajo: data.lugar_trabajo || "No especificada",
+          ods: data.ods || 0,
+          tipo_inscripcion: data.tipo_inscripcion || "No especificada",
+          periodo_academico: data.periodo_academico || "No especificado",
           descripcion: data.descripcion || "No especificada",
-          requisitos: data.requisitos || "No especificados",
-          fecha_ejecucion: data.fecha_ejecucion || "No especificada",
-          organizacion: data.organizacion || "No especificada",
-          responsable: data.responsable || "No especificado",
-          horario: data.horario || "No especificado",
+          detalles_horario: data.detalles_horario || "No especificado",
           modalidad: data.modalidad || "No especificada",
           horas: data.horas || 0,
-          actividades: data.actividades || "No especificadas"
+          carreras: data.carreras || "No especificadas",
+          habilidades: data.habilidades || "No especificadas",
+          ruta_maps: data.ruta_maps || "No especificada",
+          duracion: data.duracion || "No especificada",
+          actividades: data.actividades || "No especificadas",
+          ods_data: data.ods || null,
         };
-
+        
         setProject(projectData);
       } catch (error) {
         console.error("Error fetching project:", error);
@@ -108,53 +122,109 @@ export default function ProjectPage() {
   }
 
   if (error || !project) {
-    return null; // Will redirect in useEffect
+    return null; 
   }
 
+  const colorOptions = [
+    'bg-teal-300',
+    'bg-purple-400',
+    'bg-rose-400',
+    'bg-orange-400',
+    'bg-sky-400',
+  ];
+
+  const carreras = project.carreras || [];
+
   return (
-    <div className="flex min-h-screen bg-white">
+    <div className="flex bg-white">
       <SideBar />
       <div className="flex-1 flex flex-col h-screen">
         <HeaderBar titulo="Proyecto" Icono={ArrowLeft} onClick={() => router.back()} />
-        <main className="flex-1 overflow-y-auto mt-20 ml-30 mr-10">
-          <div className="w-full mx-auto border border-blue-900 rounded-2xl shadow bg-white p-5">
-            {/* Encabezado */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Columna de información más ancha */}
-              <div className="md:col-span-2">
-                <h1 className="text-lg font-bold text-blue-900">{project.proyecto}</h1>
+        <main className="flex-1 border border-blue-900 rounded-2xl mb-10 p-5 overflow-y-auto mt-20 ml-30 mr-10">
+          <div className="w-full">
+          <div className="flex flex-col md:flex-row items-center md:items-center justify-center md:justify-between gap-2 mb-4 w-full">
+            <h1 className="text-2xl font-bold text-blue-900 w-full md:text-left md:w-auto">
+              {project.proyecto}
+            </h1>
+            <div className="w-full md:w-auto flex  md:justify-end">
+              <PostularseButton texto="Postularme" color="bg-blue-400" id_proyecto={Number(id)} />
+            </div>
+          </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+              <div className="">             
                 <div className="flex gap-2 mt-2 flex-wrap">
                   <FeatureButton texto={project.modalidad} color="white" size="sm" />
                   <FeatureButton texto={`${project.horas} horas`} color="white" size="sm" />
+                  <FeatureButton texto={project.clave} color="white" size="sm" />
+                  <FeatureButton texto={`${project.cupos} cupos`} color="white" size="sm" />
                 </div>
-                <div className="mt-2 space-y-1">
-                  <ProjectDetails label="Modalidad" value={project.modalidad} />
-                  <ProjectDetails label="Periodo" value={project.fecha_ejecucion} />
-                  <ProjectDetails label="Clave" value={project.clave} />
-                  <ProjectDetails label="Horario" value={project.horario} />
-                </div>
-              </div>
-
-              {/* Columna más chica para imagen y botón */}
-              <div className="md:col-span-1 flex flex-col items-center gap-4">
-                <PostularseButton texto="Postularme" color="bg-blue-400" id_proyecto={Number(id)} />
-                <Image
-                  src="/images/example.jpg"
-                  alt="Imagen del proyecto"
-                  width={160}
-                  height={160}
-                  className="object-cover rounded-lg"
+                <div className="mt-2 space-y-1 ">
+                <ProjectDetails
+                  label="Carreras"
+                  value={
+                    project.carreras &&
+                    project.carreras.split(",").map((carrera, index) => (
+                      <span
+                        key={index}
+                        className="rounded-full px-3 py-1 text-sm bg-blue-900 text-white mr-2 mb-1"
+                      >
+                        {carrera.trim()}
+                      </span>
+                    ))
+                  }
                 />
+                  <ProjectDetails label="Modalidad" value={project.modalidad} />
+                  <ProjectDetails label="Clave" value={project.clave} />
+                  <ProjectDetails label="Tipo de inscripción" value={project.tipo_inscripcion} />
+                  <ProjectDetails label="Periodo académico" value={project.periodo_academico} />
+                  <ProjectDetails label="Duración" value={project.duracion} />
+                  
+                </div>
               </div>
             </div>
-
-
-            {/* Detalles */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mt-2 place-items-center text-center">
               <Properties label="Objetivo" value={<p>{project.objetivo_ps}</p>} />
-              <Properties label="Ubicación" value={<p>{project.ubicacion}</p>} />
+
+              {project.ods_data && (
+                <Properties
+                  label="ODS"
+                  value={
+                    <div className="flex flex-col items-center text-center">
+                      <Image
+                        src={project.ods_data.link_logo}
+                        alt={project.ods_data.nombre_ods}
+                        width={200}
+                        height={200}
+                        className="object-contain rounded-2xl"
+                      />
+                    </div>
+                  }
+                />
+              )}
+
+              <Properties
+                label="Habilidades"
+                value={
+                  <div>
+                    <p>{project.habilidades}</p>
+                  </div>
+                }
+              />
+
               <Properties label="Actividades" value={<p>{project.actividades}</p>} />
+
+              <Properties label="Ubicación" value={<p>{project.lugar_trabajo}</p>} />
+
+              <Properties
+                label="Mapa"
+                value={
+                  <div className="w-full max-w-xs mx-auto">
+                    <Mapa embedUrl={project.ruta_maps} />
+                  </div>
+                }
+              />
             </div>
+
           </div>
         </main>
       </div>
