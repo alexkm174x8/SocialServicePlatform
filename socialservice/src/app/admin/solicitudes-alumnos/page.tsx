@@ -10,6 +10,8 @@ import { SideBar } from "@/app/admin/components/custom/AdminSideBar";
 import { Inbox} from "lucide-react";
 import {DetailButton} from "@/app/components/DetailButton";
 import { Lista } from "@/app/components/Lista";
+import CompararDrawer from "@/app/admin/components/custom/CompararDrawer"; 
+
 
 
 type Solicitud = {
@@ -39,6 +41,12 @@ export default function Solicitud() {
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
   const [filterCarrera, setFilterCarrera] = useState<string[]>([]);
   const [filterEstado, setFilterEstado] = useState<string[]>([]);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+const [matriculasSubidas, setMatriculasSubidas] = useState<string[]>([]);
+
+
+  
+
 
   useEffect(() => {
     const fetchProyectos = async () => {
@@ -112,6 +120,33 @@ export default function Solicitud() {
     return matchesSearch && matchesCarrera && matchesEstado;
   });
 
+  const handleCompararMatriculas = async (matriculas: string[]) => {
+  // Filtra solo las postulaciones con estado 'Aceptadx' cuya matrícula esté en el CSV
+  const coincidencias = solicitudes.filter(
+    (s) => s.estatus === "Aceptadx" && matriculas.includes(s.matricula)
+  );
+
+  // Actualiza en Supabase
+  for (const coincidencia of coincidencias) {
+    await supabase
+      .from("postulacion")
+      .update({ estatus: "No inscritx" })
+      .eq("matricula", coincidencia.matricula)
+      .eq("estatus", "Aceptadx");
+  }
+
+  // Actualiza el estado local
+  const solicitudesActualizadas = solicitudes.map((s) =>
+    coincidencias.some((c) => c.matricula === s.matricula)
+      ? { ...s, estatus: "No inscritx" }
+      : s
+  );
+
+  setSolicitudes(solicitudesActualizadas);
+  setDrawerOpen(false);
+};
+
+
   return (
     <>
       <SideBar/>
@@ -160,12 +195,12 @@ export default function Solicitud() {
              <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
                <div className="flex items-center gap-4">
                  <DetailButton 
-                   texto="Comparar" 
-                   size="auto" 
-                   color="blue" 
-                   id={0} 
-                   onClick={() => {}} 
-                 />
+                  texto="Comparar" 
+                  size="auto" 
+                  color="blue" 
+                  id={0} 
+                  onClick={() => setDrawerOpen(true)} 
+                />
                </div>
      
                <div className="flex flex-wrap gap-4 items-center text-sm">
@@ -185,6 +220,10 @@ export default function Solicitud() {
                    <div className="w-4 h-4 rounded bg-indigo-400" />
                    <span className="text-[#001C55] font-medium">En revisión</span>
                  </div>
+                 <div className="flex items-center gap-1">
+                   <div className="w-4 h-4 rounded bg-black" />
+                   <span className="text-[#001C55] font-medium">No inscritx</span>
+                 </div>
                </div>
              </div>
      
@@ -192,6 +231,25 @@ export default function Solicitud() {
              <Lista data={filtered} setData={setSolicitudes} />
              </div>
            </main>
+{drawerOpen && (
+  <>
+    {/* Fondo oscuro clicable para cerrar */}
+    <div
+      className="fixed inset-0 z-40"
+      onClick={() => setDrawerOpen(false)}
+    />
+
+    {/* Drawer real */}
+    <CompararDrawer
+      open={drawerOpen}
+      onClose={() => setDrawerOpen(false)}
+      onComparar={handleCompararMatriculas}
+      matriculas={matriculasSubidas}
+    />
+  </>
+)}
+
+
          </>
        );
      }

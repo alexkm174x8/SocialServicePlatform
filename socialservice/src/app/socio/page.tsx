@@ -207,6 +207,10 @@ export default function Solicitudes() {
                    <div className="w-4 h-4 rounded bg-indigo-400" />
                    <span className="text-[#001C55] font-medium">En revisión</span>
                  </div>
+                 <div className="flex items-center gap-1">
+                   <div className="w-4 h-4 rounded bg-black" />
+                   <span className="text-[#001C55] font-medium">No inscritx</span>
+                 </div>
                </div>
              </div>
      
