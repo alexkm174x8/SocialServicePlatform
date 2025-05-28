@@ -21,6 +21,7 @@ const statusColorMap: Record<string, string> = {
   "Declinadx por el alumnx": "bg-orange-400",
   "No aceptadx": "bg-red-500",
   "En revisión": "bg-indigo-400",
+  "No inscritx": "bg-black",
 } as const;
 
 const STATUS_OPTIONS = [
@@ -28,6 +29,7 @@ const STATUS_OPTIONS = [
   { label: "Declinadx por el alumnx", color: "bg-orange-400" },
   { label: "No aceptadx", color: "bg-red-500" },
   { label: "En revisión", color: "bg-indigo-400" },
+  { label: "No inscritx", color: "bg-black" },
 ] as const;
 
 export const Lista = ({
