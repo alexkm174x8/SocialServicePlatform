@@ -111,7 +111,8 @@ const UploaderButton: React.FC<UploaderButtonProps> = ({ onClose }) => {
 
           successfulUploads.push({
             proyecto: record.proyecto,
-            correo: record.correo
+            correo: record.correo,
+            id_proyecto: record.id_proyecto
           });
         }
 

@@ -1,5 +1,5 @@
 import { EmailTemplate } from '@/app/socio/components/EmailTemplate';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     console.log(`Processing ${projects.length} projects`);
     const results = [];
 
-    for (const { proyecto, correo } of projects) {
+    for (const { proyecto, correo, id_proyecto } of projects) {
       try {
         console.log(`\nProcessing project: ${JSON.stringify({ proyecto, correo }, null, 2)}`);
 
@@ -57,9 +57,10 @@ export async function POST(request: Request) {
 
         // Create user in Supabase
         console.log(`Attempting to create Supabase user for ${proyecto}`);
-        const { data: userData, error: userError } = await supabase.auth.signUp({
+        const { data: userData, error: userError } = await supabaseAdmin.auth.admin.createUser({
           email: authMail,
           password: password,
+          email_confirm: true  // This will create the user without requiring email verification
         });
 
         if (userError) {
@@ -74,6 +75,24 @@ export async function POST(request: Request) {
         }
 
         console.log(`Successfully created Supabase user for ${proyecto}:`, JSON.stringify(userData, null, 2));
+
+        const { data , error } = await supabaseAdmin
+            .from('socioformador')
+            .insert({
+              correo: authMail,  // Using authMail instead of correo since that's the fake email we created
+              id_proyecto: id_proyecto
+            })
+
+          if (error && error.code !== 'PGRST116') {
+            console.error("Error inserting into socioformador table:", error);
+            results.push({ 
+              proyecto, 
+              success: false, 
+              error: `Database insert failed: ${error.message}`,
+              details: error
+            });
+            continue;
+          }
 
         // Send welcome email
         console.log(`Preparing email template for ${proyecto}`);
