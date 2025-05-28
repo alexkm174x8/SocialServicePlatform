@@ -77,10 +77,11 @@ const UploaderButton: React.FC<UploaderButtonProps> = ({ onClose }) => {
         }
 
         const filteredData = filterRequiredFields(jsonData);
+        const successfulUploads = [];
 
         for (const record of filteredData) {
           if (!record.proyecto) {
-            setErrorMessage('Error al insertar el registro dado a que el campo "proyecto" está vacío');
+            setErrorMessage('Error al insertar el registro dado que el campo "proyecto" está vacío');
             return;
           }
           const { data: existingRecord, error: fetchError } = await supabase
@@ -107,10 +108,69 @@ const UploaderButton: React.FC<UploaderButtonProps> = ({ onClose }) => {
             setErrorMessage(`Error al insertar el registro dado a que el campo "proyecto" es ${record.proyecto}`);
             return;
           }
+
+          successfulUploads.push({
+            proyecto: record.proyecto,
+            correo: record.correo
+          });
         }
 
-        setSuccessMessage("Archivo importado exitosamente.");
-        // Ya no se limpia el formulario automáticamente, el mensaje permanece hasta que el usuario cancele o cierre
+        // After successful database upload, create users and send emails
+        if (successfulUploads.length > 0) {
+          try {
+            console.log('Attempting to create users for projects:', JSON.stringify(successfulUploads, null, 2));
+            
+            const response = await fetch('/api/create-users', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ projects: successfulUploads }),
+            });
+
+            const result = await response.json();
+            console.log('Create users API response:', JSON.stringify(result, null, 2));
+
+            if (!response.ok) {
+              console.error('Error creating users:', JSON.stringify(result, null, 2));
+              setErrorMessage(`Los proyectos se subieron correctamente pero hubo un error al crear los usuarios: ${result.error}${result.details ? ` - ${result.details}` : ''}`);
+              return;
+            }
+
+            const failedProjects = result.results.filter((r: any) => !r.success);
+            if (failedProjects.length > 0) {
+              console.error('Failed projects details:', JSON.stringify(failedProjects, null, 2));
+              const errorDetails = failedProjects.map((p: any) => 
+                `${p.proyecto}: ${p.error}${p.details ? ` (${JSON.stringify(p.details, null, 2)})` : ''}`
+              ).join('; ');
+              
+              setErrorMessage(
+                `Los proyectos se subieron correctamente pero hubo errores al crear algunos usuarios: ${errorDetails}`
+              );
+              return;
+            }
+
+            // If we have a summary, show it in the success message
+            if (result.summary) {
+              const successMessage = `Archivo importado exitosamente. Se crearon ${result.summary.successful} usuarios de ${result.summary.total} proyectos.`;
+              console.log('Success message:', successMessage);
+              setSuccessMessage(successMessage);
+            } else {
+              setSuccessMessage("Archivo importado exitosamente y usuarios creados.");
+            }
+          } catch (err) {
+            console.error('Error calling create-users API:', err instanceof Error ? err.stack : err);
+            setErrorMessage(
+              `Los proyectos se subieron correctamente pero hubo un error al crear los usuarios: ${
+                err instanceof Error ? err.message : 'Error desconocido'
+              }`
+            );
+            return;
+          }
+        } else {
+          console.log('No projects to create users for');
+          setSuccessMessage("Archivo importado exitosamente (no se crearon usuarios).");
+        }
       } catch (err) {
         setErrorMessage("Ocurrió un error al procesar el archivo.");
         console.error(err);
