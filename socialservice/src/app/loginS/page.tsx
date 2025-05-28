@@ -1,8 +1,15 @@
 "use client";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
+
+// Add type for project data
+interface ProjectData {
+  id_proyecto: string;
+  nombre_proyecto: string;
+  // Add other project fields as needed
+}
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -18,6 +25,18 @@ export default function LoginSocioformador() {
     correo: false,
     clave: false,
   });
+
+  // Add session check on component mount
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        // If there's an active session, redirect to dashboard
+        router.push('/dashboard');
+      }
+    };
+    checkSession();
+  }, [router]);
 
   const handleSubmit = async () => {
     // Reset states
@@ -71,7 +90,7 @@ export default function LoginSocioformador() {
         return;
       }
 
-      // Get project information
+      // Get project information with type safety
       const { data: projectData, error: projectError } = await supabase
         .from('proyectos_solidarios')
         .select('*')
@@ -89,8 +108,22 @@ export default function LoginSocioformador() {
         return;
       }
 
-      // Store project info in session storage for easy access
-      sessionStorage.setItem('projectInfo', JSON.stringify(projectData));
+      try {
+        // Store project info in session storage with error handling
+        sessionStorage.setItem('projectInfo', JSON.stringify(projectData as ProjectData));
+      } catch (storageError) {
+        console.error('Error storing project info:', storageError);
+        setError('Error al guardar la información de la sesión.');
+        return;
+      }
+
+      // Set up session listener for auth state changes
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_OUT') {
+          sessionStorage.removeItem('projectInfo');
+          router.push('/loginS');
+        }
+      });
 
       // Redirect to dashboard
       router.push('/dashboard');
