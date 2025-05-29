@@ -17,23 +17,33 @@ export async function middleware(req: NextRequest) {
       console.error('Middleware auth error:', error)
     }
 
-    // Get the pathname of the request
     const path = req.nextUrl.pathname
-    console.log('Middleware path:', path, 'Session:', !!session)
+    const user = session?.user
+    const isSocio = !!user?.user_metadata?.id_proyecto
 
-    // If the user is not signed in and the current path is not / or /login,
-    // redirect the user to /
+    // Si no hay sesión y la ruta es protegida, redirige a /
     if (!session && (path.startsWith('/admin') || path.startsWith('/alumno') || path.startsWith('/socio'))) {
-      console.log('Redirecting to login - no session')
       const redirectUrl = req.nextUrl.clone()
       redirectUrl.pathname = '/'
       return NextResponse.redirect(redirectUrl)
     }
 
-    // If the user is signed in and the current path is / or /login,
-    // redirect the user to /alumno/explorar
-    if (session && (path === '/' || path === '/login')) {
-      console.log('Redirecting to explorar - has session')
+    // Si es socio y accede a cualquier ruta que no sea /socio, redirige a /socio
+    if (session && isSocio && path !== '/socio') {
+      const redirectUrl = req.nextUrl.clone()
+      redirectUrl.pathname = '/socio'
+      return NextResponse.redirect(redirectUrl)
+    }
+
+    // Si es socio y accede a / o /login, redirige a /socio
+    if (session && isSocio && (path === '/' || path === '/login')) {
+      const redirectUrl = req.nextUrl.clone()
+      redirectUrl.pathname = '/socio'
+      return NextResponse.redirect(redirectUrl)
+    }
+
+    // Si es alumno (no tiene id_proyecto) y accede a / o /login, redirige a /alumno/explorar
+    if (session && !isSocio && (path === '/' || path === '/login')) {
       const redirectUrl = req.nextUrl.clone()
       redirectUrl.pathname = '/alumno/explorar'
       return NextResponse.redirect(redirectUrl)
@@ -42,11 +52,10 @@ export async function middleware(req: NextRequest) {
     return res
   } catch (error) {
     console.error('Middleware error:', error)
-    // In case of error, allow the request to continue
     return NextResponse.next()
   }
 }
 
 export const config = {
   matcher: ['/', '/login', '/admin/:path*', '/alumno/:path*', '/socio/:path*'],
-} 
+}

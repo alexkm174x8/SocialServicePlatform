@@ -92,8 +92,8 @@ export default function LoginSocioformador() {
       // Store project info in session storage for easy access
       sessionStorage.setItem('projectInfo', JSON.stringify(projectData));
 
-      // Redirect to dashboard
-      router.push('/dashboard');
+      // Redirect to socio
+      router.push('/socio');
       
     } catch (err) {
       console.error('Unexpected error:', err);

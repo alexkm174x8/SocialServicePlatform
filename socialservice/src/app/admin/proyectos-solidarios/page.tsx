@@ -191,7 +191,7 @@ export default function Explorar() {
 
         <div className="">
           <DetailButton
-            texto="Importar"
+            texto="Subir proyectos"
             size="auto"
             color="blue"
             id={0}
