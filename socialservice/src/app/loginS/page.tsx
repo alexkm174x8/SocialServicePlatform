@@ -125,8 +125,8 @@ export default function LoginSocioformador() {
         }
       });
 
-      // Redirect to dashboard
-      router.push('/dashboard');
+      // Redirect to socio
+      router.push('/socio');
       
     } catch (err) {
       console.error('Unexpected error:', err);

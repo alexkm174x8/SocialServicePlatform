@@ -12,6 +12,7 @@ import Download from '@/app/socio/components/custom/Download';
 import { Trash2 } from "lucide-react";
 import {DetailButton} from "@/app/components/DetailButton";
 import { Lista } from "@/app/components/Lista";
+import { useRouter } from 'next/navigation';
 
 
 type Solicitud = {
@@ -37,36 +38,81 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default function Solicitudes() {
+  const router = useRouter();
+  const [socioCorreo, setSocioCorreo] = useState<string | null>(null); // Ahora el correo viene de la sesión
   const [search, setSearch] = useState("");
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
   const [filterCarrera, setFilterCarrera] = useState<string[]>([]);
   const [filterEstado, setFilterEstado] = useState<string[]>([]);
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
   const [solicitudesOriginal, setSolicitudesOriginal] = useState<Solicitud[]>([]); // Para comparar cambios
+  const [proyectosSocio, setProyectosSocio] = useState<number[]>([]); // IDs de proyectos del socio
+
+  // Verificar autenticación y redirigir si es necesario
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data, error } = await supabase.auth.getUser();
+      if (error || !data?.user) {
+        router.replace('/loginS');
+        return;
+      }
+      if (!data.user.user_metadata?.id_proyecto) {
+        router.replace('/loginS');
+        return;
+      }
+    };
+    checkAuth();
+  }, [router]);
+
+  // Obtener el correo del usuario autenticado
+  useEffect(() => {
+    const getUser = async () => {
+      const { data, error } = await supabase.auth.getUser();
+      if (error) {
+        console.error('Error obteniendo usuario autenticado:', error.message);
+        return;
+      }
+      setSocioCorreo(data?.user?.email || null);
+    };
+    getUser();
+  }, []);
 
   useEffect(() => {
-    const fetchProyectos = async () => {
+    if (!socioCorreo) return; // Esperar a tener el correo
+    const fetchProyectosSocio = async () => {
+      const { data: socioData, error: errorSocio } = await supabase
+        .from('socioformador')
+        .select('id_proyecto')
+        .eq('correo', socioCorreo);
+      if (errorSocio) {
+        console.error('Error obteniendo proyectos del socio:', errorSocio.message);
+        return;
+      }
+      const ids = socioData?.map((row) => row.id_proyecto) || [];
+      setProyectosSocio(ids);
+      return ids;
+    };
+
+    const fetchProyectos = async (ids: number[]) => {
       try {
-        // Obtener postulaciones con id_proyecto
-        //
         const { data: postulaciones, error: errorPostulaciones } = await supabase
           .from('postulacion')
-          .select(`estatus, matricula, email, carrera, numero, respuesta_1, respuesta_2, respuesta_3, id_proyecto`);
+          .select(`estatus, matricula, email, carrera, numero, respuesta_1, respuesta_2, respuesta_3, id_proyecto`)
+          .in('id_proyecto', ids);
 
         if (errorPostulaciones) {
           throw errorPostulaciones;
         }
 
-        // Obtener todos los proyectos para hacer el match
         const { data: proyectos, error: errorProyectos } = await supabase
           .from('proyectos_solidarios')
-          .select(`id_proyecto, proyecto`);
+          .select(`id_proyecto, proyecto`)
+          .in('id_proyecto', ids);
 
         if (errorProyectos) {
           throw errorProyectos;
         }
 
-        // Hacer match y agregar el título del proyecto
         const formattedData = postulaciones.map((item) => {
           const proyectoMatch = proyectos.find((p) => p.id_proyecto === item.id_proyecto);
           return {
@@ -83,7 +129,7 @@ export default function Solicitudes() {
           };
         });
         setSolicitudes(formattedData);
-        setSolicitudesOriginal(formattedData); // Guardar copia original
+        setSolicitudesOriginal(formattedData);
       } catch (error) {
         if (error instanceof Error) {
           console.error('Error fetching proyectos_solidarios:', error.message);
@@ -93,9 +139,15 @@ export default function Solicitudes() {
       }
     };
 
-    fetchProyectos();
-  }, []);
-
+    fetchProyectosSocio().then((ids) => {
+      if (ids && ids.length > 0) {
+        fetchProyectos(ids);
+      } else {
+        setSolicitudes([]);
+        setSolicitudesOriginal([]);
+      }
+    });
+  }, [socioCorreo]);
    
   const filtered = solicitudes.filter((s) => {
     const searchTerm = search.toLowerCase();

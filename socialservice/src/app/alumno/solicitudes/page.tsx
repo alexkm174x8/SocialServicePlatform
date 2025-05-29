@@ -422,7 +422,7 @@ export default function Solicitudes() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen bg-gray-100">
+      <div className="flex min-h-screen bg-white">
         <SideBar />
         <div className="flex-1 p-4 md:p-4">
           <HeaderBar titulo="Solicitudes" Icono={FileText} />
@@ -436,7 +436,7 @@ export default function Solicitudes() {
 
   if (error) {
     return (
-      <div className="flex min-h-screen bg-gray-100">
+      <div className="flex min-h-screen bg-white">
         <SideBar />
         <div className="flex-1 p-4 md:p-4">
           <HeaderBar titulo="Solicitudes" Icono={FileText} />
@@ -446,9 +446,9 @@ export default function Solicitudes() {
               {error.includes("No se encontraron solicitudes") && (
                 <button
                   onClick={() => window.location.href = '/alumno/explorar'}
-                  className="bg-blue-400 hover:bg-blue-900 text-white font-semibold py-2 px-4 rounded-full transition duration-200"
+                  className="bg-blue-900 hover:bg-blue-800 text-white font-semibold py-2 px-4 rounded-full transition duration-200"
                 >
-                  Explorar Proyectos
+                  ¡Explora los proyectos disponibles!
                 </button>
               )}
             </div>
