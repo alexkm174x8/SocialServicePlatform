@@ -4,7 +4,7 @@ import { LogOut, Inbox, FolderOpen, AlignJustify } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { LogOutModal } from "../../../components/LogOutModal";
 
-export function SideBar() {
+export function AdminSideBar() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const router = useRouter();
@@ -26,7 +26,7 @@ export function SideBar() {
   return (
     <>
       <div
-        className={`fixed left-0 top-0 h-screen bg-blue-900 p-4 transition-all shadow-md flex flex-col justify-between z-[2000] ${
+        className={` fixed left-0 top-0 h-screen bg-blue-900 p-4 transition-all shadow-md flex flex-col justify-between z-[2000] ${
           isSidebarOpen ? "w-64" : "w-18"
         }`}
       >
@@ -50,7 +50,7 @@ export function SideBar() {
           </div>
           <nav className="flex flex-col gap-4">
             <button
-              className={`flex items-center gap-3 p-2 rounded-md transition hover:bg-white ${
+              className={`flex items-center gap-3 p-2 rounded-md transition text-blue-900 hover:text-blue-900 hover:bg-white transition  ${
                 pathname === "/admin/proyectos-solidarios"
                   ? "bg-white text-blue-900"
                   : "text-white"
@@ -61,7 +61,7 @@ export function SideBar() {
               {isSidebarOpen && <span>Explorar</span>}
             </button>
             <button
-              className={`flex items-center gap-3 p-2 rounded-md transition hover:bg-white ${
+              className={`flex items-center gap-3 p-2 rounded-md transition text-blue-900 hover:text-blue-900 hover:bg-white transition  ${
                 pathname === "/admin/solicitudes-alumnos"
                   ? "bg-white text-blue-900"
                   : "text-white"

@@ -422,11 +422,14 @@ export default function Solicitudes() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen bg-gray-100">
-        <SideBar />
-        <div className="flex-1 p-4 md:p-4">
+      <div className="flex h-screen bg-white">
+      <SideBar />
+      <div className="flex flex-col flex-1">
+        <div className="fixed top-0 left-0 right-0 z-10 ml-[width of SideBar] bg-white">
           <HeaderBar titulo="Solicitudes" Icono={FileText} />
-          <main className="flex items-center justify-center mt-20 ml-30 mr-10">
+        </div>
+        <main className={`transition-all mt-20 ml-30 mr-10`}>
+          <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-5"></div> 
             <Loader2 className="w-8 h-8 animate-spin text-blue-900" />
           </main>
         </div>
@@ -436,12 +439,14 @@ export default function Solicitudes() {
 
   if (error) {
     return (
-      <div className="flex min-h-screen bg-gray-100">
-        <SideBar />
-        <div className="flex-1 p-4 md:p-4">
+      <div className="flex h-screen bg-white">
+      <SideBar />
+      <div className="flex flex-col flex-1">
+        <div className="fixed top-0 left-0 right-0 z-10 ml-[width of SideBar] bg-white">
           <HeaderBar titulo="Solicitudes" Icono={FileText} />
-          <main className="flex items-center justify-center mt-20 ml-30 mr-10">
-            <div className="text-center">
+        </div>
+        <main className={`transition-all mt-20 ml-30 mr-10`}>
+          <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
               <p className="text-red-600 mb-4">{error}</p>
               {error.includes("No se encontraron solicitudes") && (
                 <button
@@ -459,12 +464,14 @@ export default function Solicitudes() {
   }
 
   return (
-    <div className="flex min-h-screen bg-white">
+    <div className="flex h-screen bg-white">
       <SideBar />
-      <div className="flex-1 p-4 md:p-4">
-        <HeaderBar titulo="Solicitudes" Icono={FileText} />
+      <div className="flex flex-col flex-1">
+        <div className="fixed top-0 left-0 right-0 z-10 ml-[width of SideBar] bg-white">
+          <HeaderBar titulo="Solicitudes" Icono={FileText} />
+        </div>
         <main className={`transition-all mt-20 ml-30 mr-10`}>
-          <div className="space-y-6 mt-6">
+          <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
             {postulaciones.map((postulacion) => (
               <ProgressTrackerCard
                 key={postulacion.id_proyecto}
@@ -480,6 +487,7 @@ export default function Solicitudes() {
         </main>
       </div>
     </div>
-  )
+  );
 }
+
 

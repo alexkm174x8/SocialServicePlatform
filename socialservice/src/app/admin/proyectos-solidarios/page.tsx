@@ -6,7 +6,7 @@ import { HeaderBarAdmin } from "@/app/components/HeaderBarAdmin";
 import { SearchBar } from "@/app/components/SearchBar";
 import { FilterButton } from "@/app/components/FilterButton";
 import { ListItem } from "@/app/components/ListItem";
-import { SideBar } from "@/app/admin/components/custom/AdminSideBar";
+import { AdminSideBar } from "@/app/admin/components/custom/AdminSideBar"
 import { FolderOpen } from "lucide-react";
 import UploaderButton from "@/app/admin/components/custom/UploaderButton";
 import DownloadModal from '@/app/admin/components/custom/DownloadModal';
@@ -158,92 +158,95 @@ export default function Explorar() {
 
   return (
     <>
-      <SideBar />
-      <HeaderBarAdmin titulo="Proyectos solidarios" Icono={FolderOpen} />
+    <div className="fixed flex h-screen bg-white">
+        <div className="fixed top-0 left-0 right-0 z-10 ml-[width of SideBar] bg-white">
+          <AdminSideBar />
+          <HeaderBarAdmin titulo="Proyectos solidarios" Icono={FolderOpen} />
+        </div>
+    </div>
+        <main className={`flex-1 mt-[80px] ml-30 mr-10`}>
+          <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+            <SearchBar
+              search={search}
+              setSearch={setSearch}
+              onSearchApply={() => {}}
+              onSearchClear={() => setSearch("")}
+            />
+            <div className="flex items-center gap-6">
+              <button
+                className="border border-gray-600 text-gray-500 font-semibold rounded-full px-4 py-1 text-sm hover:bg-gray-300 transition"
+                onClick={() => {
+                  setFilterEstado([]);
+                  setSearch("");
+                }}
+              >
+                Limpiar filtros
+              </button>
 
-      <main className={`transition-all mt-20 ml-30 mr-10`}>
-        <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
-          <SearchBar
-            search={search}
-            setSearch={setSearch}
-            onSearchApply={() => {}}
-            onSearchClear={() => setSearch("")}
-          />
-          <div className="flex items-center gap-6">
-            <button
-              className="border border-gray-600 text-gray-500 font-semibold rounded-full px-4 py-1 text-sm hover:bg-gray-300 transition"
-              onClick={() => {
-                setFilterEstado([]);
-                setSearch("");
-              }}
-            >
-              Limpiar filtros
-            </button>
+              <FilterButton
+                label="Estado"
+                options={["Abierto", "En Revisión", "Cerrado", "Pendiente"]}
+                selectedValues={filterEstado}
+                onChange={setFilterEstado}
+              />
+            </div>
+          </div>
 
-            <FilterButton
-              label="Estado"
-              options={["Abierto", "En Revisión", "Cerrado", "Pendiente"]}
-              selectedValues={filterEstado}
-              onChange={setFilterEstado}
+          <div className="">
+            <DetailButton
+              texto="Importar"
+              size="auto"
+              color="blue"
+              id={0}
+              onClick={() => setIsUploaderVisible(true)}
             />
           </div>
-        </div>
 
-        <div className="">
-          <DetailButton
-            texto="Importar"
-            size="auto"
-            color="blue"
-            id={0}
-            onClick={() => setIsUploaderVisible(true)}
-          />
-        </div>
-
-        {isUploaderVisible && (
-          <div
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-            onClick={() => setIsUploaderVisible(false)}  // Aquí usas onClick para cerrar
-          >
+          {isUploaderVisible && (
             <div
-              className="bg-white p-6 rounded-lg shadow-lg"
-              onClick={(e) => e.stopPropagation()} // Evita cerrar al hacer clic dentro
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+              onClick={() => setIsUploaderVisible(false)}  // Aquí usas onClick para cerrar
             >
-              <button
-                className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
-                onClick={() => setIsUploaderVisible(false)}
+              <div
+                className="bg-white p-6 rounded-lg shadow-lg"
+                onClick={(e) => e.stopPropagation()} // Evita cerrar al hacer clic dentro
               >
-                X
-              </button>
-              {/* Aquí sí pasas el onClose esperado */}
-              <UploaderButton onClose={() => setIsUploaderVisible(false)} />
+                <button
+                  className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
+                  onClick={() => setIsUploaderVisible(false)}
+                >
+                  X
+                </button>
+                {/* Aquí sí pasas el onClose esperado */}
+                <UploaderButton onClose={() => setIsUploaderVisible(false)} />
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {isDownloadModalVisible && (
-          <div
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-            onClick={() => setIsDownloadModalVisible(false)}
-          >
+          {isDownloadModalVisible && (
             <div
-              className="bg-white p-6 rounded-lg shadow-lg"
-              onClick={(e) => e.stopPropagation()}
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+              onClick={() => setIsDownloadModalVisible(false)}
             >
-              <button
-                className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
-                onClick={() => setIsDownloadModalVisible(false)}
+              <div
+                className="bg-white p-6 rounded-lg shadow-lg"
+                onClick={(e) => e.stopPropagation()}
               >
-                X
-              </button>
-              <DownloadModal />
+                <button
+                  className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
+                  onClick={() => setIsDownloadModalVisible(false)}
+                >
+                  X
+                </button>
+                <DownloadModal />
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        <div className="align-items justify-center">
-          <ListItem data={filtered} />
-        </div>
-      </main>
+          <div className="align-items justify-center">
+            <ListItem data={filtered} />
+          </div>
+        </main>
     </>
   );
 }

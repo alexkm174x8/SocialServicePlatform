@@ -6,7 +6,7 @@ import { HeaderBarAdmin } from "@/app/components/HeaderBarAdmin";
 import { SearchBar } from "@/app/components/SearchBar";
 import { FilterButton } from "@/app/components/FilterButton";
 import { ListItem } from "@/app/components/ListItem";
-import { SideBar } from "@/app/admin/components/custom/AdminSideBar";
+import { AdminSideBar } from "@/app/admin/components/custom/AdminSideBar";
 import { Inbox} from "lucide-react";
 import {DetailButton} from "@/app/components/DetailButton";
 import { Lista } from "@/app/components/Lista";
@@ -114,84 +114,81 @@ export default function Solicitud() {
 
   return (
     <>
-      <SideBar/>
-      <HeaderBarAdmin
-        titulo="Solicitudes de Alumno"
-        Icono={Inbox}
-      />
+    <div className="fixed flex h-screen bg-white">
+        <div className="fixed top-0 left-0 right-0 z-10 ml-[width of SideBar] bg-white">
+          <AdminSideBar />
+          <HeaderBarAdmin titulo="Solicitudes alumnos" Icono={Inbox} />
+        </div>
+    </div>
+        <main className={`flex-1 mt-[80px] ml-30 mr-10`}>
+          <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+            <SearchBar
+              search={search}
+              setSearch={setSearch}
+              onSearchApply={() => {}}
+              onSearchClear={() => setSearch("")}
+            />
+            <div className="flex items-center gap-6">
 
-     <main className="mt-20 ml-15 px-15">
-             <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
-               <SearchBar
-                 search={search}
-                 setSearch={setSearch}
-                 onSearchApply={() => {}}
-                 onSearchClear={() => setSearch("")}
-               />
-               <div className="flex items-center gap-6">
-     
-               <button
-                   className="border border-gray-600 text-gray-500 font-semibold rounded-full px-4 py-1 text-sm hover:bg-gray-300 transition"
-                   onClick={() => {
-                     setFilterEstado([]);
-                     setFilterCarrera([]);
-                     setSearch("");
-                   }}
-                 >
-                  Limpiar filtros
-                 </button>
-     
-                 <FilterButton
-                   label="Carrera"
-                   options={[...new Set(solicitudes.map((s) => s.carrera))]}
-                   selectedValues={filterCarrera}
-                   onChange={setFilterCarrera}
-                 />
-     
-                 <FilterButton
-                   label="Estado"
-                   options={[...new Set(solicitudes.map((s) => s.estatus))]}
-                   selectedValues={filterEstado}
-                   onChange={setFilterEstado}
-                 />
-                  </div>
-             </div>
-     
-             <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
-               <div className="flex items-center gap-4">
-                 <DetailButton 
-                   texto="Comparar" 
-                   size="auto" 
-                   color="blue" 
-                   id={0} 
-                   onClick={() => {}} 
-                 />
-               </div>
-     
-               <div className="flex flex-wrap gap-4 items-center text-sm">
-                 <div className="flex items-center gap-1">
-                   <div className="w-4 h-4 rounded bg-green-500" />
-                   <span className="text-[#001C55] font-medium">Aceptadx</span>
-                 </div>
-                 <div className="flex items-center gap-1">
-                   <div className="w-4 h-4 rounded bg-orange-400" />
-                   <span className="text-[#001C55] font-medium">Declinadx por el alumnx</span>
-                 </div>
-                 <div className="flex items-center gap-1">
-                   <div className="w-4 h-4 rounded bg-red-500" />
-                   <span className="text-[#001C55] font-medium">No aceptadx</span>
-                 </div>
-                 <div className="flex items-center gap-1">
-                   <div className="w-4 h-4 rounded bg-indigo-400" />
-                   <span className="text-[#001C55] font-medium">En revisión</span>
-                 </div>
-               </div>
-             </div>
-     
-             <div className="rounded-lg">
-             <Lista data={filtered} setData={setSolicitudes} />
-             </div>
-           </main>
-         </>
-       );
-     }
+          <button
+              className="border border-gray-600 text-gray-500 font-semibold rounded-full px-4 py-1 text-sm hover:bg-gray-300 transition"
+              onClick={() => {
+                setFilterEstado([]);
+                setFilterCarrera([]);
+                setSearch("");
+              }}
+            >
+            Limpiar filtros
+            </button>
+
+            <FilterButton
+              label="Carrera"
+              options={[...new Set(solicitudes.map((s) => s.carrera))]}
+              selectedValues={filterCarrera}
+              onChange={setFilterCarrera}
+            />
+
+            <FilterButton
+              label="Estado"
+              options={[...new Set(solicitudes.map((s) => s.estatus))]}
+              selectedValues={filterEstado}
+              onChange={setFilterEstado}
+            />
+            </div>
+        </div>
+        <div className="">
+          <DetailButton 
+            texto="Comparar" 
+            size="auto" 
+            color="blue" 
+            id={0} 
+            onClick={() => {}} 
+          />
+        </div>
+
+          <div className="flex flex-wrap gap-4 mt-4 items-center text-sm">
+            <div className="flex items-center gap-1 ">
+              <div className="w-4 h-4 rounded bg-green-500" />
+              <span className="text-[#001C55] font-medium">Aceptadx</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-4 h-4 rounded bg-orange-400" />
+              <span className="text-[#001C55] font-medium">Declinadx por el alumnx</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-4 h-4 rounded bg-red-500" />
+              <span className="text-[#001C55] font-medium">No aceptadx</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-4 h-4 rounded bg-indigo-400" />
+              <span className="text-[#001C55] font-medium">En revisión</span>
+            </div>
+          </div>
+
+        <div className="align-items justify-center">
+        <Lista data={filtered} setData={setSolicitudes} />
+        </div>
+      </main>
+  </>
+  );
+}

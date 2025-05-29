@@ -91,64 +91,66 @@ export const Lista = ({
   
   return (
     <div className="w-full" ref={containerRef}>
-      <table className="w-full text-sm text-left text-gray-500">
-        <thead className="text-xs border-b border-blue-900 text-blue-900">
-          <tr>
-            <th className="px-4 py-2"></th>
-            <th className="px-4 py-2">Estado</th>
-            <th className="px-4 py-2">Matrícula</th>
-            <th className="px-4 py-2">Correo</th>
-            <th className="px-4 py-2">Carrera</th>
-            <th className="px-4 py-2">Teléfono</th>
-            <th className="px-4 py-2">Título del proyecto</th>
-            <th className="px-4 py-2">Respuesta 1</th>
-            <th className="px-4 py-2">Respuesta 2</th>
-            <th className="px-4 py-2">Respuesta 3</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((row, idx) => (
-            <tr key={idx} className="hover:bg-gray-50 relative">
-              <td className="px-4 py-2 relative">
-                <div
-                  onClick={() => toggleDropdown(idx)}
-                  className={`w-4 h-4 rounded cursor-pointer ${statusColorMap[row.estatus] || 'bg-gray-300'}`}
-                  title={row.estatus}
-                />
-                {activeDropdown === idx && (
-                  <div className="absolute z-50 bg-white border shadow-lg rounded-lg mt-2 w-60 p-3">
-                    {STATUS_OPTIONS.map((option, i) => {
-                      console.log('Rendering option:', option);
-                      return (
-                        <div
-                          key={i}
-                          className="flex items-center gap-2 cursor-pointer p-1 hover:bg-gray-100 rounded"
-                          onClick={() => {
-                            console.log('Selected option:', option);
-                            handleSelect(idx, option);
-                          }}
-                        >
-                          <div className={`w-4 h-4 rounded ${option.color}`} />
-                          <span className="text-sm text-blue-900">{option.label}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </td>
-              <td className="px-4 py-2">{row.estatus}</td>
-              <td className="px-4 py-2">{row.matricula}</td>
-              <td className="px-4 py-2">{row.email}</td>
-              <td className="px-4 py-2">{row.carrera}</td>
-              <td className="px-4 py-2">{row.numero}</td>
-              <td className="px-4 py-2">{row.proyecto || ''}</td>
-              <td className="px-4 py-2 truncate max-w-[200px]">{row.respuesta_1}</td>
-              <td className="px-4 py-2 truncate max-w-[200px]">{row.respuesta_2}</td>
-              <td className="px-4 py-2 truncate max-w-[200px]">{row.respuesta_3}</td>
+      <div className="overflow-x-auto w-full">
+        <table className="min-w-[1200px] text-sm text-left text-gray-500">
+          <thead className="text-xs border-b border-blue-900 text-blue-900">
+            <tr>
+              <th className="px-4 py-2"></th>
+              <th className="px-4 py-2">Estado</th>
+              <th className="px-4 py-2">Matrícula</th>
+              <th className="px-4 py-2">Correo</th>
+              <th className="px-4 py-2">Carrera</th>
+              <th className="px-4 py-2">Teléfono</th>
+              <th className="px-4 py-2">Título del proyecto</th>
+              <th className="px-4 py-2">Respuesta 1</th>
+              <th className="px-4 py-2">Respuesta 2</th>
+              <th className="px-4 py-2">Respuesta 3</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {data.map((row, idx) => (
+              <tr key={idx} className="hover:bg-gray-50 relative">
+                <td className="px-4 py-2 relative">
+                  <div
+                    onClick={() => toggleDropdown(idx)}
+                    className={`w-4 h-4 rounded cursor-pointer ${statusColorMap[row.estatus] || 'bg-gray-300'}`}
+                    title={row.estatus}
+                  />
+                  {activeDropdown === idx && (
+                    <div className="absolute z-50 bg-white border shadow-lg rounded-lg mt-2 w-60 p-3">
+                      {STATUS_OPTIONS.map((option, i) => {
+                        console.log('Rendering option:', option);
+                        return (
+                          <div
+                            key={i}
+                            className="flex items-center gap-2 cursor-pointer p-1 hover:bg-gray-100 rounded"
+                            onClick={() => {
+                              console.log('Selected option:', option);
+                              handleSelect(idx, option);
+                            }}
+                          >
+                            <div className={`w-4 h-4 rounded ${option.color}`} />
+                            <span className="text-sm text-blue-900">{option.label}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </td>
+                <td className="px-4 py-2">{row.estatus}</td>
+                <td className="px-4 py-2">{row.matricula}</td>
+                <td className="px-4 py-2">{row.email}</td>
+                <td className="px-4 py-2">{row.carrera}</td>
+                <td className="px-4 py-2">{row.numero}</td>
+                <td className="px-4 py-2">{row.proyecto || ''}</td>
+                <td className="px-4 py-2 truncate max-w-[200px]">{row.respuesta_1}</td>
+                <td className="px-4 py-2 truncate max-w-[200px]">{row.respuesta_2}</td>
+                <td className="px-4 py-2 truncate max-w-[200px]">{row.respuesta_3}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

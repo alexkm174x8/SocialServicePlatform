@@ -15,7 +15,7 @@ export const SearchBar = ({ search, setSearch, onSearchApply, onSearchClear }: P
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <div className="flex items-center gap-2 border-b border-blue-800 pb-1 w-[600px]">
+    <div className="flex items-center gap-2 border-b border-blue-800 pb-1 flex1 max-w-[400px] min-w-[400px] sm:max-w-[200px] xs:max-w-[150px]">
       <Input
         ref={inputRef}
         type="text"
