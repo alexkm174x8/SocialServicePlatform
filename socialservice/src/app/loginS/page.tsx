@@ -32,7 +32,7 @@ export default function LoginSocioformador() {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         // If there's an active session, redirect to dashboard
-        router.push('/dashboard');
+        router.push('/socio');
       }
     };
     checkSession();
