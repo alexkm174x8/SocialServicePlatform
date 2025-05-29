@@ -7,7 +7,7 @@ export async function middleware(req: NextRequest) {
     const res = NextResponse.next()
     const supabase = createMiddlewareClient({ req, res })
 
-    // Refresh session if expired - required for Server Components
+    // Refrescar sesión si expiró
     const {
       data: { session },
       error,
@@ -22,28 +22,29 @@ export async function middleware(req: NextRequest) {
     const isSocio = !!user?.user_metadata?.id_proyecto
 
     // Si no hay sesión y la ruta es protegida, redirige a /
-    if (!session && (path.startsWith('/admin') || path.startsWith('/alumno') || path.startsWith('/socio'))) {
-      const redirectUrl = req.nextUrl.clone()
-      redirectUrl.pathname = '/'
-      return NextResponse.redirect(redirectUrl)
-    }
+    if (!session && (
+      path.startsWith('/admin') || 
+      path.startsWith('/alumno') || 
+      path.startsWith('/socio'))
+    ) 
 
-    // Si es socio y accede a cualquier ruta que no sea /socio, redirige a /socio
-    if (session && isSocio && path !== '/socio') {
-      const redirectUrl = req.nextUrl.clone()
-      redirectUrl.pathname = '/socio'
-      return NextResponse.redirect(redirectUrl)
-    }
-
-    // Si es socio y accede a / o /login, redirige a /socio
-    if (session && isSocio && (path === '/' || path === '/login')) {
+    // Si es socio y accede a rutas no permitidas, redirige a /socio
+    if (session && isSocio && (
+      path === '/' || 
+      path === '/loginAdmin' || 
+      path === '/loginS')
+    ) {
       const redirectUrl = req.nextUrl.clone()
       redirectUrl.pathname = '/socio'
       return NextResponse.redirect(redirectUrl)
     }
 
-    // Si es alumno (no tiene id_proyecto) y accede a / o /login, redirige a /alumno/explorar
-    if (session && !isSocio && (path === '/' || path === '/login')) {
+    // Si es alumno y accede a rutas no permitidas, redirige a /alumno/explorar
+    if (session && !isSocio && (
+      path === '/' || 
+      path === '/loginAdmin' || 
+      path === '/loginS')
+    ) {
       const redirectUrl = req.nextUrl.clone()
       redirectUrl.pathname = '/alumno/explorar'
       return NextResponse.redirect(redirectUrl)
@@ -56,6 +57,7 @@ export async function middleware(req: NextRequest) {
   }
 }
 
+// Agrega /loginS al matcher
 export const config = {
-  matcher: ['/', '/login', '/admin/:path*', '/alumno/:path*', '/socio/:path*'],
+  matcher: ['/', '/loginAdmin', '/loginS', '/admin/:path*', '/alumno/:path*', '/socio/:path*'],
 }
