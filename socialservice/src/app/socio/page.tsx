@@ -5,11 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 import { HeaderBarSocio } from "@/app/components/HeaderBarSocio";
 import { SearchBar } from "@/app/components/SearchBar";
 import { FilterButton } from "@/app/components/FilterButton";
-import { ListItem } from "@/app/components/ListItem";
-import { Inbox} from "lucide-react";
-import UploaderButton from "@/app/admin/components/custom/UploaderButton";
 import Download from '@/app/socio/components/custom/Download';
-import { Trash2 } from "lucide-react";
 import {DetailButton} from "@/app/components/DetailButton";
 import { Lista } from "@/app/components/Lista";
 import { useRouter } from 'next/navigation';
@@ -39,7 +35,8 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default function Solicitudes() {
   const router = useRouter();
-  const [socioCorreo, setSocioCorreo] = useState<string | null>(null); // Ahora el correo viene de la sesión
+  const [isLoading, setIsLoading] = useState(true);
+  const [socioCorreo, setSocioCorreo] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
   const [filterCarrera, setFilterCarrera] = useState<string[]>([]);
@@ -48,34 +45,43 @@ export default function Solicitudes() {
   const [solicitudesOriginal, setSolicitudesOriginal] = useState<Solicitud[]>([]); // Para comparar cambios
   const [proyectosSocio, setProyectosSocio] = useState<number[]>([]); // IDs de proyectos del socio
 
-  // Verificar autenticación y redirigir si es necesario
+  // Single auth check effect
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data, error } = await supabase.auth.getUser();
-      if (error || !data?.user) {
-        router.replace('/loginS');
-        return;
-      }
-      if (!data.user.user_metadata?.id_proyecto) {
-        router.replace('/loginS');
-        return;
-      }
-    };
-    checkAuth();
-  }, [router]);
+    let mounted = true;
 
-  // Obtener el correo del usuario autenticado
-  useEffect(() => {
-    const getUser = async () => {
-      const { data, error } = await supabase.auth.getUser();
-      if (error) {
-        console.error('Error obteniendo usuario autenticado:', error.message);
-        return;
+    const checkAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error || !session?.user?.user_metadata?.id_proyecto) {
+          if (mounted) {
+            // Clear any existing session data
+            await supabase.auth.signOut();
+            sessionStorage.removeItem('projectInfo');
+            router.push('/loginS');
+          }
+          return;
+        }
+
+        if (mounted) {
+          setSocioCorreo(session.user.email || null);
+          setIsLoading(false);
+        }
+      } catch (err) {
+        console.error('Auth check error:', err);
+        if (mounted) {
+          router.push('/loginS');
+        }
       }
-      setSocioCorreo(data?.user?.email || null);
     };
-    getUser();
-  }, []);
+
+    checkAuth();
+
+    // Cleanup function
+    return () => {
+      mounted = false;
+    };
+  }, [router]);
 
   useEffect(() => {
     if (!socioCorreo) return; // Esperar a tener el correo
@@ -188,6 +194,10 @@ export default function Solicitudes() {
       console.error(error);
     }
   };
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
+  }
 
   return (
     <>

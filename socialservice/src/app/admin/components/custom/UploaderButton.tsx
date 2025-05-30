@@ -125,18 +125,25 @@ const UploaderButton: React.FC<UploaderButtonProps> = ({ onClose }) => {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json'
               },
               body: JSON.stringify({ projects: successfulUploads }),
             });
 
-            const result = await response.json();
-            console.log('Create users API response:', JSON.stringify(result, null, 2));
-
             if (!response.ok) {
-              console.error('Error creating users:', JSON.stringify(result, null, 2));
-              setErrorMessage(`Los proyectos se subieron correctamente pero hubo un error al crear los usuarios: ${result.error}${result.details ? ` - ${result.details}` : ''}`);
+              const errorText = await response.text();
+              console.error('Error response from create-users API:', errorText);
+              try {
+                const errorJson = JSON.parse(errorText);
+                setErrorMessage(`Los proyectos se subieron correctamente pero hubo un error al crear los usuarios: ${errorJson.error || 'Error desconocido'}`);
+              } catch (e) {
+                setErrorMessage(`Los proyectos se subieron correctamente pero hubo un error al crear los usuarios: ${errorText}`);
+              }
               return;
             }
+
+            const result = await response.json();
+            console.log('Create users API response:', JSON.stringify(result, null, 2));
 
             const failedProjects = result.results.filter((r: any) => !r.success);
             if (failedProjects.length > 0) {

@@ -1,3 +1,4 @@
+import { metadata } from './../../layout';
 import { EmailTemplate } from '@/app/socio/components/EmailTemplate';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { NextResponse } from 'next/server';
@@ -57,24 +58,27 @@ export async function POST(request: Request) {
 
         // Create user in Supabase
         console.log(`Attempting to create Supabase user for ${proyecto}`);
-        const { data: userData, error: userError } = await supabaseAdmin.auth.admin.createUser({
+        const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
           email: authMail,
           password: password,
-          email_confirm: true  // This will create the user without requiring email verification
+          email_confirm: true,  // This will create the user without requiring email verification
+          user_metadata: {
+            id_proyecto: id_proyecto  // Add the project ID to user metadata
+          }
         });
 
-        if (userError) {
-          console.error(`Error creating Supabase user for ${proyecto}:`, JSON.stringify(userError, null, 2));
+        if (authError) {
+          console.error(`Error creating Supabase user for ${proyecto}:`, JSON.stringify(authError, null, 2));
           results.push({ 
             proyecto, 
             success: false, 
-            error: `User creation failed: ${userError.message}`,
-            details: userError
+            error: `User creation failed: ${authError.message}`,
+            details: authError
           });
           continue;
         }
 
-        console.log(`Successfully created Supabase user for ${proyecto}:`, JSON.stringify(userData, null, 2));
+        console.log(`Successfully created Supabase user for ${proyecto}:`, JSON.stringify(authData, null, 2));
 
         const { data , error } = await supabaseAdmin
             .from('socioformador')
