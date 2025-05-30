@@ -23,7 +23,7 @@ type Solicitud = {
   respuesta_1: string;
   respuesta_2: string;
   respuesta_3: string;
-  id_proyecto: number;
+  id_proyecto?: number;  // Make this optional
   proyecto?: string; // Título del proyecto
 };
 
@@ -231,25 +231,22 @@ const [matriculasSubidas, setMatriculasSubidas] = useState<string[]>([]);
              <Lista data={filtered} setData={setSolicitudes} />
              </div>
            </main>
-{drawerOpen && (
-  <>
-    {/* Fondo oscuro clicable para cerrar */}
-    <div
-      className="fixed inset-0 z-40"
-      onClick={() => setDrawerOpen(false)}
-    />
+            {drawerOpen && (
+              <>
+                {/* Fondo oscuro clicable para cerrar */}
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setDrawerOpen(false)}
+                />
 
-    {/* Drawer real */}
-    <CompararDrawer
-      open={drawerOpen}
-      onClose={() => setDrawerOpen(false)}
-      onComparar={handleCompararMatriculas}
-      matriculas={matriculasSubidas}
-    />
-  </>
-)}
-
-
+                {/* Drawer real */}
+                <CompararDrawer
+                  open={drawerOpen}
+                  onClose={() => setDrawerOpen(false)}
+                  onComparar={handleCompararMatriculas}
+                />
+              </>
+            )}
          </>
        );
      }

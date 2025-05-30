@@ -17,26 +17,43 @@ const supabase = createClient(supabaseUrl!, supabaseKey!);
 
 export default function LoginSocioformador() {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
   const [correo, setCorreo] = useState("");
   const [clave, setClave] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [showErrors, setShowErrors] = useState({
     correo: false,
     clave: false,
   });
 
-  // Add session check on component mount
+  // Single session check effect
   useEffect(() => {
+    let mounted = true;
+
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        // If there's an active session, redirect to dashboard
-        router.push('/socio');
+      try {
+        // First, ensure we're signed out
+        await supabase.auth.signOut();
+        sessionStorage.removeItem('projectInfo');
+        
+        if (mounted) {
+          setIsLoading(false);
+        }
+      } catch (err) {
+        console.error('Session cleanup error:', err);
+        if (mounted) {
+          setIsLoading(false);
+        }
       }
     };
+
     checkSession();
-  }, [router]);
+
+    // Cleanup function
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const handleSubmit = async () => {
     // Reset states
@@ -73,57 +90,36 @@ export default function LoginSocioformador() {
           setError('Error al iniciar sesión. Por favor, intenta de nuevo.');
         }
         console.error('Error signing in:', signInError);
+        setIsLoading(false);
         return;
       }
 
       // Get user metadata to check if it's a project account
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       
-      if (userError) {
-        setError('Error al verificar la cuenta. Por favor, intenta de nuevo.');
-        console.error('Error getting user:', userError);
-        return;
-      }
-
-      if (!user?.user_metadata?.id_proyecto) {
+      if (userError || !user?.user_metadata?.id_proyecto) {
+        await supabase.auth.signOut();
         setError('Esta cuenta no tiene acceso a la plataforma de servicio social.');
+        setIsLoading(false);
         return;
       }
 
-      // Get project information with type safety
+      // Get project information
       const { data: projectData, error: projectError } = await supabase
         .from('proyectos_solidarios')
         .select('*')
         .eq('id_proyecto', user.user_metadata.id_proyecto)
         .single();
 
-      if (projectError) {
+      if (projectError || !projectData) {
+        await supabase.auth.signOut();
         setError('Error al obtener información del proyecto.');
-        console.error('Error getting project:', projectError);
+        setIsLoading(false);
         return;
       }
 
-      if (!projectData) {
-        setError('No se encontró información del proyecto.');
-        return;
-      }
-
-      try {
-        // Store project info in session storage with error handling
-        sessionStorage.setItem('projectInfo', JSON.stringify(projectData as ProjectData));
-      } catch (storageError) {
-        console.error('Error storing project info:', storageError);
-        setError('Error al guardar la información de la sesión.');
-        return;
-      }
-
-      // Set up session listener for auth state changes
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-        if (event === 'SIGNED_OUT') {
-          sessionStorage.removeItem('projectInfo');
-          router.push('/loginS');
-        }
-      });
+      // Store project info
+      sessionStorage.setItem('projectInfo', JSON.stringify(projectData as ProjectData));
 
       // Redirect to socio
       router.push('/socio');
@@ -131,10 +127,13 @@ export default function LoginSocioformador() {
     } catch (err) {
       console.error('Unexpected error:', err);
       setError('Ocurrió un error inesperado. Por favor, intenta de nuevo.');
-    } finally {
       setIsLoading(false);
     }
   };
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
+  }
 
   return (
     <div className="flex h-screen w-screen">

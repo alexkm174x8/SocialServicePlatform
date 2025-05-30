@@ -1,16 +1,55 @@
 "use client";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from 'next/navigation';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl!, supabaseKey!);
 
 export default function LoginAdmin() {
+  const router = useRouter();
   const [correo, setCorreo] = useState("");
   const [contrasena, setContrasena] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const [showErrors, setShowErrors] = useState({
     correo: false,
     contrasena: false,
   });
 
-  const handleSubmit = () => {
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          // Check if user is an admin
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user?.user_metadata?.is_admin) {
+            router.push('/admin/proyectos-solidarios');
+          } else {
+            // If not admin, sign them out
+            await supabase.auth.signOut();
+          }
+        }
+      } catch (err) {
+        console.error('Session check error:', err);
+      }
+    };
+
+    checkSession();
+  }, [router]);
+
+  const handleSubmit = async () => {
+    // Reset states
+    setError("");
+    setShowErrors({
+      correo: false,
+      contrasena: false,
+    });
+
+    // Validate inputs
     const newErrors = {
       correo: correo.trim() === "",
       contrasena: contrasena.trim() === "",
@@ -21,8 +60,43 @@ export default function LoginAdmin() {
     const hasErrors = Object.values(newErrors).some((val) => val);
     if (hasErrors) return;
 
-    alert(`Correo: ${correo}, Contraseña: ${contrasena}`);
-    // Aquí podrías manejar la autenticación real
+    try {
+      setIsLoading(true);
+
+      // Attempt to sign in
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email: correo,
+        password: contrasena,
+      });
+
+      if (signInError) {
+        if (signInError.message === 'Invalid login credentials') {
+          setError('Correo o contraseña incorrectos');
+        } else {
+          setError('Error al iniciar sesión. Por favor, intenta de nuevo.');
+        }
+        console.error('Error signing in:', signInError);
+        return;
+      }
+
+      // Get user metadata to check if they're an admin
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user?.user_metadata?.is_admin) {
+        await supabase.auth.signOut();
+        setError('Esta cuenta no tiene permisos de administrador.');
+        return;
+      }
+
+      // Successful login - redirect to admin dashboard
+      router.push('/admin/proyectos-solidarios');
+      
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      setError('Ocurrió un error inesperado. Por favor, intenta de nuevo.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -55,6 +129,12 @@ export default function LoginAdmin() {
           <p className="text-gray-600 text-lg">
             Hola, inicia sesión con tu cuenta registrada.
           </p>
+
+          {error && (
+            <div className="text-red-500 text-sm bg-red-50 p-3 rounded-lg">
+              {error}
+            </div>
+          )}
 
           <div className="text-left space-y-4">
             <div>
@@ -103,9 +183,10 @@ export default function LoginAdmin() {
 
             <button
               onClick={handleSubmit}
-              className="w-full mt-6 px-6 py-2 border border-[#0a2170] text-[#0a2170] font-semibold rounded-lg hover:bg-[#0a2170] hover:text-white transition"
+              disabled={isLoading}
+              className="w-full mt-6 px-6 py-2 border border-[#0a2170] text-[#0a2170] font-semibold rounded-lg hover:bg-[#0a2170] hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              INICIAR SESIÓN
+              {isLoading ? 'Iniciando sesión...' : 'INICIAR SESIÓN'}
             </button>
           </div>
         </div>
