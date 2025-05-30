@@ -47,20 +47,32 @@ const UploaderButton: React.FC<UploaderButtonProps> = ({ onClose }) => {
   const [isImporting, setIsImporting] = useState(false);
 
   const handleFileUpload = async (file: File) => {
+    const isCSV = file.type === 'text/csv' || file.name.endsWith('.csv');
     const reader = new FileReader();
 
     reader.onload = async (event: ProgressEvent<FileReader>) => {
       try {
-        const result = event.target?.result;
-        if (!result) {
-          setErrorMessage("No se pudo leer el archivo.");
-          return;
+        let jsonData: any[] = [];
+        if (isCSV) {
+          // Leer CSV como texto UTF-8 para soportar tildes y caracteres especiales
+          const text = event.target?.result as string;
+          const workbook = XLSX.read(text, { type: 'string', codepage: 65001 });
+          const sheetName = workbook.SheetNames[0];
+          const sheet = workbook.Sheets[sheetName];
+          jsonData = XLSX.utils.sheet_to_json(sheet);
+        } else {
+          // XLSX como antes
+          const result = event.target?.result;
+          if (!result) {
+            setErrorMessage("No se pudo leer el archivo.");
+            return;
+          }
+          const data = new Uint8Array(result as ArrayBuffer);
+          const workbook = XLSX.read(data, { type: "array" });
+          const sheetName = workbook.SheetNames[0];
+          const sheet = workbook.Sheets[sheetName];
+          jsonData = XLSX.utils.sheet_to_json(sheet);
         }
-        const data = new Uint8Array(result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: "array" });
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(sheet);
 
         if (!Array.isArray(jsonData) || jsonData.length === 0) {
           setErrorMessage("El archivo está vacío.");
@@ -187,7 +199,11 @@ const UploaderButton: React.FC<UploaderButtonProps> = ({ onClose }) => {
       }
     };
 
-    reader.readAsArrayBuffer(file);
+    if (isCSV) {
+      reader.readAsText(file, 'utf-8');
+    } else {
+      reader.readAsArrayBuffer(file);
+    }
   };
 
   const handleDrop = useCallback((event: React.DragEvent<HTMLDivElement>) => {
