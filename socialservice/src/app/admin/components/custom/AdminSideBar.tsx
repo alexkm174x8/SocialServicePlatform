@@ -50,7 +50,7 @@ export function SideBar() {
           </div>
           <nav className="flex flex-col gap-4">
             <button
-              className={`flex items-center gap-3 p-2 rounded-md transition hover:bg-white ${
+              className={`flex items-center gap-3 p-2 rounded-md transition hover:text-blue-900  hover:bg-white ${
                 pathname === "/admin/proyectos-solidarios"
                   ? "bg-white text-blue-900"
                   : "text-white"
@@ -61,7 +61,7 @@ export function SideBar() {
               {isSidebarOpen && <span>Explorar</span>}
             </button>
             <button
-              className={`flex items-center gap-3 p-2 rounded-md transition hover:bg-white ${
+              className={`flex items-center gap-3 p-2 rounded-md transition hover:text-blue-900  hover:bg-white ${
                 pathname === "/admin/solicitudes-alumnos"
                   ? "bg-white text-blue-900"
                   : "text-white"
