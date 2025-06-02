@@ -13,6 +13,7 @@ type Solicitud = {
   respuesta_3: string;
   id_proyecto?: number;
   proyecto?: string;
+  modificado?: boolean;
 };
 
 const statusColorMap: Record<string, string> = {
@@ -22,6 +23,7 @@ const statusColorMap: Record<string, string> = {
   "No aceptadx": "bg-red-500",
   "En revisión": "bg-indigo-400",
   "No inscritx": "bg-black",
+  "Inscritx": "bg-blue-700",
 } as const;
 
 const STATUS_OPTIONS = [
@@ -29,6 +31,7 @@ const STATUS_OPTIONS = [
   { label: "Declinadx por el alumnx", color: "bg-orange-400" },
   { label: "No aceptadx", color: "bg-red-500" },
   { label: "En revisión", color: "bg-indigo-400" },
+  { label: "Inscritx", color: "bg-blue-700" },
   { label: "No inscritx", color: "bg-black" },
 ] as const;
 
@@ -138,7 +141,11 @@ export const Lista = ({
                   </div>
                 )}
               </td>
-              <td className="px-4 py-2">{row.estatus}</td>
+              <td className="px-4 py-2">
+            {row.modificado && <span className="text-gray-600 mr-1 font-bold">●</span>}
+            {row.estatus}
+          </td>
+
               <td className="px-4 py-2">{row.matricula}</td>
               <td className="px-4 py-2">{row.email}</td>
               <td className="px-4 py-2">{row.carrera}</td>

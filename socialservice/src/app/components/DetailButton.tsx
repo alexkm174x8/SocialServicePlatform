@@ -18,7 +18,7 @@ export const DetailButton = ({ texto, size, onClick }: Props) => {
       className={`
         bg-blue-900 hover:bg-[#3154bb]
         text-white font-semibold text-sm
-        px-8 py-[6px] 
+        px-6 py-[6px] 
         rounded-full
         flex items-center justify-center
         leading-tight  
