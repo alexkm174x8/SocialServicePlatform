@@ -7,7 +7,7 @@ import { SearchBar } from "@/app/components/SearchBar";
 import { FilterButton } from "@/app/components/FilterButton";
 import Download from '@/app/socio/components/custom/Download';
 import {DetailButton} from "@/app/components/DetailButton";
-import { Lista } from "@/app/components/Lista";
+import { ListaSocio } from "@/app/components/ListaSocio";
 import { useRouter } from 'next/navigation';
 
 
@@ -290,7 +290,7 @@ export default function Solicitudes() {
              </div>
      
              <div className="rounded-lg">
-             <Lista data={filtered} setData={setSolicitudes} />
+             <ListaSocio data={filtered} setData={setSolicitudes} />
              </div>
            </main>
             {mensajeVisible && (
