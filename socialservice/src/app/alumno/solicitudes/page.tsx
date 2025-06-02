@@ -37,7 +37,7 @@ type DBStatus = "postuladx" | "no aceptadx" | "aceptadx" | "aceptadx por el alum
 type CardProps = {
   title: string
   requestedDate: string
-  updatedDate: string
+  //updatedDate: string
   actionLabel: string
   steps: Step[]
   id_proyecto: number
@@ -128,7 +128,7 @@ const ActionButton = ({ texto, size, colorClass = 'bg-blue-400 hover:bg-blue-900
   </button>
 )
 
-const ProgressTrackerCard = ({ title, requestedDate, updatedDate, actionLabel, steps, id_proyecto }: CardProps) => {
+const ProgressTrackerCard = ({ title, requestedDate, actionLabel, steps, id_proyecto }: CardProps) => {
   const router = useRouter()
   const [localSteps, setLocalSteps] = useState<Step[]>([])
   const [isResponding, setIsResponding] = useState(false)
@@ -301,7 +301,7 @@ const ProgressTrackerCard = ({ title, requestedDate, updatedDate, actionLabel, s
         <h2 className="text-xl font-bold">{title}</h2>
         <div className="flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 mt-1 md:mt-0">
           <div className="text-xs md:text-sm"><span className="opacity-80">Solicitado: </span>{requestedDate}</div>
-          <div className="text-xs md:text-sm"><span className="opacity-80">Actualizado: </span>{updatedDate}</div>
+          {/*<div className="text-xs md:text-sm"><span className="opacity-80">Actualizado: </span>{updatedDate}</div>*/}
           <div className="flex gap-2">
             <ActionButton 
               texto={actionLabel} 
