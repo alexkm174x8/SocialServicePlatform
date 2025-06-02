@@ -123,8 +123,10 @@ const [matriculasSubidas, setMatriculasSubidas] = useState<string[]>([]);
   const handleCompararMatriculas = async (matriculas: string[]) => {
   // Filtra solo las postulaciones con estado 'Aceptadx' cuya matrícula esté en el CSV
   const coincidencias = solicitudes.filter(
-    (s) => s.estatus === "Aceptadx" && matriculas.includes(s.matricula)
-  );
+  (s) =>
+    (s.estatus === "Aceptadx" || s.estatus === "Aceptadx por el alumnx") &&
+    matriculas.includes(s.matricula)
+);
 
   // Actualiza en Supabase
   for (const coincidencia of coincidencias) {
@@ -132,7 +134,7 @@ const [matriculasSubidas, setMatriculasSubidas] = useState<string[]>([]);
       .from("postulacion")
       .update({ estatus: "No inscritx" })
       .eq("matricula", coincidencia.matricula)
-      .eq("estatus", "Aceptadx");
+      .in("estatus", ["Aceptadx", "Aceptadx por el alumnx"]);
   }
 
   // Actualiza el estado local
