@@ -21,6 +21,7 @@ type ProjectData = {
   pregunta_1: string;
   pregunta_2: string;
   pregunta_3: string;
+  carreras: string;
 };
 
 export default function Formulario() {
@@ -356,7 +357,15 @@ export default function Formulario() {
                     {errors.matricula && <p className="text-red-600">{errors.matricula}</p>}
                   </div>
 
-                  <Carrera carreras={["IBT", "IC", "LC", "IIS", "IM", "IMT", "IQ", "IRS", "ITC"]} />
+                  <Carrera
+                    carreras={project.carreras.split(",").map((c) => c.trim())}
+                    value={form.carreraCompleta}
+                    onChange={(value) =>
+                      setForm((prev) => ({ ...prev, carreraCompleta: value }))
+                    }
+                    error={errors.carreraCompleta}
+                  />
+
 
                   <div>
                     <label className="block font-semibold text-[#0a2170]">Correo institucional</label>
