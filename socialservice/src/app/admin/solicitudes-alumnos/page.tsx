@@ -135,7 +135,7 @@ const [solicitudesOriginal, setSolicitudesOriginal] = useState<Solicitud[]>([]);
   // Filtra solo las postulaciones con estado 'Aceptadx' cuya matrícula esté en el CSV
   const coincidencias = solicitudes.filter(
   (s) =>
-    (s.estatus === "Aceptadx" || s.estatus === "Aceptadx por el alumnx") &&
+    (s.estatus === "Aceptadx" || s.estatus === "Aceptadx por el alumnx" || s.estatus === "aceptadx por el alumnx" || s.estatus === "aceptadx") &&
     matriculas.includes(s.matricula)
 );
 
