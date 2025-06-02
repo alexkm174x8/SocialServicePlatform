@@ -22,6 +22,7 @@ type Solicitud = {
   respuesta_3: string;
   id_proyecto?: number;
   proyecto?: string; // Título del proyecto
+  modificado?: boolean;
 };
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -155,9 +156,17 @@ export default function Solicitudes() {
     });
   }, [socioCorreo]);
    
-  const filtered = solicitudes.filter((s) => {
-    const searchTerm = search.toLowerCase();
-    const matchesSearch =
+  const filtered = solicitudes.map((s, idx) => {
+  const original = solicitudesOriginal[idx];
+  const modificado = original && s.estatus !== original.estatus;
+
+  return {
+    ...s,
+    modificado,
+  };
+}).filter((s) => {
+  const searchTerm = search.toLowerCase();
+  const matchesSearch =
     (s.estatus?.toLowerCase().includes(searchTerm) || false) ||
     (s.matricula?.toLowerCase().includes(searchTerm) || false) ||
     (s.email?.toLowerCase().includes(searchTerm) || false) ||
@@ -167,14 +176,12 @@ export default function Solicitudes() {
     (s.respuesta_2?.toLowerCase().includes(searchTerm) || false) ||
     (s.respuesta_3?.toLowerCase().includes(searchTerm) || false);
 
-    const matchesCarrera =
-      filterCarrera.length === 0 || filterCarrera.includes(s.carrera);
+  const matchesCarrera = filterCarrera.length === 0 || filterCarrera.includes(s.carrera);
+  const matchesEstado = filterEstado.length === 0 || filterEstado.includes(s.estatus);
 
-      const matchesEstado =
-      filterEstado.length === 0 || filterEstado.includes(s.estatus);
+  return matchesSearch && matchesCarrera && matchesEstado;
+});
 
-    return matchesSearch && matchesCarrera && matchesEstado;
-  });
 
   // Enviar los cambios de estatus a la base de datos
   const handleEnviar = async () => {
@@ -248,14 +255,14 @@ export default function Solicitudes() {
                  <DetailButton texto="Descargar" size="auto" color="blue" id={1} onClick={() => setIsDownloadModalOpen(true)} />
                </div>
      
-               <div className="flex flex-wrap gap-4 items-center text-sm">
-                 <div className="flex items-center gap-1">
-                   <div className="w-4 h-4 rounded bg-green-700" />
-                   <span className="text-[#001C55] font-medium">Aceptadx por el alumnx</span>
-                 </div>
+                              <div className="flex flex-wrap gap-4 items-center text-sm">
                  <div className="flex items-center gap-1">
                    <div className="w-4 h-4 rounded bg-green-500" />
                    <span className="text-[#001C55] font-medium">Aceptadx</span>
+                 </div>
+                 <div className="flex items-center gap-1">
+                   <div className="w-4 h-4 rounded bg-green-700" />
+                   <span className="text-[#001C55] font-medium">Aceptadx por el alumnx</span>
                  </div>
                  <div className="flex items-center gap-1">
                    <div className="w-4 h-4 rounded bg-orange-400" />
@@ -268,6 +275,10 @@ export default function Solicitudes() {
                  <div className="flex items-center gap-1">
                    <div className="w-4 h-4 rounded bg-indigo-400" />
                    <span className="text-[#001C55] font-medium">En revisión</span>
+                 </div>
+                 <div className="flex items-center gap-1">
+                   <div className="w-4 h-4 rounded bg-blue-700" />
+                   <span className="text-[#001C55] font-medium">Inscritx</span>
                  </div>
                  <div className="flex items-center gap-1">
                    <div className="w-4 h-4 rounded bg-black" />

@@ -25,6 +25,7 @@ type Solicitud = {
   respuesta_3: string;
   id_proyecto?: number;  // Make this optional
   proyecto?: string; // Título del proyecto
+  modificado?: boolean;
 };
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -41,8 +42,12 @@ export default function Solicitud() {
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
   const [filterCarrera, setFilterCarrera] = useState<string[]>([]);
   const [filterEstado, setFilterEstado] = useState<string[]>([]);
+   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [mensajeVisible, setMensajeVisible] = useState(false);
 const [matriculasSubidas, setMatriculasSubidas] = useState<string[]>([]);
+const [solicitudesOriginal, setSolicitudesOriginal] = useState<Solicitud[]>([]);
+
 
 
   
@@ -86,6 +91,7 @@ const [matriculasSubidas, setMatriculasSubidas] = useState<string[]>([]);
           };
         });
         setSolicitudes(formattedData);
+        setSolicitudesOriginal(formattedData); 
       } catch (error) {
         if (error instanceof Error) {
           console.error('Error fetching proyectos_solidarios:', error.message);
@@ -99,9 +105,17 @@ const [matriculasSubidas, setMatriculasSubidas] = useState<string[]>([]);
   }, []);
 
    
-  const filtered = solicitudes.filter((s) => {
-    const searchTerm = search.toLowerCase();
-    const matchesSearch =
+ const filtered = solicitudes.map((s, idx) => {
+  const original = solicitudesOriginal[idx];
+  const modificado = original && s.estatus !== original.estatus;
+
+  return {
+    ...s,
+    modificado,
+  };
+}).filter((s) => {
+  const searchTerm = search.toLowerCase();
+  const matchesSearch =
     (s.estatus?.toLowerCase().includes(searchTerm) || false) ||
     (s.matricula?.toLowerCase().includes(searchTerm) || false) ||
     (s.email?.toLowerCase().includes(searchTerm) || false) ||
@@ -111,14 +125,11 @@ const [matriculasSubidas, setMatriculasSubidas] = useState<string[]>([]);
     (s.respuesta_2?.toLowerCase().includes(searchTerm) || false) ||
     (s.respuesta_3?.toLowerCase().includes(searchTerm) || false);
 
-    const matchesCarrera =
-      filterCarrera.length === 0 || filterCarrera.includes(s.carrera);
+  const matchesCarrera = filterCarrera.length === 0 || filterCarrera.includes(s.carrera);
+  const matchesEstado = filterEstado.length === 0 || filterEstado.includes(s.estatus);
 
-      const matchesEstado =
-      filterEstado.length === 0 || filterEstado.includes(s.estatus);
-
-    return matchesSearch && matchesCarrera && matchesEstado;
-  });
+  return matchesSearch && matchesCarrera && matchesEstado;
+});
 
   const handleCompararMatriculas = async (matriculas: string[]) => {
   // Filtra solo las postulaciones con estado 'Aceptadx' cuya matrícula esté en el CSV
@@ -147,6 +158,27 @@ const [matriculasSubidas, setMatriculasSubidas] = useState<string[]>([]);
   setSolicitudes(solicitudesActualizadas);
   setDrawerOpen(false);
 };
+
+  // Enviar los cambios de estatus a la base de datos
+  const handleEnviar = async () => {
+    try {
+      const updates = solicitudes.filter((s, idx) => s.estatus !== solicitudesOriginal[idx]?.estatus);
+      for (const solicitud of updates) {
+        await supabase
+          .from('postulacion')
+          .update({ estatus: solicitud.estatus })
+          .eq('matricula', solicitud.matricula)
+          .eq('id_proyecto', solicitud.id_proyecto);
+      }
+      setSolicitudesOriginal([...solicitudes]);
+      setMensajeVisible(true);
+      setTimeout(() => setMensajeVisible(false), 3000); // desaparece tras 3 segundos
+
+    } catch (error) {
+      alert('Error al actualizar los estados.');
+      console.error(error);
+    }
+  };
 
 
   return (
@@ -203,12 +235,17 @@ const [matriculasSubidas, setMatriculasSubidas] = useState<string[]>([]);
                   id={0} 
                   onClick={() => setDrawerOpen(true)} 
                 />
+                <DetailButton texto="Enviar" size="auto" color="blue" id={0} onClick={handleEnviar} />
                </div>
      
                <div className="flex flex-wrap gap-4 items-center text-sm">
                  <div className="flex items-center gap-1">
                    <div className="w-4 h-4 rounded bg-green-500" />
                    <span className="text-[#001C55] font-medium">Aceptadx</span>
+                 </div>
+                 <div className="flex items-center gap-1">
+                   <div className="w-4 h-4 rounded bg-green-700" />
+                   <span className="text-[#001C55] font-medium">Aceptadx por el alumnx</span>
                  </div>
                  <div className="flex items-center gap-1">
                    <div className="w-4 h-4 rounded bg-orange-400" />
@@ -223,6 +260,10 @@ const [matriculasSubidas, setMatriculasSubidas] = useState<string[]>([]);
                    <span className="text-[#001C55] font-medium">En revisión</span>
                  </div>
                  <div className="flex items-center gap-1">
+                   <div className="w-4 h-4 rounded bg-blue-700" />
+                   <span className="text-[#001C55] font-medium">Inscritx</span>
+                 </div>
+                 <div className="flex items-center gap-1">
                    <div className="w-4 h-4 rounded bg-black" />
                    <span className="text-[#001C55] font-medium">No inscritx</span>
                  </div>
@@ -233,6 +274,12 @@ const [matriculasSubidas, setMatriculasSubidas] = useState<string[]>([]);
              <Lista data={filtered} setData={setSolicitudes} />
              </div>
            </main>
+           {mensajeVisible && (
+              <div className="fixed bottom-6 right-5 transform bg-white text-blue-900 px-6 py-2 rounded-full border border-1 transition-all duration-300 z-50">
+                Enviado satisfactoriamente.
+              </div>
+            )}
+
             {drawerOpen && (
               <>
                 {/* Fondo oscuro clicable para cerrar */}
