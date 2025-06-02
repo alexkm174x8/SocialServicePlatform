@@ -7,7 +7,7 @@ import { SearchBar } from "@/app/components/SearchBar";
 import { FilterButton } from "@/app/components/FilterButton";
 import Download from '@/app/socio/components/custom/Download';
 import {DetailButton} from "@/app/components/DetailButton";
-import { Lista } from "@/app/components/Lista";
+import { ListaSocio } from "@/app/components/ListaSocio";
 import { useRouter } from 'next/navigation';
 
 
@@ -43,6 +43,7 @@ export default function Solicitudes() {
   const [filterCarrera, setFilterCarrera] = useState<string[]>([]);
   const [filterEstado, setFilterEstado] = useState<string[]>([]);
   const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+  const [mensajeVisible, setMensajeVisible] = useState(false);
   const [solicitudesOriginal, setSolicitudesOriginal] = useState<Solicitud[]>([]); // Para comparar cambios
   const [proyectosSocio, setProyectosSocio] = useState<number[]>([]); // IDs de proyectos del socio
 
@@ -194,8 +195,9 @@ export default function Solicitudes() {
           .eq('matricula', solicitud.matricula)
           .eq('id_proyecto', solicitud.id_proyecto);
       }
-      setSolicitudesOriginal([...solicitudes]);
-      alert('Estados actualizados correctamente.');
+       setSolicitudesOriginal([...solicitudes]);
+      setMensajeVisible(true);
+      setTimeout(() => setMensajeVisible(false), 3000); 
     } catch (error) {
       alert('Error al actualizar los estados.');
       console.error(error);
@@ -288,9 +290,15 @@ export default function Solicitudes() {
              </div>
      
              <div className="rounded-lg">
-             <Lista data={filtered} setData={setSolicitudes} />
+             <ListaSocio data={filtered} setData={setSolicitudes} />
              </div>
            </main>
+            {mensajeVisible && (
+              <div className="fixed bottom-6 right-5 transform text-blue-900 px-6 py-2 rounded-full border border-1 shadow-md transition-all duration-300 z-50">
+                Enviado satisfactoriamente
+              </div>
+            )}
+
 
            {isDownloadModalOpen && (
              <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">

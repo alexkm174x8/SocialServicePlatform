@@ -275,8 +275,8 @@ const [solicitudesOriginal, setSolicitudesOriginal] = useState<Solicitud[]>([]);
              </div>
            </main>
            {mensajeVisible && (
-              <div className="fixed bottom-6 right-5 transform bg-white text-blue-900 px-6 py-2 rounded-full border border-1 transition-all duration-300 z-50">
-                Enviado satisfactoriamente.
+              <div className="fixed bottom-6 right-5 transform text-blue-900 px-6 py-2 rounded-full border border-1 shadow-md transition-all duration-300 z-50">
+                Enviado satisfactoriamente
               </div>
             )}
 
