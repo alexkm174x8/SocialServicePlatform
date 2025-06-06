@@ -101,10 +101,10 @@ const CompararDrawer: React.FC<CompararDrawerProps> = ({
     <div
       className={`fixed top-0 right-0 h-full w-[95%] max-w-md bg-white shadow-xl z-50 transform transition-transform duration-300 ${
         open ? "translate-x-0" : "-translate-x-full"
-      } border border-blue-900 rounded-r-2xl`}
+      }  rounded-r-2xl`}
     >
       {/* Encabezado */}
-      <div className="flex justify-between items-center border-b p-4 bg-[#0a2170] text-white rounded-tr-2xl">
+      <div className="flex justify-between items-center p-4 bg-[#0a2170] text-white rounded-tl-2xl">
         <h2 className="text-lg font-semibold">Subir Matriculas</h2>
         <button onClick={resetAndClose} className="hover:text-red-300">
           <X className="h-6 w-6" />

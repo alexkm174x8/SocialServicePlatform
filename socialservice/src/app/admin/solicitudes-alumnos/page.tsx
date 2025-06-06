@@ -131,32 +131,39 @@ const [solicitudesOriginal, setSolicitudesOriginal] = useState<Solicitud[]>([]);
   return matchesSearch && matchesCarrera && matchesEstado;
 });
 
-  const handleCompararMatriculas = async (matriculas: string[]) => {
-  // Filtra solo las postulaciones con estado 'Aceptadx' cuya matrícula esté en el CSV
-  const coincidencias = solicitudes.filter(
-  (s) =>
-    (s.estatus === "Aceptadx" || s.estatus === "Aceptadx por el alumnx" || s.estatus === "aceptadx por el alumnx" || s.estatus === "aceptadx") &&
-    matriculas.includes(s.matricula)
-);
+const handleComparar = async (
+  matriculas: string[],
+  modo: "inscribir" | "noInscribir"
+) => {
+  if (matriculas.length === 0) return;
 
-  // Actualiza en Supabase
-  for (const coincidencia of coincidencias) {
-    await supabase
+  const estadosValidos = [
+    "Aceptadx",
+    "Aceptadx por el alumnx",
+    "Aceptadx por el alumno",
+    "Inscritx",
+    "No inscritx"
+  ];
+
+  const nuevoEstado = modo === "inscribir" ? "Inscritx" : "No inscritx";
+
+  try {
+    const { data, error } = await supabase
       .from("postulacion")
-      .update({ estatus: "No inscritx" })
-      .eq("matricula", coincidencia.matricula)
-      .in("estatus", ["Aceptadx", "Aceptadx por el alumnx"]);
+      .update({ estado: nuevoEstado })
+      .in("matricula", matriculas)
+      .in("estatus", estadosValidos);
+
+    if (error) {
+      console.error("Error actualizando estados:", error.message);
+      alert("Hubo un error al actualizar los estados.");
+    } else {
+      alert(`Se actualizó el estado de ${data?.length || 0} postulaciones.`);
+    }
+  } catch (err) {
+    console.error("Error inesperado:", err);
+    alert("Error inesperado.");
   }
-
-  // Actualiza el estado local
-  const solicitudesActualizadas = solicitudes.map((s) =>
-    coincidencias.some((c) => c.matricula === s.matricula)
-      ? { ...s, estatus: "No inscritx" }
-      : s
-  );
-
-  setSolicitudes(solicitudesActualizadas);
-  setDrawerOpen(false);
 };
 
   // Enviar los cambios de estatus a la base de datos
@@ -275,27 +282,91 @@ const [solicitudesOriginal, setSolicitudesOriginal] = useState<Solicitud[]>([]);
              </div>
            </main>
            {mensajeVisible && (
-              <div className="fixed bottom-6 right-5 transform text-blue-900 px-6 py-2 rounded-full border border-1 shadow-md transition-all duration-300 z-50">
-                Enviado satisfactoriamente
-              </div>
-            )}
+  <div
+    className="fixed bottom-6 right-5 transform text-blue-900 px-6 py-2 rounded-full border border-1 shadow-md z-50 transition-opacity duration-700 opacity-100 animate-fade-out"
+    style={{
+      animation: "fadeOut 2s ease-in-out forwards"
+    }}
+  >
+    Enviado satisfactoriamente
+  </div>
+)}
 
-            {drawerOpen && (
-              <>
-                {/* Fondo oscuro clicable para cerrar */}
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setDrawerOpen(false)}
-                />
+{drawerOpen && (
+  <>
+    <div
+      className="fixed inset-0 z-40 "
+      onClick={() => setDrawerOpen(false)}
+    />
 
-                {/* Drawer real */}
-                <CompararDrawer
-                  open={drawerOpen}
-                  onClose={() => setDrawerOpen(false)}
-                  onComparar={handleCompararMatriculas}
-                />
-              </>
-            )}
+    <CompararDrawer
+  open={drawerOpen}
+  onClose={() => setDrawerOpen(false)}
+  onComparar={async (matriculas, modo) => {
+    if (matriculas.length === 0) return;
+
+    // Definir los estados válidos según el modo
+    const estadosValidos =
+      modo === "inscribir"
+        ? ["No inscritx", "Aceptadx por el alumnx"]
+        : ["Aceptadx por el alumnx", "Inscritx"];
+
+    const nuevoEstado = modo === "inscribir" ? "Inscritx" : "No inscritx";
+
+    try {
+      // Filtrar solo las matrículas que cumplen con el estado previo correcto
+      const matriculasValidas = solicitudes.filter(
+        (sol) =>
+          matriculas.includes(sol.matricula) &&
+          estadosValidos.includes(sol.estatus)
+      ).map((sol) => sol.matricula);
+
+      if (matriculasValidas.length === 0) {
+        alert("No hay matrículas con estados válidos para actualizar.");
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("postulacion")
+        .update({ estatus: nuevoEstado })
+        .in("matricula", matriculasValidas)
+        .in("estatus", estadosValidos);
+
+      if (error) {
+        console.error("Error actualizando estados:", error.message);
+        alert("Hubo un error al actualizar los estados.");
+      } else {
+        // Actualizar las listas en el frontend
+        setSolicitudes((prev) =>
+          prev.map((sol) =>
+            matriculasValidas.includes(sol.matricula)
+              ? { ...sol, estatus: nuevoEstado }
+              : sol
+          )
+        );
+        setSolicitudesOriginal((prev) =>
+          prev.map((sol) =>
+            matriculasValidas.includes(sol.matricula)
+              ? { ...sol, estatus: nuevoEstado }
+              : sol
+          )
+        );
+
+        setMensajeVisible(true);
+        setTimeout(() => setMensajeVisible(false), 3000);
+        alert(`Se actualizó el estado de ${matriculasValidas.length} matrículas a "${nuevoEstado}".`);
+      }
+    } catch (err) {
+      console.error("Error inesperado:", err);
+      alert("Error inesperado.");
+    }
+
+    setDrawerOpen(false);
+  }}
+/>
+
+  </>
+)}
          </>
        );
      }
