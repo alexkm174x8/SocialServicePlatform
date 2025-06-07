@@ -7,16 +7,16 @@ export async function POST(request: Request) {
     const { data: authData1, error: authError1 } = await supabaseAdmin.auth.admin.createUser({
       email: 'alelobatonss@tec.mx',
       password: 'AlejaL0b@2025!',
-      email_confirm: true,  // Auto-confirm the email
+      email_confirm: true,
       user_metadata: {
-        is_admin: true  // Set admin flag in metadata
+        is_admin: true
       }
     });
 
     if (authError1) {
-      console.error('Error creating admin user 1:', authError1);
+      console.error('Error al crear el usuario administrador 1:', authError1);
       return NextResponse.json(
-        { error: 'Failed to create admin user 1', details: authError1 },
+        { error: 'No se pudo crear el usuario administrador 1.', detalles: authError1.message || authError1 },
         { status: 500 }
       );
     }
@@ -32,25 +32,25 @@ export async function POST(request: Request) {
     });
 
     if (authError2) {
-      console.error('Error creating admin user 2:', authError2);
+      console.error('Error al crear el usuario administrador 2:', authError2);
       return NextResponse.json(
-        { error: 'Failed to create admin user 2', details: authError2 },
+        { error: 'No se pudo crear el usuario administrador 2.', detalles: authError2.message || authError2 },
         { status: 500 }
       );
     }
 
-    console.log('Successfully created admin users:', authData1, authData2);
-    return NextResponse.json({ 
-      message: 'Admin users created successfully',
-      users: [authData1.user, authData2.user]
+    console.log('Usuarios administradores creados exitosamente:', authData1, authData2);
+    return NextResponse.json({
+      mensaje: 'Usuarios administradores creados correctamente.',
+      usuarios: [authData1.user, authData2.user]
     });
 
   } catch (error) {
-    console.error('Unexpected error creating admin:', error);
+    console.error('Error inesperado al crear usuarios administradores:', error);
     return NextResponse.json(
-      { 
-        error: 'Internal server error',
-        details: error instanceof Error ? error.message : 'Unknown error'
+      {
+        error: 'Error interno del servidor.',
+        detalles: error instanceof Error ? error.message : 'Error desconocido.'
       },
       { status: 500 }
     );

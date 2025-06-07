@@ -34,7 +34,7 @@ const CompararDrawer: React.FC<CompararDrawerProps> = ({
     reader.onload = (event: ProgressEvent<FileReader>) => {
       const result = event.target?.result;
       if (!result) {
-        setErrorMessage("No se pudo leer el archivo.");
+        setErrorMessage("⚠️ No se pudo leer el archivo.");
         return;
       }
       const data = new Uint8Array(result as ArrayBuffer);
@@ -48,7 +48,7 @@ const CompararDrawer: React.FC<CompararDrawerProps> = ({
         .filter((m) => typeof m === "string" && m.trim() !== "");
 
       if (foundMatriculas.length === 0) {
-        setErrorMessage("No se encontraron valores en la columna 'matricula'.");
+        setErrorMessage("⚠️ No se encontraron valores en la columna 'matricula'.");
         return;
       }
 
@@ -82,7 +82,7 @@ const CompararDrawer: React.FC<CompararDrawerProps> = ({
     const isCSV = file.type === "text/csv";
     const isXLSX = file.name.endsWith(".xlsx");
     if (!isCSV && !isXLSX) {
-      setErrorMessage("Solo se aceptan archivos .CSV o .XLSX");
+      setErrorMessage("⚠️ Solo se aceptan archivos .CSV o .XLSX");
       return;
     }
     setFileName(file.name);
@@ -181,8 +181,11 @@ const CompararDrawer: React.FC<CompararDrawerProps> = ({
           )}
         </div>
 
+        {/* Alerta de error */}
         {errorMessage && (
-          <div className="text-red-600 text-sm font-medium">{errorMessage}</div>
+          <div className="text-red-600 text-sm font-semibold border border-red-400 bg-red-100 rounded-lg p-2">
+            {errorMessage}
+          </div>
         )}
 
         {/* Botón de acción */}

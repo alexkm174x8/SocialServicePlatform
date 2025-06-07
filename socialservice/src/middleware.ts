@@ -21,14 +21,19 @@ export async function middleware(req: NextRequest) {
     const user = session?.user
     const isSocio = !!user?.user_metadata?.id_proyecto
 
-    // Si no hay sesión y la ruta es protegida, redirige a /
+    // 🔐 Si no hay sesión y la ruta es protegida, redirige a /error
     if (!session && (
       path.startsWith('/admin') || 
       path.startsWith('/alumno') || 
       path.startsWith('/socio'))
-    ) 
+    ) {
+      const redirectUrl = req.nextUrl.clone()
+      redirectUrl.pathname = '/error'
+      redirectUrl.searchParams.set('error', 'No tienes una sesión activa. Inicia sesión para continuar.')
+      return NextResponse.redirect(redirectUrl)
+    }
 
-    // Si es socio y accede a rutas no permitidas, redirige a /socio
+    // 👤 Si es socio y accede a rutas no permitidas, redirige a /socio
     if (session && isSocio && (
       path === '/' || 
       path === '/loginAdmin' || 
@@ -39,7 +44,7 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(redirectUrl)
     }
 
-    // Si es alumno y accede a rutas no permitidas, redirige a /alumno/explorar
+    // 🎓 Si es alumno y accede a rutas no permitidas, redirige a /alumno/explorar
     if (session && !isSocio && (
       path === '/' || 
       path === '/loginAdmin' || 
@@ -52,12 +57,15 @@ export async function middleware(req: NextRequest) {
 
     return res
   } catch (error) {
-    console.error('Middleware error:', error)
-    return NextResponse.next()
+    console.error('Middleware error inesperado:', error)
+    const redirectUrl = req.nextUrl.clone()
+    redirectUrl.pathname = '/error'
+    redirectUrl.searchParams.set('error', 'Ocurrió un error inesperado en la autenticación.')
+    return NextResponse.redirect(redirectUrl)
   }
 }
 
-// Agrega /loginS al matcher
+// 🧭 Aplica el middleware a rutas clave
 export const config = {
   matcher: ['/', '/loginAdmin', '/loginS', '/admin/:path*', '/alumno/:path*', '/socio/:path*'],
 }

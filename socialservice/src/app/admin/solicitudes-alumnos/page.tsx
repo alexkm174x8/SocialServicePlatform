@@ -37,6 +37,8 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+
+
 export default function Solicitud() {
   const [search, setSearch] = useState("");
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([]);
@@ -47,11 +49,12 @@ export default function Solicitud() {
   const [mensajeVisible, setMensajeVisible] = useState(false);
 const [matriculasSubidas, setMatriculasSubidas] = useState<string[]>([]);
 const [solicitudesOriginal, setSolicitudesOriginal] = useState<Solicitud[]>([]);
+const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-
-
-  
-
+const showToast = (msg: string) => {
+  setToastMessage(msg);
+  setTimeout(() => setToastMessage(null), 4000);
+};
 
   useEffect(() => {
     const fetchProyectos = async () => {
@@ -155,14 +158,16 @@ const handleComparar = async (
       .in("estatus", estadosValidos);
 
     if (error) {
-      console.error("Error actualizando estados:", error.message);
-      alert("Hubo un error al actualizar los estados.");
-    } else {
-      alert(`Se actualizó el estado de ${data?.length || 0} postulaciones.`);
-    }
+  console.error("Error actualizando estados:", error.message);
+  showToast("Hubo un error al actualizar los estados.");
+} else {
+  showToast(`Se actualizó el estado de ${data?.length} matrículas a "${nuevoEstado}".`);
+}
+
   } catch (err) {
     console.error("Error inesperado:", err);
-    alert("Error inesperado.");
+    showToast("Hubo un error al actualizar los estados.");
+
   }
 };
 
@@ -182,7 +187,8 @@ const handleComparar = async (
       setTimeout(() => setMensajeVisible(false), 3000); // desaparece tras 3 segundos
 
     } catch (error) {
-      alert('Error al actualizar los estados.');
+      showToast("Hubo un error al actualizar los estados.");
+
       console.error(error);
     }
   };
@@ -322,9 +328,10 @@ const handleComparar = async (
       ).map((sol) => sol.matricula);
 
       if (matriculasValidas.length === 0) {
-        alert("No hay matrículas con estados válidos para actualizar.");
-        return;
-      }
+  showToast("No hay matrículas con estados válidos para actualizar.");
+  return;
+}
+
 
       const { data, error } = await supabase
         .from("postulacion")
@@ -334,7 +341,7 @@ const handleComparar = async (
 
       if (error) {
         console.error("Error actualizando estados:", error.message);
-        alert("Hubo un error al actualizar los estados.");
+        showToast("Hubo un error al actualizar los estados.");
       } else {
         // Actualizar las listas en el frontend
         setSolicitudes((prev) =>
@@ -354,19 +361,34 @@ const handleComparar = async (
 
         setMensajeVisible(true);
         setTimeout(() => setMensajeVisible(false), 3000);
-        alert(`Se actualizó el estado de ${matriculasValidas.length} matrículas a "${nuevoEstado}".`);
+        showToast(`Se actualizó el estado de ${matriculasValidas.length} matrículas a "${nuevoEstado}".`);
       }
     } catch (err) {
       console.error("Error inesperado:", err);
-      alert("Error inesperado.");
+      showToast("Hubo un error al actualizar los estados.");
+
     }
 
     setDrawerOpen(false);
   }}
+  
 />
 
   </>
+
 )}
+{toastMessage && (
+  <div
+    className="fixed bottom-6 right-5 bg-blue-100 border border-blue-400 text-blue-900 px-6 py-2 rounded shadow-md z-50 animate-fade-out"
+    style={{
+      animation: "fadeOut 3s ease-in-out forwards"
+    }}
+  >
+    {toastMessage}
+  </div>
+)}
+
          </>
+         
        );
      }

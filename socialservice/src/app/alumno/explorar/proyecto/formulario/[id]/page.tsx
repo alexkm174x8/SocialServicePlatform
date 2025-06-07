@@ -139,9 +139,9 @@ export default function Formulario() {
 
   const regexMap: { [key: string]: { regex: RegExp; message: string } } = {
     nombre: {
-      regex: /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{3,}$/,
-      message: "Nombre inválido. Usa solo letras y mínimo 3 caracteres.",
-    },
+  regex: /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]{3,50}$/,
+  message: "Nombre inválido. Usa solo letras, entre 3 y 50 caracteres.",
+},
     matricula: {
       regex: /^[Aa]\d{8}$/,
       message: "Matrícula inválida. Debe iniciar con 'A' o 'a' seguido de 8 números.",
@@ -159,17 +159,18 @@ export default function Formulario() {
       message: "Teléfono inválido. Debe contener exactamente 10 dígitos.",
     },
     r1: {
-      regex: /^.{10,}$/,
-      message: "La respuesta debe tener al menos 10 caracteres.",
-    },
-    r2: {
-      regex: /^.{10,}$/,
-      message: "La respuesta debe tener al menos 10 caracteres.",
-    },
-    r3: {
-      regex: /^.{10,}$/,
-      message: "La respuesta debe tener al menos 10 caracteres.",
-    },
+  regex: /^.{10,300}$/,
+  message: "La respuesta debe tener entre 10 y 300 caracteres.",
+},
+r2: {
+  regex: /^.{10,300}$/,
+  message: "La respuesta debe tener entre 10 y 300 caracteres.",
+},
+r3: {
+  regex: /^.{10,300}$/,
+  message: "La respuesta debe tener entre 10 y 300 caracteres.",
+},
+
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -221,7 +222,7 @@ export default function Formulario() {
         .insert({
           matricula: form.matricula,
           id_proyecto: project.id_proyecto,
-          estatus: "postulado",
+          estatus: "Postulado",
           nombre: form.nombre,
           carrera: form.carreraCompleta,
           email: session.user.email, // Use the email from session instead of form

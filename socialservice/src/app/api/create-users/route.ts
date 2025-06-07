@@ -9,104 +9,97 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    console.log('Received request body:', JSON.stringify(body, null, 2));
+    console.log('🟡 Solicitud recibida:', JSON.stringify(body, null, 2));
     
     const { projects } = body;
 
     if (!Array.isArray(projects)) {
-      console.error('Invalid request format - projects is not an array:', projects);
-      return NextResponse.json({ error: 'Invalid request format' }, { status: 400 });
+      console.error('❌ Formato inválido: projects no es un arreglo:', projects);
+      return NextResponse.json({ error: 'Formato de solicitud inválido. Se esperaba un arreglo de proyectos.' }, { status: 400 });
     }
 
     if (projects.length === 0) {
-      console.error('No projects provided in request');
-      return NextResponse.json({ error: 'No projects provided' }, { status: 400 });
+      console.error('❌ No se proporcionaron proyectos en la solicitud');
+      return NextResponse.json({ error: 'No se proporcionaron proyectos para procesar.' }, { status: 400 });
     }
 
-    console.log(`Processing ${projects.length} projects`);
+    console.log(`🔄 Procesando ${projects.length} proyectos...`);
     const results = [];
 
     for (const { proyecto, correo, id_proyecto } of projects) {
       try {
-        console.log(`\nProcessing project: ${JSON.stringify({ proyecto, correo }, null, 2)}`);
+        console.log(`\n📌 Proyecto actual: ${JSON.stringify({ proyecto, correo }, null, 2)}`);
 
         if (!proyecto || !correo) {
-          console.error('Missing required fields:', { proyecto, correo });
+          console.error('⚠️ Faltan campos requeridos:', { proyecto, correo });
           results.push({ 
-            proyecto: proyecto || 'unknown', 
+            proyecto: proyecto || 'desconocido', 
             success: false, 
-            error: 'Missing required fields: proyecto or correo' 
+            error: 'Faltan campos requeridos: proyecto o correo.' 
           });
           continue;
         }
 
-        // Generate auth email and password
+        // Generar email y contraseña ficticios
         const authMail = proyecto
           .normalize("NFD")
           .replace(/[\u0300-\u036f]/g, "")
           .replace(/[^a-zA-Z0-9]/g, "")
           .toLowerCase() + '@gmail.com';
 
-        console.log(`Generated credentials for ${proyecto}:`, {
-          authMail,
-          correo
-        });
-
         const password = Array.from(crypto.getRandomValues(new Uint32Array(12)))
           .map(num => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-='[num % 72])
           .join('');
 
-        // Create user in Supabase
-        console.log(`Attempting to create Supabase user for ${proyecto}`);
+        console.log(`✅ Credenciales generadas para ${proyecto}:`, { authMail });
+
+        // Crear usuario en Supabase
         const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
           email: authMail,
-          password: password,
-          email_confirm: true,  // This will create the user without requiring email verification
+          password,
+          email_confirm: true,
           user_metadata: {
-            id_proyecto: id_proyecto  // Add the project ID to user metadata
+            id_proyecto
           }
         });
 
         if (authError) {
-          console.error(`Error creating Supabase user for ${proyecto}:`, JSON.stringify(authError, null, 2));
+          console.error(`❌ Error creando usuario para ${proyecto}:`, authError.message);
           results.push({ 
             proyecto, 
             success: false, 
-            error: `User creation failed: ${authError.message}`,
+            error: `No se pudo crear el usuario: ${authError.message}`,
             details: authError
           });
           continue;
         }
 
-        console.log(`Successfully created Supabase user for ${proyecto}:`, JSON.stringify(authData, null, 2));
+        // Insertar en tabla socioformador
+        const { error: insertError } = await supabaseAdmin
+          .from('socioformador')
+          .insert({
+            correo: authMail,
+            id_proyecto
+          });
 
-        const { data , error } = await supabaseAdmin
-            .from('socioformador')
-            .insert({
-              correo: authMail,  // Using authMail instead of correo since that's the fake email we created
-              id_proyecto: id_proyecto
-            })
+        if (insertError && insertError.code !== 'PGRST116') {
+          console.error('❌ Error insertando en socioformador:', insertError.message);
+          results.push({ 
+            proyecto, 
+            success: false, 
+            error: `No se pudo guardar el socio formador: ${insertError.message}`,
+            details: insertError
+          });
+          continue;
+        }
 
-          if (error && error.code !== 'PGRST116') {
-            console.error("Error inserting into socioformador table:", error);
-            results.push({ 
-              proyecto, 
-              success: false, 
-              error: `Database insert failed: ${error.message}`,
-              details: error
-            });
-            continue;
-          }
-
-        // Send welcome email
-        console.log(`Preparing email template for ${proyecto}`);
+        // Enviar correo
         const emailBody = await EmailTemplate({ 
           projectName: proyecto, 
           username: authMail, 
           password 
         });
 
-        console.log(`Attempting to send email to ${correo}`);
         const { error: emailError } = await resend.emails.send({
           from: 'Servicio Social TEC <onboarding@resend.dev>',
           to: [correo],
@@ -115,59 +108,52 @@ export async function POST(request: Request) {
         });
 
         if (emailError) {
-          console.error(`Error sending email for ${proyecto}:`, JSON.stringify(emailError, null, 2));
+          console.error(`❌ Error enviando correo a ${correo}:`, emailError.message);
           results.push({ 
             proyecto, 
             success: false, 
-            error: `Email sending failed: ${emailError.message}`,
+            error: `No se pudo enviar el correo: ${emailError.message}`,
             details: emailError
           });
           continue;
         }
 
-        console.log(`Successfully sent email to ${correo}`);
+        console.log(`✅ Usuario creado y correo enviado a ${correo}`);
         results.push({ 
           proyecto, 
           success: true,
           authMail
         });
+
       } catch (err) {
-        console.error(`Unexpected error for ${proyecto}:`, err instanceof Error ? err.stack : err);
+        console.error(`❌ Error inesperado en proyecto ${proyecto}:`, err);
         results.push({ 
           proyecto, 
           success: false, 
-          error: err instanceof Error ? err.message : 'Unknown error',
+          error: err instanceof Error ? err.message : 'Error desconocido',
           details: err
         });
       }
     }
 
-    // Log final results
-    console.log('\nUser creation process completed with results:', JSON.stringify(results, null, 2));
-    console.log('Summary:', {
+    // Resultado final
+    const resumen = {
       total: projects.length,
-      successful: results.filter(r => r.success).length,
-      failed: results.filter(r => !r.success).length
-    });
+      exitosos: results.filter(r => r.success).length,
+      fallidos: results.filter(r => !r.success).length
+    };
 
-    return NextResponse.json({ 
-      message: 'User creation process completed',
-      results,
-      summary: {
-        total: projects.length,
-        successful: results.filter(r => r.success).length,
-        failed: results.filter(r => !r.success).length
-      }
-    });
+    console.log('🟢 Proceso finalizado:', JSON.stringify(resumen, null, 2));
+    return NextResponse.json({ mensaje: 'Proceso de creación finalizado.', resultados: results, resumen });
 
   } catch (error) {
-    console.error('Error in create-users route:', error instanceof Error ? error.stack : error);
+    console.error('❌ Error general en la ruta create-users:', error);
     return NextResponse.json(
       { 
-        error: 'Internal server error',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        error: 'Error interno del servidor.',
+        detalles: error instanceof Error ? error.message : 'Error desconocido.'
       },
       { status: 500 }
     );
   }
-} 
+}
