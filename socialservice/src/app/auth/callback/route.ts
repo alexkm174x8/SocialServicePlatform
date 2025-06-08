@@ -4,58 +4,69 @@ import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
-  
+
   try {
     const code = requestUrl.searchParams.get('code')
     const error = requestUrl.searchParams.get('error')
     const error_description = requestUrl.searchParams.get('error_description')
 
-    // Handle OAuth errors
+    // Manejar errores OAuth
     if (error) {
-      console.error('OAuth error:', error, error_description)
+      console.error('Error de autenticación OAuth:', error, error_description)
       return NextResponse.redirect(
-        `${requestUrl.origin}/?error=${encodeURIComponent(error_description || 'Authentication failed')}`
+        `${requestUrl.origin}/?error=${encodeURIComponent(
+          error_description || 'Error en la autenticación con el proveedor externo.'
+        )}`
       )
     }
 
-    // Handle missing code
+    // Manejar código faltante
     if (!code) {
-      console.error('No code provided in callback')
+      console.error('No se proporcionó código en el callback')
       return NextResponse.redirect(
-        `${requestUrl.origin}/?error=${encodeURIComponent('Authentication code missing')}`
+        `${requestUrl.origin}/?error=${encodeURIComponent(
+          'Código de autenticación no encontrado. Intenta iniciar sesión nuevamente.'
+        )}`
       )
     }
 
     const supabase = createRouteHandlerClient({ cookies })
-    
-    // Exchange the code for a session
-    const { data: { session }, error: sessionError } = await supabase.auth.exchangeCodeForSession(code)
-    
+
+    // Intercambiar código por sesión
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.exchangeCodeForSession(code)
+
     if (sessionError) {
-      console.error('Session error:', sessionError)
+      console.error('Error al crear sesión:', sessionError)
       return NextResponse.redirect(
-        `${requestUrl.origin}/?error=${encodeURIComponent(sessionError.message)}`
+        `${requestUrl.origin}/?error=${encodeURIComponent(
+          'No se pudo establecer la sesión. Por favor, intenta de nuevo.'
+        )}`
       )
     }
 
-    // Verify email domain
+    // Validar dominio del correo
     const email = session?.user?.email
     if (!email?.endsWith('@tec.mx')) {
-      console.error('Invalid email domain:', email)
-      // Sign out the user if they don't have a tec.mx email
+      console.error('Correo no permitido:', email)
       await supabase.auth.signOut()
       return NextResponse.redirect(
-        `${requestUrl.origin}/?error=${encodeURIComponent('Only @tec.mx accounts are allowed')}`
+        `${requestUrl.origin}/?error=${encodeURIComponent(
+          'Solo se permiten correos institucionales @tec.mx.'
+        )}`
       )
     }
 
-    // Successful login - redirect to explorar
+    // Éxito
     return NextResponse.redirect(`${requestUrl.origin}/alumno/explorar`)
-
   } catch (error: any) {
-    console.error('Unexpected error in auth callback:', error)
+    console.error('Error inesperado en el callback de autenticación:', error)
     return NextResponse.redirect(
-      `${requestUrl.origin}/?error=${encodeURIComponent('An unexpected error occurred')}`
+      `${requestUrl.origin}/?error=${encodeURIComponent(
+        'Ocurrió un error inesperado. Por favor, intenta más tarde.'
+      )}`
     )
   }
-} 
+}

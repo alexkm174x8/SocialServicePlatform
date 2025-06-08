@@ -7,7 +7,7 @@ import * as XLSX from "xlsx";
 interface CompararDrawerProps {
   open: boolean;
   onClose: () => void;
-  onComparar: (matriculas: string[]) => void;
+  onComparar: (matriculas: string[], modo: "inscribir" | "noInscribir") => void;
 }
 
 const CompararDrawer: React.FC<CompararDrawerProps> = ({
@@ -18,13 +18,14 @@ const CompararDrawer: React.FC<CompararDrawerProps> = ({
   const [matriculas, setMatriculas] = useState<string[]>([]);
   const [fileName, setFileName] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [modo, setModo] = useState<"inscribir" | "noInscribir">("noInscribir");
 
-  // 💡 Este efecto reinicia los estados cuando se cierra el drawer
   useEffect(() => {
     if (!open) {
       setMatriculas([]);
       setFileName(null);
       setErrorMessage(null);
+      setModo("noInscribir");
     }
   }, [open]);
 
@@ -33,7 +34,7 @@ const CompararDrawer: React.FC<CompararDrawerProps> = ({
     reader.onload = (event: ProgressEvent<FileReader>) => {
       const result = event.target?.result;
       if (!result) {
-        setErrorMessage("No se pudo leer el archivo.");
+        setErrorMessage("⚠️ No se pudo leer el archivo.");
         return;
       }
       const data = new Uint8Array(result as ArrayBuffer);
@@ -47,7 +48,7 @@ const CompararDrawer: React.FC<CompararDrawerProps> = ({
         .filter((m) => typeof m === "string" && m.trim() !== "");
 
       if (foundMatriculas.length === 0) {
-        setErrorMessage("No se encontraron valores en la columna 'matricula'.");
+        setErrorMessage("⚠️ No se encontraron valores en la columna 'matricula'.");
         return;
       }
 
@@ -81,7 +82,7 @@ const CompararDrawer: React.FC<CompararDrawerProps> = ({
     const isCSV = file.type === "text/csv";
     const isXLSX = file.name.endsWith(".xlsx");
     if (!isCSV && !isXLSX) {
-      setErrorMessage("Solo se aceptan archivos .CSV o .XLSX");
+      setErrorMessage("⚠️ Solo se aceptan archivos .CSV o .XLSX");
       return;
     }
     setFileName(file.name);
@@ -89,26 +90,25 @@ const CompararDrawer: React.FC<CompararDrawerProps> = ({
   };
 
   const resetAndClose = () => {
-  setMatriculas([]);
-  setFileName(null);
-  setErrorMessage(null);
-  onClose(); // 👈 Esto es el que cierra realmente
-};
-
+    setMatriculas([]);
+    setFileName(null);
+    setErrorMessage(null);
+    setModo("noInscribir");
+    onClose();
+  };
 
   return (
     <div
       className={`fixed top-0 right-0 h-full w-[95%] max-w-md bg-white shadow-xl z-50 transform transition-transform duration-300 ${
         open ? "translate-x-0" : "-translate-x-full"
-      } border border-blue-900 rounded-r-2xl`}
+      }  rounded-r-2xl`}
     >
       {/* Encabezado */}
-      <div className="flex justify-between items-center border-b p-4 bg-[#0a2170] text-white rounded-tr-2xl">
-        <h2 className="text-lg font-semibold">Subir No Inscritxs</h2>
+      <div className="flex justify-between items-center p-4 bg-[#0a2170] text-white rounded-tl-2xl">
+        <h2 className="text-lg font-semibold">Subir Matriculas</h2>
         <button onClick={resetAndClose} className="hover:text-red-300">
           <X className="h-6 w-6" />
         </button>
-
       </div>
 
       {/* Contenido */}
@@ -128,7 +128,7 @@ const CompararDrawer: React.FC<CompararDrawerProps> = ({
             </label>{" "}
             en tu explorador
           </p>
-          <p className="text-[11px] text-gray-600">Se aceptan subir archivos .CSV o .XLSX</p>
+          <p className="text-[11px] text-gray-600">Se aceptan archivos .CSV o .XLSX</p>
           <input
             id="file-upload"
             type="file"
@@ -139,6 +139,30 @@ const CompararDrawer: React.FC<CompararDrawerProps> = ({
           {fileName && (
             <p className="text-sm text-green-700 truncate">{fileName}</p>
           )}
+        </div>
+
+        {/* Switch de modo */}
+        <div className="flex justify-center gap-4 mt-1">
+          <button
+            onClick={() => setModo("inscribir")}
+            className={`px-4 py-1 rounded-full text-sm font-semibold border ${
+              modo === "inscribir"
+                ? "bg-blue-900 text-white border-blue-900"
+                : "bg-white text-blue-900 border-blue-900"
+            }`}
+          >
+            Modo: Inscritxs
+          </button>
+          <button
+            onClick={() => setModo("noInscribir")}
+            className={`px-4 py-1 rounded-full text-sm font-semibold border ${
+              modo === "noInscribir"
+                ? "bg-blue-900 text-white border-blue-900"
+                : "bg-white text-blue-900 border-blue-900"
+            }`}
+          >
+            Modo: No Inscritxs
+          </button>
         </div>
 
         {/* Lista de matrículas */}
@@ -157,13 +181,16 @@ const CompararDrawer: React.FC<CompararDrawerProps> = ({
           )}
         </div>
 
+        {/* Alerta de error */}
         {errorMessage && (
-          <div className="text-red-600 text-sm font-medium">{errorMessage}</div>
+          <div className="text-red-600 text-sm font-semibold border border-red-400 bg-red-100 rounded-lg p-2">
+            {errorMessage}
+          </div>
         )}
 
         {/* Botón de acción */}
         <button
-          onClick={() => onComparar(matriculas)}
+          onClick={() => onComparar(matriculas, modo)}
           disabled={matriculas.length === 0}
           className="mt-4 w-full bg-[#0a2170] hover:bg-[#00144d] text-white font-semibold py-2 px-4 rounded-full transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
         >

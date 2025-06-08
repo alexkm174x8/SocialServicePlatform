@@ -7,6 +7,9 @@ import { LogOutModal } from "../../../components/LogOutModal";
 export function SideBar() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [loadingLogout, setLoadingLogout] = useState(false);
+  const [logoutError, setLogoutError] = useState<string | null>(null);
+
   const router = useRouter();
   const pathname = usePathname();
 
@@ -15,11 +18,16 @@ export function SideBar() {
   };
 
   const handleLogoutConfirm = async () => {
+    setLoadingLogout(true);
+    setLogoutError(null);
     try {
       await supabase.auth.signOut();
       router.push("/");
     } catch (error) {
-      console.error("Error signing out:", error);
+      console.error("Error al cerrar sesión:", error);
+      setLogoutError("Ocurrió un error al cerrar sesión. Intenta de nuevo.");
+    } finally {
+      setLoadingLogout(false);
     }
   };
 
@@ -74,13 +82,22 @@ export function SideBar() {
           </nav>
         </div>
 
-        <button
-          className="flex items-center gap-3 p-2 rounded-md text-white hover:text-black hover:bg-white transition"
-          onClick={() => setShowLogoutModal(true)}
-        >
-          <LogOut size={24} />
-          {isSidebarOpen && <span>Cerrar sesión</span>}
-        </button>
+        <div>
+          <button
+            className="flex items-center gap-3 p-2 rounded-md text-white hover:text-black hover:bg-white transition"
+            onClick={() => setShowLogoutModal(true)}
+          >
+            <LogOut size={24} />
+            {isSidebarOpen && <span>Cerrar sesión</span>}
+          </button>
+
+          {logoutError && (
+            <p className="text-red-400 text-sm mt-2">{logoutError}</p>
+          )}
+          {loadingLogout && (
+            <p className="text-white text-sm mt-2 animate-pulse">Cerrando sesión...</p>
+          )}
+        </div>
       </div>
 
       {showLogoutModal && (

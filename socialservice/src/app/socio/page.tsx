@@ -48,6 +48,14 @@ export default function Solicitudes() {
   const [proyectosSocio, setProyectosSocio] = useState<number[]>([]); // IDs de proyectos del socio
   const [nombreProyecto, setNombreProyecto] = useState<string>("");
 
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+const showToast = (msg: string) => {
+  setToastMessage(msg);
+  setTimeout(() => setToastMessage(null), 4000);
+};
+
+
   // Single auth check effect
   useEffect(() => {
     let mounted = true;
@@ -195,7 +203,7 @@ export default function Solicitudes() {
     (s.matricula?.toLowerCase().includes(searchTerm) || false) ||
     (s.email?.toLowerCase().includes(searchTerm) || false) ||
     (s.carrera?.toLowerCase().includes(searchTerm) || false) ||
-    (s.numero?.toLowerCase().includes(searchTerm) || false) ||
+    (String(s.numero || '').toLowerCase().includes(searchTerm)) ||
     (s.respuesta_1?.toLowerCase().includes(searchTerm) || false) ||
     (s.respuesta_2?.toLowerCase().includes(searchTerm) || false) ||
     (s.respuesta_3?.toLowerCase().includes(searchTerm) || false);
@@ -222,7 +230,7 @@ export default function Solicitudes() {
       setMensajeVisible(true);
       setTimeout(() => setMensajeVisible(false), 3000); 
     } catch (error) {
-      alert('Error al actualizar los estados.');
+      showToast("Hubo un error al actualizar los estados.");
       console.error(error);
     }
   };
@@ -230,6 +238,21 @@ export default function Solicitudes() {
   if (isLoading) {
     return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
   }
+
+  if (!isLoading && solicitudes.length === 0) {
+  return (
+    <>
+      <HeaderBarSocio proyecto="Special Olympics" />
+      <main className="mt-28 px-6 flex flex-col items-center justify-center min-h-[60vh] text-center">
+        <p className="text-gray-700 text-lg font-medium mb-4">
+          Aún no hay postulaciones para tus proyectos.
+        </p>
+        <p className="text-sm text-gray-500">Vuelve más tarde o asegúrate de que tus proyectos estén visibles.</p>
+      </main>
+    </>
+  );
+}
+
 
   return (
     <>
@@ -328,6 +351,17 @@ export default function Solicitudes() {
                <Download onClose={() => setIsDownloadModalOpen(false)} />
              </div>
            )}
+
+           {toastMessage && (
+  <div
+    className="fixed bottom-6 right-5 bg-blue-100 border border-blue-400 text-blue-900 px-6 py-2 rounded shadow-md z-50 animate-fade-out"
+    style={{
+      animation: "fadeOut 3s ease-in-out forwards"
+    }}
+  >
+    {toastMessage}
+  </div>
+)}
          </>
        );
      }
