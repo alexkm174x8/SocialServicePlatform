@@ -46,6 +46,7 @@ export default function Solicitudes() {
   const [mensajeVisible, setMensajeVisible] = useState(false);
   const [solicitudesOriginal, setSolicitudesOriginal] = useState<Solicitud[]>([]); // Para comparar cambios
   const [proyectosSocio, setProyectosSocio] = useState<number[]>([]); // IDs de proyectos del socio
+  const [nombreProyecto, setNombreProyecto] = useState<string>("");
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -106,6 +107,28 @@ const showToast = (msg: string) => {
       }
       const ids = socioData?.map((row) => row.id_proyecto) || [];
       setProyectosSocio(ids);
+      // Si solo hay un proyecto, obtener el nombre
+      if (ids.length === 1) {
+        const { data: proyectoData, error: errorProyecto } = await supabase
+          .from('proyectos_solidarios')
+          .select('proyecto')
+          .eq('id_proyecto', ids[0])
+          .single();
+        if (!errorProyecto && proyectoData) {
+          setNombreProyecto(proyectoData.proyecto);
+        }
+      } else if (ids.length > 1) {
+        // Si hay varios proyectos, puedes mostrar el primero o concatenar los nombres
+        const { data: proyectosData, error: errorProyectos } = await supabase
+          .from('proyectos_solidarios')
+          .select('proyecto')
+          .in('id_proyecto', ids);
+        if (!errorProyectos && proyectosData) {
+          setNombreProyecto(proyectosData.map((p: any) => p.proyecto).join(', '));
+        }
+      } else {
+        setNombreProyecto("");
+      }
       return ids;
     };
 
@@ -234,7 +257,7 @@ const showToast = (msg: string) => {
   return (
     <>
       <HeaderBarSocio
-        proyecto="Special Olympics"
+        proyecto={nombreProyecto}
       />
 
      <main className="mt-28 px-15">

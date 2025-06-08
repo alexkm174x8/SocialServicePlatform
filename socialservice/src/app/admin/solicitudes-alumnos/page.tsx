@@ -49,6 +49,7 @@ export default function Solicitud() {
   const [mensajeVisible, setMensajeVisible] = useState(false);
 const [matriculasSubidas, setMatriculasSubidas] = useState<string[]>([]);
 const [solicitudesOriginal, setSolicitudesOriginal] = useState<Solicitud[]>([]);
+  
 const [toastMessage, setToastMessage] = useState<string | null>(null);
 
 const showToast = (msg: string) => {
@@ -188,7 +189,6 @@ const handleComparar = async (
 
     } catch (error) {
       showToast("Hubo un error al actualizar los estados.");
-
       console.error(error);
     }
   };
@@ -288,6 +288,7 @@ const handleComparar = async (
              </div>
            </main>
            {mensajeVisible && (
+        
   <div
     className="fixed bottom-6 right-5 transform text-blue-900 px-6 py-2 rounded-full border border-1 shadow-md z-50 transition-opacity duration-700 opacity-100 animate-fade-out"
     style={{
