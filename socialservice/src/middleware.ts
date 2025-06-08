@@ -33,6 +33,11 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(redirectUrl)
     }
 
+    {/*
+      Usuario: viviendonuestrastradiciones@gmail.com
+Contraseña: $*iTPFz4^xs9
+      */}
+
     // 👤 Si es socio y accede a rutas no permitidas, redirige a /socio
     if (session && isSocio && (
       path === '/' || 

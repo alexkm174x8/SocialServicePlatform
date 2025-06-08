@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
   try {
-    // Crear usuario admin 1
+    // Usuario admin 1
     const { data: authData1, error: authError1 } = await supabaseAdmin.auth.admin.createUser({
       email: 'alelobatonss@tec.mx',
       password: 'AlejaL0b@2025!',
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Crear usuario admin 2
+    // Usuario admin 2
     const { data: authData2, error: authError2 } = await supabaseAdmin.auth.admin.createUser({
       email: 'maribelramirezss@tec.mx',
       password: 'MarR@m!2025',

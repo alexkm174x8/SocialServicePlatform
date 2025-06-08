@@ -127,7 +127,7 @@ export default function LoginAdmin() {
             INICIAR SESIÓN
           </h2>
           <p className="text-gray-600 text-lg">
-            Hola, inicia sesión con tu cuenta registrada.
+            ¡Hola! Inicia sesión con tu cuenta registrada.
           </p>
 
           {error && (

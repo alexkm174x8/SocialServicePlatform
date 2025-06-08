@@ -19,7 +19,7 @@ export default function Login() {
 
         <div className="text-left w-full max-w-sm mt-10">
           <h1 className="text-7xl font-extrabold leading-snug">
-            Hola, <br /> Borrego!
+            ¡Hola, <br /> Borrego!
           </h1>
         </div>
       </div>
@@ -31,7 +31,7 @@ export default function Login() {
             INICIAR SESIÓN
           </h2>
           <p className="text-gray-600 text-lg">
-            Hola, inicia sesión con tu cuenta institucional.
+            ¡Hola! Inicia sesión con tu cuenta institucional.
           </p>
 
           <button

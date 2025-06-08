@@ -151,7 +151,7 @@ export default function LoginSocioformador() {
 
         <div className="text-left w-full max-w-lg mt-10">
           <h1 className="text-5xl md:text-6xl font-extrabold leading-snug">
-            Hola, <br /> Socioformador!
+            ¡Hola, <br /> Socioformador!
           </h1>
         </div>
       </div>
@@ -163,7 +163,7 @@ export default function LoginSocioformador() {
             INICIAR SESIÓN
           </h2>
           <p className="text-gray-600 text-lg">
-            Hola, inicia sesión con tu cuenta registrada.
+            ¡Hola! Inicia sesión con tu cuenta registrada.
           </p>
 
           {error && (
