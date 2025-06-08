@@ -55,7 +55,10 @@ const fetchProjects = async (userEmail: string) => {
   const appliedProjectIds = new Set(postulaciones?.map(p => p.id_proyecto) || []);
 
   // Filter out projects that the user has already applied to
-  const availableProjects = projects?.filter(project => !appliedProjectIds.has(project.id_proyecto)) || [];
+  // Filtra proyectos con cupos > 0 y que el usuario no haya solicitado
+const availableProjects = projects?.filter(
+  project => project.cupos > 0 && !appliedProjectIds.has(project.id_proyecto)
+) || [];
 
   return availableProjects;
 };
