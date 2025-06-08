@@ -249,6 +249,7 @@ const handleComparar = async (
                   onClick={() => setDrawerOpen(true)} 
                 />
                 <DetailButton texto="Enviar" size="auto" color="blue" id={0} onClick={handleEnviar} />
+               
                </div>
      
                <div className="flex flex-wrap gap-4 items-center text-sm">
