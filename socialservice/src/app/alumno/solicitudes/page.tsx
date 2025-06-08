@@ -129,6 +129,32 @@ const ActionButton = ({ texto, size, colorClass = 'bg-blue-400 hover:bg-blue-900
 )
 
 const ProgressTrackerCard = ({ title, requestedDate, actionLabel, steps, id_proyecto }: CardProps) => {
+  const incrementarCupos = async () => {
+  const { data, error } = await supabase
+    .from('proyectos_solidarios')
+    .select('cupos')
+    .eq('id_proyecto', id_proyecto)
+    .single()
+
+  if (error) {
+    console.error("Error al obtener cupos:", error)
+    return
+  }
+
+  const nuevoCupo = data.cupos + 1
+
+  const { error: updateError } = await supabase
+    .from('proyectos_solidarios')
+    .update({ cupos: nuevoCupo })
+    .eq('id_proyecto', id_proyecto)
+
+  if (updateError) {
+    console.error("Error al actualizar cupos:", updateError)
+  } else {
+    console.log("Cupo incrementado correctamente")
+  }
+}
+
   const router = useRouter()
   const [localSteps, setLocalSteps] = useState<Step[]>([])
   const [isResponding, setIsResponding] = useState(false)
@@ -149,6 +175,10 @@ const ProgressTrackerCard = ({ title, requestedDate, actionLabel, steps, id_proy
           const status = data.estatus.toLowerCase() as DBStatus
           console.log('Fetched DB status:', status)
           setCurrentDBStatus(status)
+          if (["no aceptadx", "declinadx por el alumnx", "no inscritx"].includes(status)) {
+  await incrementarCupos()
+}
+
         }
       } catch (error) {
         console.error('Error fetching status:', error)
@@ -252,22 +282,23 @@ const ProgressTrackerCard = ({ title, requestedDate, actionLabel, steps, id_proy
     }
 
     const handleReject = async () => {
-      try {
-        console.log('Handling reject')
-        const { error } = await supabase
-          .from('postulacion')
-          .update({ estatus: 'Declinadx por el alumnx' })
-          .eq('id_proyecto', id_proyecto)
+  try {
+    const { error } = await supabase
+      .from('postulacion')
+      .update({ estatus: 'Declinadx por el alumnx' })
+      .eq('id_proyecto', id_proyecto)
 
-        if (error) throw error
+    if (error) throw error
 
-        console.log('DB updated to declinadx por el alumnx')
-        setCurrentDBStatus('declinadx por el alumnx')
-        setIsResponding(false)
-      } catch (error) {
-        console.error('Error updating status:', error)
-      }
-    }
+    await incrementarCupos()
+
+    setCurrentDBStatus('declinadx por el alumnx')
+    setIsResponding(false)
+  } catch (error) {
+    console.error('Error updating status:', error)
+  }
+}
+
 
     return (
       <div className="w-full lg:h-50 max-w-4xl mx-auto bg-[#0a2170] text-white rounded-xl p-4 md:p-6 mb-4">
