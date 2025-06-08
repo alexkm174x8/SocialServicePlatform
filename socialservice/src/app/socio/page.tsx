@@ -280,7 +280,7 @@ const handleTerminarCupos = async () => {
       <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-end gap-5">
 
 
- <DetailButton
+      <DetailButton
   texto={cuposRestantes === 0 ? "Cupos cerrados" : "Cerrar cupos"}
   size="auto"
   color="blue"
@@ -288,9 +288,7 @@ const handleTerminarCupos = async () => {
   onClick={() => {
     if (cuposRestantes !== 0) setIsConfirmModalOpen(true);
   }}
-  disabled={cuposRestantes === 0}
 />
-
 
         </div>
              <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-5">

@@ -113,10 +113,11 @@ const CompararDrawer: React.FC<CompararDrawerProps> = ({
 
       {/* Contenido */}
       <div
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-        className="p-4 flex flex-col gap-4"
-      >
+  onDrop={handleDrop}
+  onDragOver={handleDragOver}
+  className="p-4 flex flex-col gap-4 overflow-y-auto max-h-[calc(100vh-64px)]"
+>
+
         {/* Área para subir archivos */}
         <div className="border-2 border-dashed border-blue-900 p-6 rounded-xl flex flex-col items-center justify-center text-center space-y-2 bg-blue-50">
           <img src="/upload.svg" alt="upload" className="h-8 w-8 text-blue-900" />
