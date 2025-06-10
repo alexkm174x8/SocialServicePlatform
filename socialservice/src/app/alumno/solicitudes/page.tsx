@@ -309,6 +309,11 @@ const ProgressTrackerCard = ({ title, requestedDate, actionLabel, steps, id_proy
   const canRespond = localSteps[2]?.status === 'in-progress' && !hasAcceptedProject && !isCheckingAcceptance
 
   const renderResponderButton = () => {
+    const handleClick = () => setIsResponding(true)
+    const baseProps = { texto: 'Responder', size: 'auto' as const, onClick: handleClick, disabled: !canRespond }
+    const colorClass = canRespond ? 'bg-[#fc8b01] hover:bg-[#faa846]' : 'bg-gray-400 hover:bg-gray-600'
+    return <ActionButton {...baseProps} colorClass={colorClass} />
+      {/*
     const handleClick = () => {
       if (hasAcceptedProject) {
         // Show a more prominent message or prevent action
@@ -339,6 +344,7 @@ const ProgressTrackerCard = ({ title, requestedDate, actionLabel, steps, id_proy
         tooltipText="Ya tienes un proyecto aceptado"
       />
     )
+    */}
   }
 
   if (isResponding) {
@@ -383,10 +389,10 @@ const ProgressTrackerCard = ({ title, requestedDate, actionLabel, steps, id_proy
       <div className="w-full lg:h-50 max-w-4xl mx-auto bg-[#0a2170] text-white rounded-xl p-4 md:p-6 mb-4">
         <div className="flex items-center mb-4">
           <ArrowLeft className="w-6 h-6 cursor-pointer mr-2" onClick={() => setIsResponding(false)} />
-          <h2 className="text-xl font-bold"> {`¿Aceptas ${title} como proyecto solidario definitivo?`} </h2>
+          <h2 className="text-xl font-bold"> {`¿Aceptas "${title}" como proyecto solidario definitivo?`} </h2>
         </div>
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div className="flex space-x-4 w-full md:w-auto justify-center md:justify-start">
+        <div className="flex flex-col md:flex-row justify-center items-center gap-4 my-12">
+          <div className="flex space-x-4 w-full md:w-auto justify-center">
             <ActionButton 
               texto="Rechazar" 
               size="auto" 
@@ -417,7 +423,7 @@ const ProgressTrackerCard = ({ title, requestedDate, actionLabel, steps, id_proy
               texto={actionLabel} 
               size="auto" 
               onClick={() => router.push(`/alumno/explorar/proyecto/${id_proyecto}`)} 
-              colorClass="bg-cyan-500 hover:bg-blue-700 text-[#0a2170] border border-[#0a2170]"
+              colorClass="bg-[#3455c2] hover:bg-[#4e6dd4] text-[#0a2170] border border-[#0a2170]"
             />
             {renderResponderButton()}
           </div>

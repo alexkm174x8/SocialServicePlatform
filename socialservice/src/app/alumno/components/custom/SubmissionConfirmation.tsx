@@ -73,7 +73,7 @@ const SubmissionConfirmation: React.FC<SubmissionConfirmationProps> = ({ onClose
           </button>
           <button 
             onClick={onSubmit}
-            className="px-6 py-2 rounded-full bg-blue-800 text-white font-semibold hover:bg-blue-900 transition"
+            className="px-6 py-2 rounded-full bg-blue-900 text-white font-semibold hover:bg-blue-800 transition"
           >
             Enviar
           </button>

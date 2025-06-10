@@ -401,7 +401,10 @@ const handleTerminarCupos = async () => {
 
            {isDownloadModalOpen && (
              <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-               <Download onClose={() => setIsDownloadModalOpen(false)} />
+               <Download 
+                 onClose={() => setIsDownloadModalOpen(false)} 
+                 idProyecto={proyectosSocio.length === 1 ? proyectosSocio[0] : (filterCarrera.length === 0 && filterEstado.length === 0 ? solicitudes[0]?.id_proyecto : null)}
+               />
              </div>
            )}
 
