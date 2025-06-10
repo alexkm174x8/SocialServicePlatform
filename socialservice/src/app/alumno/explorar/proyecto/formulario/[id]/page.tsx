@@ -14,9 +14,9 @@ type ProjectData = {
   id_proyecto: number;
   proyecto: string;
   modalidad: string;
-  fecha_ejecucion: string;
-  ubicacion: string;
-  horario: string;
+  num_pmt: string;
+  lugar_trabajo: string;
+  detalles_horario: string;
   horas: number;
   cupos: number;
   pregunta_1: string;
@@ -422,10 +422,10 @@ router.push("/alumno/explorar");
                   <DetalleProyecto
                     detalles={{
                       modalidad: project.modalidad,
-                      periodo: project.fecha_ejecucion,
-                      ubicacion: project.ubicacion,
+                      periodo: project.num_pmt,
+                      ubicacion: project.lugar_trabajo,
                       diasEjecucion: [
-                        `Horario: ${project.horario}`,
+                        `Horario: ${project.detalles_horario}`,
                         `Horas totales: ${project.horas}`,
                       ],
                     }}
