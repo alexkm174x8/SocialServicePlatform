@@ -233,6 +233,7 @@ const { error } = await supabase
     respuesta_3: form.r3,
 });
 
+
 if (error) throw error;
 
 // Reducir en 1 los cupos disponibles
