@@ -7,12 +7,14 @@ import { SearchBar } from "@/app/components/SearchBar";
 import { FilterButton } from "@/app/components/FilterButton";
 import { ListItem } from "@/app/components/ListItem";
 import { SideBar } from "@/app/admin/components/custom/AdminSideBar";
-import { FolderOpen } from "lucide-react";
+import { FolderOpen, Trash2 } from "lucide-react";
 import UploaderButton from "@/app/admin/components/custom/UploaderButton";
 import DownloadModal from '@/app/admin/components/custom/DownloadModal';
 import { DetailButton } from "@/app/components/DetailButton";
+import { LogOutModal } from "@/app/components/LogOutModal";
 
 type Explorar = {
+  id_proyecto: number;
   subido: string;
   estatus: string;
   perfil: string;
@@ -62,6 +64,8 @@ export default function Explorar() {
   const [isUploaderVisible, setIsUploaderVisible] = useState(false);
   const [isDownloadModalVisible, setIsDownloadModalVisible] = useState(false);
   const [filterEstado, setFilterEstado] = useState<string[]>([]);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const fetchProyectos = async () => {
@@ -75,6 +79,7 @@ export default function Explorar() {
         }
 
         const formattedData = data.map((item) => ({
+          id_proyecto: item.id_proyecto,
           subido: new Date().toISOString(),
           estatus: "Activo",
           representante: item.responsable || "N/A",
@@ -117,6 +122,101 @@ export default function Explorar() {
 
   const handleFileUpload = (file: File) => {
     console.log("Archivo recibido:", file);
+  };
+
+  const handleDeleteAll = async () => {
+    setIsDeleting(true);
+    try {
+      // Delete in correct order to maintain referential integrity
+      // 1. First delete all postulaciones
+      const { error: postulacionesError } = await supabase
+        .from('postulacion')
+        .delete()
+        .neq('id_proyecto', 0); // Delete all rows
+
+      if (postulacionesError) throw postulacionesError;
+
+      // 2. Then delete all socioformador entries
+      const { error: socioformadorError } = await supabase
+        .from('socioformador')
+        .delete()
+        .neq('id_proyecto', 0); // Delete all rows
+
+      if (socioformadorError) throw socioformadorError;
+
+      // 3. Finally delete all proyectos_solidarios
+      const { error: proyectosError } = await supabase
+        .from('proyectos_solidarios')
+        .delete()
+        .neq('id_proyecto', 0); // Delete all rows
+
+      if (proyectosError) throw proyectosError;
+
+      // 4. Delete all users with @gmail.com domain using API route
+      try {
+        const response = await fetch('/api/delete-gmail-users', {
+          method: 'DELETE',
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          console.log('Gmail users deletion result:', result);
+        } else {
+          const errorData = await response.json();
+          console.error('Error deleting gmail users:', errorData);
+        }
+      } catch (authError) {
+        console.error('Error calling gmail users deletion API:', authError);
+        // Don't throw here as the main deletion was successful
+      }
+
+      // Refresh the data
+      setExplorar([]);
+      alert('Todos los proyectos y datos relacionados han sido eliminados exitosamente.');
+    } catch (error) {
+      console.error('Error deleting data:', error);
+      alert('Error al eliminar los datos. Por favor intenta de nuevo.');
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteModal(false);
+    }
+  };
+
+  const handleDeleteProject = async (id: number) => {
+    try {
+      // Delete in correct order to maintain referential integrity
+      // 1. First delete all postulaciones for this project
+      const { error: postulacionesError } = await supabase
+        .from('postulacion')
+        .delete()
+        .eq('id_proyecto', id);
+
+      if (postulacionesError) throw postulacionesError;
+
+      // 2. Then delete the socioformador entry for this project
+      const { error: socioformadorError } = await supabase
+        .from('socioformador')
+        .delete()
+        .eq('id_proyecto', id);
+
+      if (socioformadorError) throw socioformadorError;
+
+      // 3. Finally delete the proyecto_solidario
+      const { error: proyectosError } = await supabase
+        .from('proyectos_solidarios')
+        .delete()
+        .eq('id_proyecto', id);
+
+      if (proyectosError) throw proyectosError;
+
+      // Update the local state
+      setExplorar(prev => prev.filter(proj => proj.id_proyecto !== id));
+      alert('Proyecto eliminado exitosamente.');
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      alert('Error al eliminar el proyecto. Por favor intenta de nuevo.');
+      throw error; // Re-throw to be handled by the ListItem component
+    }
   };
 
   const filtered = explorar.filter((s) => {
@@ -189,7 +289,7 @@ export default function Explorar() {
           </div>
         </div>
 
-        <div className="">
+        <div className="flex gap-4 mb-4">
           <DetailButton
             texto="Subir proyectos"
             size="auto"
@@ -197,7 +297,25 @@ export default function Explorar() {
             id={0}
             onClick={() => setIsUploaderVisible(true)}
           />
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            className="bg-red-600 hover:bg-red-700 text-white font-semibold text-sm px-8 py-[6px] rounded-full flex items-center justify-center leading-tight transition duration-200"
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Eliminar todos los proyectos
+          </button>
         </div>
+
+        {showDeleteModal && (
+          <LogOutModal
+            title="Eliminar todos los proyectos"
+            message="¿Estás seguro que deseas eliminar todos los proyectos y sus datos relacionados? Esta acción no se puede deshacer."
+            confirmText={isDeleting ? "Eliminando..." : "Eliminar todo"}
+            cancelText="Cancelar"
+            onConfirm={handleDeleteAll}
+            onCancel={() => setShowDeleteModal(false)}
+          />
+        )}
 
         {isUploaderVisible && (
           <div
@@ -241,7 +359,7 @@ export default function Explorar() {
         )}
 
         <div className="align-items justify-center">
-          <ListItem data={filtered} />
+          <ListItem data={filtered} onDelete={handleDeleteProject} />
         </div>
       </main>
     </>
