@@ -48,7 +48,12 @@ export default function Solicitudes() {
   const [proyectosSocio, setProyectosSocio] = useState<number[]>([]); // IDs de proyectos del socio
   const [nombreProyecto, setNombreProyecto] = useState<string>("");
 
+
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [cuposRestantes, setCuposRestantes] = useState<number | null>(null);
+
+
 
 const showToast = (msg: string) => {
   setToastMessage(msg);
@@ -145,15 +150,22 @@ const showToast = (msg: string) => {
 
         const { data: proyectos, error: errorProyectos } = await supabase
           .from('proyectos_solidarios')
-          .select(`id_proyecto, proyecto`)
+          .select(`id_proyecto, proyecto, cupos`)
+        
           .in('id_proyecto', ids);
+          
 
         if (errorProyectos) {
           throw errorProyectos;
         }
+        
 
         const formattedData = postulaciones.map((item) => {
           const proyectoMatch = proyectos.find((p) => p.id_proyecto === item.id_proyecto);
+if (item.id_proyecto === proyectos[0]?.id_proyecto) {
+  setCuposRestantes(proyectoMatch?.cupos ?? null);
+}
+
           return {
             estatus: item.estatus,
             matricula: item.matricula,
@@ -210,9 +222,35 @@ const showToast = (msg: string) => {
 
   const matchesCarrera = filterCarrera.length === 0 || filterCarrera.includes(s.carrera);
   const matchesEstado = filterEstado.length === 0 || filterEstado.includes(s.estatus);
-
   return matchesSearch && matchesCarrera && matchesEstado;
 });
+
+const handleTerminarCupos = async () => {
+  if (solicitudes.length === 0 || !solicitudes[0]?.id_proyecto) {
+    showToast("No hay proyecto para finalizar cupos.");
+    return;
+  }
+
+  const idProyecto = solicitudes[0].id_proyecto;
+
+
+  try {
+    const { error } = await supabase
+      .from('proyectos_solidarios')
+      .update({ cupos: 0 })
+      .eq('id_proyecto', idProyecto);
+
+    if (error) {
+      console.error("Error al finalizar cupos:", error.message);
+      showToast("Error al finalizar cupos.");
+    } else {
+      showToast("Los cupos se han finalizado correctamente.");
+    }
+  } catch (err) {
+    console.error("Error inesperado:", err);
+    showToast("Hubo un error al finalizar los cupos.");
+  }
+};
 
 
   // Enviar los cambios de estatus a la base de datos
@@ -261,6 +299,20 @@ const showToast = (msg: string) => {
       />
 
      <main className="mt-28 px-15">
+      <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-end gap-5">
+
+
+      <DetailButton
+  texto={cuposRestantes === 0 ? "Cupos cerrados" : "Cerrar cupos"}
+  size="auto"
+  color="blue"
+  id={2}
+  onClick={() => {
+    if (cuposRestantes !== 0) setIsConfirmModalOpen(true);
+  }}
+/>
+
+        </div>
              <div className="mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
                <SearchBar
                  search={search}
@@ -332,6 +384,7 @@ const showToast = (msg: string) => {
                    <div className="w-4 h-4 rounded bg-black" />
                    <span className="text-[#001C55] font-medium">No inscritx</span>
                  </div>
+              
                </div>
              </div>
      
@@ -362,6 +415,32 @@ const showToast = (msg: string) => {
     {toastMessage}
   </div>
 )}
+{isConfirmModalOpen && (
+  <div className="fixed inset-0 z-50 bg-black/30  flex items-center justify-center">
+    <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
+      <h2 className="text-xl font-bold text-[#0a2170] mb-4">Cerrar sesión</h2>
+      <p className="text-gray-800 mb-6">¿Estás seguro que deseas cerrar los cupos?</p>
+      <div className="flex justify-end gap-4">
+        <button
+          onClick={() => setIsConfirmModalOpen(false)}
+          className="border border-[#0a2170] text-[#0a2170] font-semibold px-4 py-2 rounded-full hover:bg-[#f0f4ff] transition"
+        >
+          Cancelar
+        </button>
+        <button
+          onClick={() => {
+            setIsConfirmModalOpen(false);
+            handleTerminarCupos();
+          }}
+          className="text-white font-semibold px-4 py-2  bg-black bg-opacity-30  rounded-full hover:bg-[#001C55] transition"
+        >
+          Cerrar cupos
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
          </>
        );
      }

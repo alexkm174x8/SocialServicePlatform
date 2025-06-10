@@ -18,6 +18,7 @@ type ProjectData = {
   ubicacion: string;
   horario: string;
   horas: number;
+  cupos: number;
   pregunta_1: string;
   pregunta_2: string;
   pregunta_3: string;
@@ -217,25 +218,34 @@ r3: {
         return
       }
 
-      const { error } = await supabase
-        .from("postulacion")
-        .insert({
-          matricula: form.matricula,
-          id_proyecto: project.id_proyecto,
-          estatus: "Postulado",
-          nombre: form.nombre,
-          carrera: form.carreraCompleta,
-          email: session.user.email, // Use the email from session instead of form
-          numero: form.telefono,
-          respuesta_1: form.r1,
-          respuesta_2: form.r2, 
-          respuesta_3: form.r3,
-        });
+const { error } = await supabase
+  .from("postulacion")
+  .insert({
+    matricula: form.matricula,
+    id_proyecto: project.id_proyecto,
+    estatus: "Postulado",
+    nombre: form.nombre,
+    carrera: form.carreraCompleta,
+    email: session.user.email,
+    numero: form.telefono,
+    respuesta_1: form.r1,
+    respuesta_2: form.r2, 
+    respuesta_3: form.r3,
+});
 
-      if (error) throw error;
 
-      // Redirect to explore page after successful submission
-      router.push("/alumno/explorar");
+if (error) throw error;
+
+// Reducir en 1 los cupos disponibles
+const { error: updateError } = await supabase
+  .from("proyectos_solidarios")
+  .update({ cupos: project.cupos - 1 })
+  .eq("id_proyecto", project.id_proyecto);
+
+if (updateError) throw updateError;
+
+router.push("/alumno/explorar");
+
     } catch (error) {
       console.error("Error submitting application:", error);
       setWarning("Error al enviar la postulación. Por favor intenta de nuevo.");
