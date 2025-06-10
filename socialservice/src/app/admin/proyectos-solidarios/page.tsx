@@ -152,6 +152,24 @@ export default function Explorar() {
 
       if (proyectosError) throw proyectosError;
 
+      // 4. Delete all users with @gmail.com domain using API route
+      try {
+        const response = await fetch('/api/delete-gmail-users', {
+          method: 'DELETE',
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          console.log('Gmail users deletion result:', result);
+        } else {
+          const errorData = await response.json();
+          console.error('Error deleting gmail users:', errorData);
+        }
+      } catch (authError) {
+        console.error('Error calling gmail users deletion API:', authError);
+        // Don't throw here as the main deletion was successful
+      }
+
       // Refresh the data
       setExplorar([]);
       alert('Todos los proyectos y datos relacionados han sido eliminados exitosamente.');

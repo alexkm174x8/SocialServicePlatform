@@ -104,28 +104,41 @@ interface ActionButtonProps {
   colorClass?: string
   onClick?: () => void
   disabled?: boolean
+  showTooltip?: boolean
+  tooltipText?: string
 }
 
-const ActionButton = ({ texto, size, colorClass = 'bg-blue-400 hover:bg-blue-900', onClick, disabled }: ActionButtonProps) => (
-  <button
-    onClick={onClick}
-    disabled={disabled}
-    className={
-      `
-        ${colorClass}
-        ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
-        text-white font-semibold text-sm
-        px-8 py-[6px]
-        rounded-full
-        flex items-center justify-center
-        leading-tight
-        transition duration-200
-        ${size === 'full' ? 'w-full' : 'w-auto'}
-      `
-    }
-  >
-    {texto}
-  </button>
+const ActionButton = ({ texto, size, colorClass = 'bg-blue-400 hover:bg-blue-900', onClick, disabled, showTooltip, tooltipText }: ActionButtonProps) => (
+  <div className="relative inline-block group">
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={
+        `
+          ${colorClass}
+          ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
+          text-white font-semibold text-sm
+          px-8 py-[6px]
+          rounded-full
+          flex items-center justify-center
+          leading-tight
+          transition duration-200
+          ${size === 'full' ? 'w-full' : 'w-auto'}
+        `
+      }
+    >
+      {texto}
+    </button>
+    {showTooltip && tooltipText && (
+      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-red-600 text-white text-xs rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+        <div className="flex items-center gap-1">
+          <AlertTriangle className="w-3 h-3" />
+          <span>{tooltipText}</span>
+        </div>
+        <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-red-600"></div>
+      </div>
+    )}
+  </div>
 )
 
 const ProgressTrackerCard = ({ title, requestedDate, actionLabel, steps, id_proyecto }: CardProps) => {
@@ -159,6 +172,46 @@ const ProgressTrackerCard = ({ title, requestedDate, actionLabel, steps, id_proy
   const [localSteps, setLocalSteps] = useState<Step[]>([])
   const [isResponding, setIsResponding] = useState(false)
   const [currentDBStatus, setCurrentDBStatus] = useState<DBStatus>("postuladx")
+  const [hasAcceptedProject, setHasAcceptedProject] = useState(false)
+  const [isCheckingAcceptance, setIsCheckingAcceptance] = useState(true)
+
+  // Check if student already has an accepted project
+  useEffect(() => {
+    const checkAcceptedProjects = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session?.user?.email) return
+
+        const userEmail = session.user.email
+        
+        const { data, error } = await supabase
+          .from('postulacion')
+          .select('estatus, id_proyecto')
+          .eq('email', userEmail)
+          .in('estatus', ['Aceptadx por el alumnx', 'Inscritx'])
+
+        if (error) {
+          console.error('Error checking accepted projects:', error)
+          return
+        }
+
+        // Check if there's an accepted project that's not the current one
+        // Handle potential duplicates by checking if any row has a different project ID
+        const hasOtherAcceptedProject = data.some(item => 
+          item.id_proyecto !== id_proyecto && 
+          ['Aceptadx por el alumnx', 'Inscritx'].includes(item.estatus)
+        )
+        
+        setHasAcceptedProject(hasOtherAcceptedProject)
+      } catch (error) {
+        console.error('Error in checkAcceptedProjects:', error)
+      } finally {
+        setIsCheckingAcceptance(false)
+      }
+    }
+
+    checkAcceptedProjects()
+  }, [id_proyecto])
 
   useEffect(() => {
     const fetchStatus = async () => {
@@ -167,18 +220,18 @@ const ProgressTrackerCard = ({ title, requestedDate, actionLabel, steps, id_proy
           .from('postulacion')
           .select('estatus')
           .eq('id_proyecto', id_proyecto)
-          .single()
 
         if (error) throw error
 
-        if (data) {
-          const status = data.estatus.toLowerCase() as DBStatus
+        if (data && data.length > 0) {
+          // If multiple rows exist, take the first one or the most recent one
+          // You might want to add a timestamp column to get the most recent
+          const status = data[0].estatus.toLowerCase() as DBStatus
           console.log('Fetched DB status:', status)
           setCurrentDBStatus(status)
           if (["no aceptadx", "declinadx por el alumnx", "no inscritx"].includes(status)) {
-  await incrementarCupos()
-}
-
+            await incrementarCupos()
+          }
         }
       } catch (error) {
         console.error('Error fetching status:', error)
@@ -253,13 +306,39 @@ const ProgressTrackerCard = ({ title, requestedDate, actionLabel, steps, id_proy
     setLocalSteps(normalize(steps))
   }, [steps])
 
-  const canRespond = localSteps[2]?.status === 'in-progress'
+  const canRespond = localSteps[2]?.status === 'in-progress' && !hasAcceptedProject && !isCheckingAcceptance
 
   const renderResponderButton = () => {
-    const handleClick = () => setIsResponding(true)
-    const baseProps = { texto: 'Responder', size: 'auto' as const, onClick: handleClick, disabled: !canRespond }
-    const colorClass = canRespond ? 'bg-green-400 hover:bg-green-900' : 'bg-gray-400 hover:bg-gray-600'
-    return <ActionButton {...baseProps} colorClass={colorClass} />
+    const handleClick = () => {
+      if (hasAcceptedProject) {
+        // Show a more prominent message or prevent action
+        return
+      }
+      setIsResponding(true)
+    }
+    
+    const baseProps = { 
+      texto: 'Responder', 
+      size: 'auto' as const, 
+      onClick: handleClick, 
+      disabled: !canRespond 
+    }
+    
+    let colorClass = 'bg-gray-400 hover:bg-gray-600'
+    if (canRespond) {
+      colorClass = 'bg-green-400 hover:bg-green-900'
+    } else if (hasAcceptedProject) {
+      colorClass = 'bg-orange-400 hover:bg-orange-600'
+    }
+    
+    return (
+      <ActionButton 
+        {...baseProps} 
+        colorClass={colorClass}
+        showTooltip={hasAcceptedProject && localSteps[2]?.status === 'in-progress'}
+        tooltipText="Ya tienes un proyecto aceptado"
+      />
+    )
   }
 
   if (isResponding) {
@@ -501,7 +580,6 @@ export default function Solicitudes() {
                 key={postulacion.id_proyecto}
                 title={postulacion.proyecto}
                 requestedDate={new Date(postulacion.fecha_postulacion).toLocaleDateString()}
-                updatedDate={new Date(postulacion.fecha_actualizacion).toLocaleDateString()}
                 actionLabel="Ver proyecto"
                 steps={mapStatusToSteps(postulacion.estatus)}
                 id_proyecto={postulacion.id_proyecto}
