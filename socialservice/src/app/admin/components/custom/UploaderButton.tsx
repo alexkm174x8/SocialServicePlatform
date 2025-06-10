@@ -6,7 +6,19 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true
+  },
+  global: {
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    }
+  }
+});
 
 const requiredFields = ["id_proyecto","cupos", "perfil_aceptacion", "proyecto", "objetivo_ps", "num_pmt", "ods_ps", "actividades", "detalles_horario", "habilidades", "modalidad", "lugar_trabajo", "duracion", "horas", "tipo_inscripcion", "ruta_maps", "crn", "grupo", "clave", "periodo_academico", "fecha_pue", "pregunta_1", "pregunta_2", "pregunta_3", "carreras", "correo"] as const;
 
@@ -96,13 +108,31 @@ const UploaderButton: React.FC<UploaderButtonProps> = ({ onClose }) => {
             setErrorMessage('Error al insertar el registro dado que el campo "proyecto" está vacío');
             return;
           }
-          const { data: existingRecord, error: fetchError } = await supabase
-            .from('proyectos_solidarios')
-            .select('proyecto')
-            .eq('proyecto', record.proyecto)
-            .single();
+          
+          // Add proper error handling for the Supabase query
+          let existingRecord = null;
+          let fetchError = null;
+          
+          try {
+            console.log('Checking for existing project:', record.proyecto);
+            
+            // Try a different approach to avoid 406 error
+            const { data, error } = await supabase
+              .from('proyectos_solidarios')
+              .select('proyecto')
+              .eq('proyecto', record.proyecto)
+              .limit(1);
+              
+            existingRecord = data && data.length > 0 ? data[0] : null;
+            fetchError = error;
+            console.log('Supabase query result:', { data, error });
+          } catch (err) {
+            console.error('Error in Supabase query:', err);
+            fetchError = { code: 'QUERY_ERROR', message: 'Error en la consulta' };
+          }
 
           if (fetchError && fetchError.code !== 'PGRST116') {
+            console.error('Supabase fetch error:', fetchError);
             setErrorMessage("Hubo un error al verificar los datos existentes.");
             return;
           }
@@ -157,7 +187,21 @@ const UploaderButton: React.FC<UploaderButtonProps> = ({ onClose }) => {
             const result = await response.json();
             console.log('Create users API response:', JSON.stringify(result, null, 2));
 
-            const failedProjects = result.results.filter((r: any) => !r.success);
+            // Validate the response structure
+            if (!result || typeof result !== 'object') {
+              console.error('Invalid API response structure:', result);
+              setErrorMessage("Los proyectos se subieron correctamente pero la respuesta del API es inválida.");
+              return;
+            }
+
+            // Check if results array exists
+            if (!result.resultados || !Array.isArray(result.resultados)) {
+              console.error('Missing or invalid resultados array in API response:', result);
+              setErrorMessage("Los proyectos se subieron correctamente pero la respuesta del API no contiene los resultados esperados.");
+              return;
+            }
+
+            const failedProjects = result.resultados.filter((r: any) => !r.success);
             if (failedProjects.length > 0) {
               console.error('Failed projects details:', JSON.stringify(failedProjects, null, 2));
               const errorDetails = failedProjects.map((p: any) => 
@@ -171,8 +215,8 @@ const UploaderButton: React.FC<UploaderButtonProps> = ({ onClose }) => {
             }
 
             // If we have a summary, show it in the success message
-            if (result.summary) {
-              const successMessage = `Archivo importado exitosamente. Se crearon ${result.summary.successful} usuarios de ${result.summary.total} proyectos.`;
+            if (result.resumen) {
+              const successMessage = `Archivo importado exitosamente. Se crearon ${result.resumen.exitosos} usuarios de ${result.resumen.total} proyectos.`;
               console.log('Success message:', successMessage);
               setSuccessMessage(successMessage);
             } else {
