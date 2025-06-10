@@ -10,9 +10,10 @@ const columnOptions = ['Estado', 'Matrícula', 'Correo', 'Carrera', 'Teléfono',
 
 interface DownloadModalProps {
   onClose: () => void;
+  idProyecto?: number | null;
 }
 
-const DownloadModal: React.FC<DownloadModalProps> = ({ onClose }) => {
+const DownloadModal: React.FC<DownloadModalProps> = ({ onClose, idProyecto }) => {
   const [format, setFormat] = useState('PDF');
   const [selectedColumn, setSelectedColumn] = useState('Nombre');
   const [columns, setColumns] = useState<string[]>(['Nombre', 'Modalidad']);
@@ -44,8 +45,12 @@ const DownloadModal: React.FC<DownloadModalProps> = ({ onClose }) => {
 
   const handleDownload = async () => {
     try {
-      // Obtener los datos de la tabla "postulacion" desde Supabase
-      const { data, error } = await supabase.from('postulacion').select('*');
+      // Obtener los datos de la tabla "postulacion" desde Supabase, filtrando por id_proyecto si está definido
+      let query = supabase.from('postulacion').select('*');
+      if (idProyecto) {
+        query = query.eq('id_proyecto', idProyecto);
+      }
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error al obtener los datos:', error);
@@ -75,7 +80,7 @@ const DownloadModal: React.FC<DownloadModalProps> = ({ onClose }) => {
         // Generar archivo PDF
         const doc = new jsPDF({ orientation: 'landscape' });
         const headers = Object.keys(data[0]);
-        const rows = data.map((row) => Object.values(row));
+        const rows = data.map((row) => Object.values(row) as any[]);
 
         doc.text('Postulaciones de alumnos', 10, 10);
         autoTable(doc, { head: [headers], body: rows });
